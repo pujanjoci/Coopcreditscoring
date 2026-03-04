@@ -1,0 +1,28 @@
+/* Supplemental styles for updated index.html (table, chart, small layout tweaks) */
+
+.form-grid{display:flex;flex-wrap:wrap;gap:12px}
+.form-group{flex:1 1 220px;display:flex;flex-direction:column}
+.form-group.full-width{flex:1 1 100%}
+.form-group label{font-weight:600;margin-bottom:6px}
+.form-group input{padding:8px;border:1px solid var(--border-light);border-radius:6px}
+
+#calculate_btn, #reset_btn{background:var(--primary);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+#reset_btn{background:#64748b}
+#calculate_btn:hover{opacity:0.95}
+
+.charts-grid{display:flex;gap:16px;align-items:flex-start}
+.chart-card{background:#fff;border-radius:10px;padding:12px;box-shadow:var(--shadow-sm);flex:0 0 420px}
+.chart-card-title{font-weight:700;margin-bottom:8px}
+
+.detailed-table{width:100%;border-collapse:collapse;font-size:14px}
+.detailed-table thead th{background:#f4f6f9;padding:8px;text-align:left;border-bottom:1px solid var(--border-light)}
+.detailed-table tbody td{padding:8px;border-bottom:1px dashed #e6eef8}
+.detailed-table tbody tr:last-child td{border-bottom:none}
+
+.hidden{display:none}
+
+/* small responsive tweaks */
+@media (max-width:900px){
+  .charts-grid{flex-direction:column}
+  .chart-card{flex:1 1 auto}
+}

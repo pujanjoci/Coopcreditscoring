@@ -50,48 +50,68 @@
 
             <div class="nav-group-label">Assessment Sections</div>
             <button class="sidebar-nav-item disabled" data-section="section-1" onclick="handleSidebarClick('section-1')">
-                <i data-lucide="building-2" class="nav-icon"></i>
-                <span>1. Cooperative Info</span>
+                <i data-lucide="info" class="nav-icon"></i>
+                <span>1. Identity &amp; Classification</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-2" onclick="handleSidebarClick('section-2')">
-                <i data-lucide="bar-chart-2" class="nav-icon"></i>
-                <span>2. Financial Metrics</span>
+                <i data-lucide="landmark" class="nav-icon"></i>
+                <span>2. Loan Structure</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-3" onclick="handleSidebarClick('section-3')">
-                <i data-lucide="droplets" class="nav-icon"></i>
-                <span>3. Milk &amp; Operations</span>
+                <i data-lucide="trending-up" class="nav-icon"></i>
+                <span>3. Revenue Breakdown</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-4" onclick="handleSidebarClick('section-4')">
-                <i data-lucide="refresh-cw" class="nav-icon"></i>
-                <span>4. Loan Recovery</span>
+                <i data-lucide="receipt" class="nav-icon"></i>
+                <span>4. Expense Breakdown</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-5" onclick="handleSidebarClick('section-5')">
-                <i data-lucide="factory" class="nav-icon"></i>
-                <span>5. Buyer Risk</span>
+                <i data-lucide="package" class="nav-icon"></i>
+                <span>5. Assets Breakdown</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-6" onclick="handleSidebarClick('section-6')">
-                <i data-lucide="users" class="nav-icon"></i>
-                <span>6. Management</span>
+                <i data-lucide="activity" class="nav-icon"></i>
+                <span>6. Liabilities Breakdown</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-7" onclick="handleSidebarClick('section-7')">
                 <i data-lucide="banknote" class="nav-icon"></i>
-                <span>7. Cash &amp; Farmers</span>
+                <span>7. Equity Breakdown</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
             <button class="sidebar-nav-item disabled" data-section="section-8" onclick="handleSidebarClick('section-8')">
-                <i data-lucide="shield-check" class="nav-icon"></i>
-                <span>8. Declarations</span>
+                <i data-lucide="droplets" class="nav-icon"></i>
+                <span>8. Milk Operations</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
-            <button class="sidebar-nav-item disabled hidden" data-section="section-9" id="nav_section9" onclick="handleSidebarClick('section-9')">
-                <i data-lucide="landmark" class="nav-icon"></i>
-                <span>9. Banking History</span>
+            <button class="sidebar-nav-item disabled" data-section="section-9" onclick="handleSidebarClick('section-9')">
+                <i data-lucide="refresh-cw" class="nav-icon"></i>
+                <span>9. Member Loan Portfolio</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-10" onclick="handleSidebarClick('section-10')">
+                <i data-lucide="shield" class="nav-icon"></i>
+                <span>10. Collateral Breakdown</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-11" onclick="handleSidebarClick('section-11')">
+                <i data-lucide="bar-chart-2" class="nav-icon"></i>
+                <span>11. Liquidity Tracking</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-12" onclick="handleSidebarClick('section-12')">
+                <i data-lucide="users" class="nav-icon"></i>
+                <span>12. Governance &amp; Risk</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-13" onclick="handleSidebarClick('section-13')">
+                <i data-lucide="clipboard-list" class="nav-icon"></i>
+                <span>13. Due Diligence</span>
                 <i data-lucide="check" class="nav-check"></i>
             </button>
 
@@ -137,7 +157,7 @@
             <!-- =========================================
                  CONFIGURATION PANEL (always visible)
                  ========================================= -->
-            <div class="config-panel" id="section_config">
+            <div class="config-panel" id="config">
                 <h2><i data-lucide="settings"></i> Application Configuration</h2>
                 <div class="config-row">
                     <div class="config-card-group" id="config_group_coop">
@@ -201,548 +221,563 @@
             </div>
 
             <!-- =========================================
-                 SECTION 1 — Cooperative Information
+                 SECTION 1 — Identity & Classification
                  ========================================= -->
             <div class="form-section" id="section_1">
-                <div class="section-card">
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i data-lucide="building-2"></i> Cooperative Information
-                            <span class="section-badge">Section 1</span>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="bilingual-label">Cooperative Name / सहकारीको नाम</label>
-                            <input type="text" id="coop_name" placeholder="e.g., Laxmi Milk Cooperative">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">
-                                Model Type / मोडलको प्रकार
-                            </label>
-                            <select id="model_type" disabled>
-                                <option value="">-- Select Above --</option>
-                                <option value="Collection">Collection Only</option>
-                                <option value="Processing">Collection &amp; Processing</option>
-                            </select>
-                            <div class="input-hint">Auto-filled from configuration above</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">
-                                Proposed Loan Amount (NPR) / प्रस्तावित ऋण रकम (रु)
-                            </label>
-                            <input type="number" id="loan_proposed" min="0" placeholder="e.g., 3000000">
-                        </div>
-                    </div>
+                <!-- Basic Information -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <i data-lucide="info"></i> Identity &amp; Classification
+                    <span class="section-badge">Section 1</span>
                 </div>
+                <span style="font-size:0.82em;color:var(--text-secondary);">Weight: Part of Base Assessment</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label" for="coop_name">Cooperative Name <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="coop_name" placeholder="ABC Cooperative">
+                </div>
+                <div class="form-group">
+                    <label class="bilingual-label" for="model_type">Model Type</label>
+                    <select id="model_type" disabled>
+                        <option value="">-- Select Above --</option>
+                        <option value="Milk Collection Only (Model A)">Milk Collection Only (Model A)</option>
+                        <option value="Collection &amp; Processing (Model B)">Collection &amp; Processing (Model B)</option>
+                    </select>
+                    <div class="input-hint">Auto-filled from configuration above</div>
+                </div>
+                <div class="form-group">
+                    <label class="bilingual-label" for="loan_type">Loan Type</label>
+                    <select id="loan_type">
+                        <option value="New">New Loan</option>
+                        <option value="Existing">Existing Loan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="bilingual-label" for="years_operation">Years in Operation</label>
+                    <input type="number" id="years_operation" min="0" placeholder="e.g., 10">
+                </div>
+                <div class="form-group">
+                    <label class="bilingual-label" for="office_location">Office Location</label>
+                    <input type="text" id="office_location" placeholder="KTM">
+                </div>
+            </div>
+        </div>
             </div>
 
             <!-- =========================================
-                 SECTION 2 — Financial Metrics
+                 SECTION 2 — Loan Structure
                  ========================================= -->
             <div class="form-section" id="section_2">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="bar-chart-2"></i> Loan &amp; Financial Metrics
+                            <i data-lucide="landmark"></i> Loan Structure
                             <span class="section-badge">Section 2</span>
                         </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Critical for DSCR Calculation</span>
                     </div>
-
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="bilingual-label">Existing Loan Amount (NPR) / हाल चलिरहेको ऋण रकम (रु)</label>
-                            <input type="number" id="loan_existing" min="0" placeholder="e.g., 5000000">
+                            <label class="bilingual-label">Existing Loan Amount (NPR)</label>
+                            <input type="number" id="existing_loan" min="0" placeholder="e.g., 1500000">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Total Revenue (NPR) / कुल आम्दानी (रु)</label>
-                            <input type="number" id="revenue_total" min="0" placeholder="e.g., 35000000">
+                            <label class="bilingual-label">Proposed New Loan (NPR) <span style="color:var(--danger)">*</span></label>
+                            <input type="number" id="proposed_loan" min="0" placeholder="e.g., 200000" oninput="calculateTotalLoan()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">EBITDA (NPR) / संचालनबाट भएको आम्दानी (रु)</label>
-                            <input type="number" id="ebitda" placeholder="e.g., 2000000">
-                            <div class="input-hint">Operating Income</div>
+                            <label class="bilingual-label">Total Loan (Auto-calculated)</label>
+                            <input type="number" id="total_loan" readonly style="background:var(--bg-alt);">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Principal Repayment (NPR) / मूलधन भुक्तानी रकम (रु)</label>
-                            <input type="number" id="repayment_principal" min="0" placeholder="e.g., 1000000">
+                            <label class="bilingual-label">Interest Rate (% p.a.)</label>
+                            <input type="number" id="interest_rate" step="0.01" min="0" max="100" placeholder="e.g., 10">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Interest Payment (NPR) / ब्याज रकम (रु)</label>
-                            <input type="number" id="repayment_interest" min="0" placeholder="e.g., 250000">
+                            <label class="bilingual-label">Loan Tenure (Months)</label>
+                            <input type="number" id="loan_tenure" min="1" placeholder="e.g., 60">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Total Assets (NPR) / कुल सम्पत्ति (रु)</label>
-                            <input type="number" id="assets_total" min="0" placeholder="e.g., 15000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Total Liabilities (NPR) / कुल दायित्व (रु)</label>
-                            <input type="number" id="liabilities_total" min="0" placeholder="e.g., 9000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Current Assets (NPR) / चालु सम्पत्ति (रु)</label>
-                            <input type="number" id="assets_current" min="0" placeholder="e.g., 5000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Current Liabilities (NPR) / चालु दायित्व (रु)</label>
-                            <input type="number" id="liabilities_current" min="0" placeholder="e.g., 2800000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Total Debt (NPR) / कुल ऋण (रु)</label>
-                            <input type="number" id="debt_total" min="0" placeholder="e.g., 9000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Equity (NPR) / पूँजी / इक्विटी (रु)</label>
-                            <input type="number" id="equity" min="0" placeholder="e.g., 6000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Grant Income (NPR) / अनुदानबाट प्राप्त आम्दानी (रु)</label>
-                            <input type="number" id="income_grant" min="0" placeholder="e.g., 200000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Operating Expenses (NPR) / कुल सञ्चालन खर्च (रु)</label>
-                            <input type="number" id="expenses_operating" min="0" placeholder="e.g., 10000000">
-                            <div class="input-hint">Exclude depreciation &amp; non-operating items</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Average Inventory (NPR) / औसत भण्डारण मूल्य (रु)</label>
-                            <input type="number" id="inventory_avg" min="0" placeholder="e.g., 1000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">COGS (NPR) / लागत (रु)</label>
-                            <input type="number" id="cogs" min="0" placeholder="e.g., 28000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Accounts Receivable (NPR) / प्राप्त रकम (रु)</label>
-                            <input type="number" id="ar_total" min="0" placeholder="e.g., 2500000">
-                        </div>
-
-                        <!-- Model B Only -->
-                        <div class="form-group model-b-field hidden">
-                            <label class="bilingual-label">
-                                Quality SOP Score / गुणस्तर प्रक्रिया (SOP) स्कोर
-                            </label>
-                            <select id="quality_sop">
-                                <option value="">Select / छान्नुहोस्</option>
-                                <option value="consistent">Consistent - सुसंगत</option>
-                                <option value="few_gaps">Few Gaps - केही कमजोरी</option>
-                                <option value="large_gaps">Large Gaps - धेरै कमजोरी</option>
+                            <label class="bilingual-label">Installment Frequency</label>
+                            <select id="installment_freq">
+                                <option value="Monthly">Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
                             </select>
-                            <div class="input-hint">Required for Collection &amp; Processing model</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Annual Principal Repayment (NPR)</label>
+                            <input type="number" id="principal_repayment" min="0" placeholder="e.g., 500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Annual Interest Amount (NPR)</label>
+                            <input type="number" id="interest_amount" min="0" placeholder="e.g., 170000">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 SECTION 3 — Milk Supply & Operations
+                 SECTION 3 — Revenue Breakdown
                  ========================================= -->
             <div class="form-section" id="section_3">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="droplets"></i> Milk Supply &amp; Operations
+                            <i data-lucide="trending-up"></i> Revenue Breakdown
                             <span class="section-badge">Section 3</span>
                         </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 180 pts (Cash Flow)</span>
                     </div>
-
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="bilingual-label">Avg Monthly Milk (Liters) / मासिक औसत दूध सङ्कलन (लिटर)</label>
-                            <input type="number" id="milk_monthly_avg" min="0" placeholder="e.g., 50000">
+                            <label class="bilingual-label">Income from Milk Sales (NPR)</label>
+                            <input type="number" id="milk_sales" min="0" placeholder="e.g., 28000000" oninput="calculateRevenue()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Lowest Monthly Milk (Liters) / सबैभन्दा कम मासिक दूध सङ्कलन (लिटर)</label>
-                            <input type="number" id="milk_monthly_low" min="0" placeholder="e.g., 40000">
+                            <label class="bilingual-label">Other Product Sales (NPR)</label>
+                            <input type="number" id="other_product_sales" min="0" placeholder="e.g., 1800000" oninput="calculateRevenue()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Total Milk Collected (Liters) / कुल सङ्कलित दूध (लिटर)</label>
-                            <input type="number" id="milk_total" min="0" placeholder="e.g., 600000">
+                            <label class="bilingual-label">Other Income (NPR)</label>
+                            <input type="number" id="other_income" min="0" placeholder="e.g., 200000" oninput="calculateRevenue()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Milk Loss (Liters) / बिग्रिएको / नोक्सानी भएको दूध (लिटर)</label>
-                            <input type="number" id="milk_loss" min="0" placeholder="e.g., 75000">
+                            <label class="bilingual-label">Total Sales (Auto)</label>
+                            <input type="number" id="total_sales" readonly style="background:var(--bg-alt);">
                         </div>
-
-                        <!-- Model B Only Fields -->
-                        <div class="form-group model-b-field hidden">
-                            <label class="bilingual-label">Produced Milk (Liters) [Model B] / उत्पादन गरिएको दूध (लिटर)</label>
-                            <input type="number" id="milk_produced" min="0" placeholder="e.g., 550000">
-                            <div class="input-hint">Required for Collection &amp; Processing model</div>
-                        </div>
-
-                        <div class="form-group model-b-field hidden">
-                            <label class="bilingual-label">Sold Products Value (NPR) [Model B] / बिक्री भएका उत्पादनको मूल्य (रु)</label>
-                            <input type="number" id="sales_products" min="0" placeholder="e.g., 9000000">
-                        </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Lean Month Expenses (NPR) / न्यूनतम महिना खर्च (रु)</label>
-                            <input type="number" id="expenses_lean" min="0" placeholder="e.g., 1041666">
-                            <div class="input-hint">Monthly expenses during low season</div>
+                            <label class="bilingual-label">Grant Income (NPR)</label>
+                            <input type="number" id="grant_income" min="0" placeholder="e.g., 500000" oninput="calculateRevenue()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Revenue (Auto)</label>
+                            <input type="number" id="total_revenue" readonly style="background:var(--bg-alt);">
+                        </div>
+                        <div class="form-group" style="grid-column:1/-1;"><hr style="border:none;border-top:1px solid var(--border-light);margin:4px 0;"><strong style="font-size:0.85em;color:var(--text-secondary);">Buyer Breakdown</strong></div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Bank Sales (NPR)</label>
+                            <input type="number" id="bank_sales" min="0" placeholder="e.g., 15000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Buyers</label>
+                            <input type="number" id="total_buyers" min="1" placeholder="e.g., 300">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Top 5 Buyers Sales (NPR)</label>
+                            <input type="number" id="top5_buyers_sales" min="0" placeholder="e.g., 8000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Largest Single Buyer (NPR)</label>
+                            <input type="number" id="largest_buyer_sales" min="0" placeholder="e.g., 2000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Government Sales (NPR)</label>
+                            <input type="number" id="govt_sales" min="0" placeholder="e.g., 16000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Govt Entities Count</label>
+                            <input type="number" id="govt_entities_count" min="0" placeholder="e.g., 120">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Large Private Dairy Sales (NPR)</label>
+                            <input type="number" id="large_dairy_sales" min="0" placeholder="e.g., 4000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Large Dairy Count</label>
+                            <input type="number" id="large_dairy_count" min="0" placeholder="e.g., 30">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Small/Uncertain Buyers Sales (NPR)</label>
+                            <input type="number" id="small_buyers_sales" min="0" placeholder="e.g., 8000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Small Buyers Count</label>
+                            <input type="number" id="small_buyers_count" min="0" placeholder="e.g., 150">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Avg Collection Period (Days)</label>
+                            <input type="number" id="avg_collection_days" min="0" placeholder="e.g., 35">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Buyers Under Contract</label>
+                            <input type="number" id="contract_buyers" min="0" placeholder="e.g., 200">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 SECTION 4 — Loan Recovery & Collateral
+                 SECTION 4 — Expense Breakdown
                  ========================================= -->
             <div class="form-section" id="section_4">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="refresh-cw"></i> Loan Recovery &amp; Collateral
+                            <i data-lucide="receipt"></i> Expense Breakdown
                             <span class="section-badge">Section 4</span>
                         </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">For EBITDA Calculation</span>
                     </div>
-
                     <div class="form-grid">
+                        <div class="form-group" style="grid-column:1/-1;"><strong style="font-size:0.85em;color:var(--text-secondary);">Cost of Goods Sold</strong></div>
                         <div class="form-group">
-                            <label class="bilingual-label">Total Member Loans (NPR) / सदस्यहरूलाई दिएको कुल ऋण (रु)</label>
-                            <input type="number" id="loans_members_total" min="0" placeholder="e.g., 5000000">
+                            <label class="bilingual-label">Raw Milk Purchase / COGS (NPR)</label>
+                            <input type="number" id="cogs" min="0" placeholder="e.g., 12000000" oninput="calculateExpenses()">
                         </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">NPA Member Loans (NPR) / खराब / एनपीए सदस्य ऋण (रु)</label>
-                            <input type="number" id="loans_npa" min="0" placeholder="e.g., 200000">
-                            <div class="input-hint">Non-performing assets / overdue loans</div>
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">Processing Cost (NPR)</label>
+                            <input type="number" id="processing_cost" min="0" placeholder="e.g., 2000000" oninput="calculateExpenses()">
                         </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Recovery via Milk Deduction (NPR) / दूध कटौतीमार्फत असुल भएको रकम (रु)</label>
-                            <input type="number" id="recovery_milk" min="0" placeholder="e.g., 4700000">
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">Packaging Cost (NPR)</label>
+                            <input type="number" id="packaging_cost" min="0" placeholder="e.g., 1000000" oninput="calculateExpenses()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Primary Collateral Value (NPR) / मुख्य धितोको मूल्य (रु)</label>
-                            <input type="number" id="collateral_primary" min="0" placeholder="e.g., 5000000">
+                            <label class="bilingual-label">Transportation (NPR)</label>
+                            <input type="number" id="transport_cost" min="0" placeholder="e.g., 500000" oninput="calculateExpenses()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Secondary Collateral Value (NPR) / अतिरिक्त धितोको मूल्य (रु)</label>
-                            <input type="number" id="collateral_secondary" min="0" placeholder="e.g., 5000000">
+                            <label class="bilingual-label">Other Processing Cost (NPR)</label>
+                            <input type="number" id="other_processing" min="0" placeholder="e.g., 200000" oninput="calculateExpenses()">
                         </div>
-
+                        <div class="form-group" style="grid-column:1/-1;"><hr style="border:none;border-top:1px solid var(--border-light);margin:4px 0;"><strong style="font-size:0.85em;color:var(--text-secondary);">Operating Expenses</strong></div>
                         <div class="form-group">
-                            <label class="bilingual-label">Bank Sales (NPR) / बैंकमार्फत भएको बिक्री (रु)</label>
-                            <input type="number" id="sales_bank" min="0" placeholder="e.g., 25000000">
+                            <label class="bilingual-label">Salary Expense (NPR)</label>
+                            <input type="number" id="salary_expense" min="0" placeholder="e.g., 2500000" oninput="calculateExpenses()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Total Sales (NPR) / कुल बिक्री (रु)</label>
-                            <input type="number" id="sales_total" min="0" placeholder="e.g., 30000000">
+                            <label class="bilingual-label">Administrative Expense (NPR)</label>
+                            <input type="number" id="admin_expense" min="0" placeholder="e.g., 1500000" oninput="calculateExpenses()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Electricity (NPR)</label>
+                            <input type="number" id="electricity" min="0" placeholder="e.g., 200000" oninput="calculateExpenses()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Fuel (NPR)</label>
+                            <input type="number" id="fuel_expense" min="0" placeholder="e.g., 200000" oninput="calculateExpenses()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Repair &amp; Maintenance (NPR)</label>
+                            <input type="number" id="repair_expense" min="0" placeholder="e.g., 100000" oninput="calculateExpenses()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Rent (NPR)</label>
+                            <input type="number" id="rent_expense" min="0" placeholder="e.g., 500000" oninput="calculateExpenses()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Other Operating (NPR)</label>
+                            <input type="number" id="other_opex" min="0" placeholder="e.g., 200000" oninput="calculateExpenses()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Operating Expenses (Auto)</label>
+                            <input type="number" id="total_opex" readonly style="background:var(--bg-alt);">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Lowest Monthly Expense (NPR)</label>
+                            <input type="number" id="lean_month_expense" min="0" placeholder="e.g., 433333">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Annual Depreciation (NPR)</label>
+                            <input type="number" id="depreciation" min="0" placeholder="e.g., 200000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Amortization (NPR)</label>
+                            <input type="number" id="amortization" min="0" placeholder="e.g., 100000">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 SECTION 5 — Buyer Concentration Risk
+                 SECTION 5 — Assets Breakdown
                  ========================================= -->
             <div class="form-section" id="section_5">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="factory"></i> Buyer Concentration Risk
+                            <i data-lucide="package"></i> Assets Breakdown
                             <span class="section-badge">Section 5</span>
                         </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 150 pts (Financial Strength)</span>
                     </div>
-
-                    <div class="alert alert-info">
-                        <strong>Buyer Risk Assessment:</strong> Evaluate the reliability and diversification of dairy buyers.
-                        Multiple strong buyers reduce concentration risk, while few unreliable buyers increase risk significantly.
-                    </div>
-
                     <div class="form-grid">
+                        <div class="form-group" style="grid-column:1/-1;"><strong style="font-size:0.85em;color:var(--text-secondary);">Current Assets</strong></div>
                         <div class="form-group">
-                            <label class="bilingual-label">Total Number of Buyers / कुल खरिदकर्ता संख्या</label>
-                            <input type="number" id="buyer_total_count" min="1" placeholder="e.g., 5">
-                            <div class="input-hint">Total active buyers purchasing milk/products</div>
+                            <label class="bilingual-label">Cash in Hand (NPR)</label>
+                            <input type="number" id="cash_hand" min="0" placeholder="e.g., 500000" oninput="calculateAssets()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Top 3 Buyers Sales (NPR) / शीर्ष ३ खरिदकर्ताबाट भएको बिक्री (रु)</label>
-                            <input type="number" id="buyer_top3_sales" min="0" placeholder="e.g., 24000000">
-                            <div class="input-hint">Combined sales from top 3 buyers</div>
+                            <label class="bilingual-label">Bank Balance (NPR)</label>
+                            <input type="number" id="bank_balance" min="0" placeholder="e.g., 2500000" oninput="calculateAssets()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Single Largest Buyer Sales (NPR) / सबैभन्दा ठूलो खरिदकर्ताबाट बिक्री (रु)</label>
-                            <input type="number" id="buyer_single_max" min="0" placeholder="e.g., 12000000">
+                            <label class="bilingual-label">Total Cash (Auto)</label>
+                            <input type="number" id="total_cash" readonly style="background:var(--bg-alt);">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Government/Public Sector Buyers / सरकारी/सार्वजनिक क्षेत्रका खरिदकर्ता</label>
-                            <input type="number" id="buyer_govt_count" min="0" placeholder="e.g., 2">
-                            <div class="input-hint">Number of government-owned dairy buyers</div>
+                            <label class="bilingual-label">Accounts Receivable (NPR)</label>
+                            <input type="number" id="accounts_receivable" min="0" placeholder="e.g., 3500000" oninput="calculateAssets()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Large Private Dairy Buyers / ठूला निजी दुग्ध उद्योग खरिदकर्ता</label>
-                            <input type="number" id="buyer_large_private" min="0" placeholder="e.g., 2">
-                            <div class="input-hint">Established private dairies with strong market position</div>
+                            <label class="bilingual-label">Inventory Value (NPR)</label>
+                            <input type="number" id="inventory_value" min="0" placeholder="e.g., 5500000" oninput="calculateAssets()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Small/Uncertain Buyers / साना/अनिश्चित खरिदकर्ता</label>
-                            <input type="number" id="buyer_small_uncertain" min="0" placeholder="e.g., 1">
-                            <div class="input-hint">Small or financially unstable buyers</div>
+                            <label class="bilingual-label">Prepaid Expenses (NPR)</label>
+                            <input type="number" id="prepaid_expenses" min="0" placeholder="e.g., 2500000" oninput="calculateAssets()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Average Payment Days from Buyers / खरिदकर्ताबाट औसत भुक्तानी दिन</label>
-                            <input type="number" id="buyer_payment_days" min="0" placeholder="e.g., 30">
-                            <div class="input-hint">Average days taken by buyers to pay</div>
+                            <label class="bilingual-label">Other Current Assets (NPR)</label>
+                            <input type="number" id="other_current_assets" min="0" placeholder="e.g., 500000" oninput="calculateAssets()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Buyer Default History (Past 2 Years) / खरिदकर्ता चुक्ता इतिहास</label>
-                            <select id="buyer_default_history">
-                                <option value="">Select</option>
-                                <option value="none">No Defaults - कुनै चुक्ता छैन</option>
-                                <option value="minor">Minor Delays (1-15 days) - सामान्य ढिलाइ</option>
-                                <option value="moderate">Moderate Delays (16-45 days) - मध्यम ढिलाइ</option>
-                                <option value="severe">Severe Delays/Defaults (&gt;45 days) - गम्भीर ढिलाइ</option>
-                            </select>
+                            <label class="bilingual-label">Total Current Assets (Auto)</label>
+                            <input type="number" id="total_current_assets" readonly style="background:var(--bg-alt);">
                         </div>
-
+                        <div class="form-group" style="grid-column:1/-1;"><hr style="border:none;border-top:1px solid var(--border-light);margin:4px 0;"><strong style="font-size:0.85em;color:var(--text-secondary);">Fixed Assets</strong></div>
                         <div class="form-group">
-                            <label class="bilingual-label">Contract Coverage with Buyers (%) / खरिदकर्तासँग सम्झौता कभरेज (%)</label>
-                            <input type="number" id="buyer_contract_coverage" min="0" max="100" placeholder="e.g., 60">
-                            <div class="input-hint">% of sales covered by formal contracts</div>
+                            <label class="bilingual-label">Land Value (NPR)</label>
+                            <input type="number" id="land_value" min="0" placeholder="e.g., 5000000" oninput="calculateAssets()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Building Value (NPR)</label>
+                            <input type="number" id="building_value" min="0" placeholder="e.g., 5000000" oninput="calculateAssets()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Machinery Value (NPR)</label>
+                            <input type="number" id="machinery_value" min="0" placeholder="e.g., 2500000" oninput="calculateAssets()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Vehicle Value (NPR)</label>
+                            <input type="number" id="vehicle_value" min="0" placeholder="e.g., 1500000" oninput="calculateAssets()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Furniture Value (NPR)</label>
+                            <input type="number" id="furniture_value" min="0" placeholder="e.g., 1500000" oninput="calculateAssets()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Other Fixed Assets (NPR)</label>
+                            <input type="number" id="other_fixed_assets" min="0" placeholder="e.g., 500000" oninput="calculateAssets()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Fixed Assets (Auto)</label>
+                            <input type="number" id="total_fixed_assets" readonly style="background:var(--bg-alt);">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Assets (Auto)</label>
+                            <input type="number" id="total_assets" readonly style="background:var(--bg-alt);font-weight:700;">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 SECTION 6 — Management & Governance
+                 SECTION 6 — Liabilities Breakdown
                  ========================================= -->
             <div class="form-section" id="section_6">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="users"></i> Management &amp; Governance
+                            <i data-lucide="activity"></i> Liabilities Breakdown
                             <span class="section-badge">Section 6</span>
                         </div>
                     </div>
-
                     <div class="form-grid">
+                        <div class="form-group" style="grid-column:1/-1;"><strong style="font-size:0.85em;color:var(--text-secondary);">Current Liabilities</strong></div>
                         <div class="form-group">
-                            <label class="bilingual-label">Key Management Experience (Avg Years) / प्रमुख व्यवस्थापनको औसत अनुभव (वर्ष)</label>
-                            <input type="number" id="mgmt_experience" min="0" max="50" placeholder="e.g., 8">
+                            <label class="bilingual-label">Accounts Payable (NPR)</label>
+                            <input type="number" id="accounts_payable" min="0" placeholder="e.g., 2500000" oninput="calculateLiabilities()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Internal Controls Score / आन्तरिक नियन्त्रण स्कोर</label>
-                            <select id="internal_controls">
-                                <option value="">Select</option>
-                                <option value="robust">Robust - मजबुत</option>
-                                <option value="adequate">Adequate - पर्याप्त</option>
-                                <option value="weak">Weak - कमजोर</option>
-                            </select>
+                            <label class="bilingual-label">Short-term Loan (NPR)</label>
+                            <input type="number" id="short_term_loan" min="0" placeholder="e.g., 1500000" oninput="calculateLiabilities()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Audit Findings / अडिटमा देखिएका कैफियत संख्या</label>
-                            <select id="audit_findings">
-                                <option value="">Select</option>
-                                <option value="none">None - कुनै छैन</option>
-                                <option value="few">Few - केही</option>
-                                <option value="many">Many - धेरै</option>
-                            </select>
+                            <label class="bilingual-label">Accrued Expenses (NPR)</label>
+                            <input type="number" id="accrued_expenses" min="0" placeholder="e.g., 0" oninput="calculateLiabilities()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Lending Policy Compliance / ऋण नीतिको पालना</label>
-                            <select id="lending_compliance">
-                                <option value="">Select</option>
-                                <option value="yes">Yes - छ</option>
-                                <option value="partial">Partial - आंशिक</option>
-                                <option value="no">No - छैन</option>
-                            </select>
+                            <label class="bilingual-label">Current Portion LTD (NPR)</label>
+                            <input type="number" id="current_ltd" min="0" placeholder="e.g., 500000" oninput="calculateLiabilities()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Collection Average / दूध सङ्कलनका औसत दिनहरू</label>
-                            <select id="collection_avg">
-                                <option value="">Select</option>
-                                <option value="high">High - उच्च</option>
-                                <option value="medium">Medium - मध्यम</option>
-                                <option value="low">Low - न्यून</option>
-                            </select>
+                            <label class="bilingual-label">Total Current Liabilities (Auto)</label>
+                            <input type="number" id="total_current_liabilities" readonly style="background:var(--bg-alt);">
                         </div>
-
+                        <div class="form-group" style="grid-column:1/-1;"><hr style="border:none;border-top:1px solid var(--border-light);margin:4px 0;"><strong style="font-size:0.85em;color:var(--text-secondary);">Long-term Liabilities</strong></div>
                         <div class="form-group">
-                            <label class="bilingual-label">Fleet Availability / सङ्कलन सवारी साधन उपलब्धता</label>
-                            <select id="fleet_available">
-                                <option value="yes">Yes / छ</option>
-                                <option value="no">No / छैन</option>
-                            </select>
+                            <label class="bilingual-label">Long-term Loan (NPR)</label>
+                            <input type="number" id="long_term_loan" min="0" placeholder="e.g., 1500000" oninput="calculateLiabilities()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Cold Storage Availability / भण्डारण / चिसो श्रृंखला उपलब्धता</label>
-                            <select id="storage_available">
-                                <option value="yes">Yes / छ</option>
-                                <option value="no">No / छैन</option>
-                            </select>
+                            <label class="bilingual-label">Other Long-term Liabilities (NPR)</label>
+                            <input type="number" id="other_ltl" min="0" placeholder="e.g., 0" oninput="calculateLiabilities()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Long-term Liabilities (Auto)</label>
+                            <input type="number" id="total_long_term_liabilities" readonly style="background:var(--bg-alt);">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Liabilities (Auto)</label>
+                            <input type="number" id="total_liabilities" readonly style="background:var(--bg-alt);font-weight:700;">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 SECTION 7 — Cash & Farmer Metrics
+                 SECTION 7 — Equity Breakdown
                  ========================================= -->
             <div class="form-section" id="section_7">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="banknote"></i> Cash &amp; Farmer Metrics
+                            <i data-lucide="banknote"></i> Equity Breakdown
                             <span class="section-badge">Section 7</span>
                         </div>
                     </div>
-
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="bilingual-label">Cash/Bank Balance Last Year (NPR) / पछिल्लो १ वर्ष औसत नगद/बैंक मौज्दात</label>
-                            <input type="number" id="cash_last_year" min="0" placeholder="e.g., 2500000">
+                            <label class="bilingual-label">Paid-up Capital (NPR)</label>
+                            <input type="number" id="paid_up_capital" min="0" placeholder="e.g., 2500000" oninput="calculateEquity()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Cash/Bank Balance Previous Year (NPR) / अघिल्लो १ वर्ष औसत नगद/बैंक मौज्दात</label>
-                            <input type="number" id="cash_prev_year" min="0" placeholder="e.g., 2000000">
+                            <label class="bilingual-label">Retained Earnings (NPR)</label>
+                            <input type="number" id="retained_earnings" min="0" placeholder="e.g., 500000" oninput="calculateEquity()">
                         </div>
-
-                        <!-- Existing Customer Only Fields -->
-                        <div class="form-group existing-field hidden">
-                            <label class="bilingual-label">Credit History / ऋण इतिहास</label>
-                            <select id="credit_history">
-                                <option value="">Select</option>
-                                <option value="excellent">Excellent - उत्कृष्ट</option>
-                                <option value="good">Good - राम्रो</option>
-                                <option value="satisfactory">Satisfactory - सन्तोषजनक</option>
-                                <option value="fair">Fair - औसत</option>
-                                <option value="poor">Poor - नराम्रो</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group existing-field hidden">
-                            <label class="bilingual-label">Max DPD (Days) / सबैभन्दा धेरै ढिला भएको दिन</label>
-                            <input type="number" id="max_dpd_days" min="0" placeholder="e.g., 5">
-                            <div class="input-hint">Days Past Due</div>
-                        </div>
-
-                        <div class="form-group existing-field hidden">
-                            <label class="bilingual-label">Restructures (Past 3 yrs) / पछिल्ला ३ वर्षमा ऋण पुनःसंरचना संख्या</label>
-                            <input type="number" id="restructures" min="0" placeholder="e.g., 0">
-                        </div>
-
-                        <div class="form-group" style="grid-column: 1/-1;">
-                            <hr style="border: none; border-top: 1px solid var(--border-light); margin: 8px 0;">
-                        </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Top 5 Farmer Collection (Liters) / शीर्ष ५ किसानबाट आएको दूध मात्रा</label>
-                            <input type="number" id="farmers_top5" min="0" placeholder="e.g., 120000">
+                            <label class="bilingual-label">Reserve Fund (NPR)</label>
+                            <input type="number" id="reserve_fund" min="0" placeholder="e.g., 2500000" oninput="calculateEquity()">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Total Farmer Collection (Liters) / सबै किसानबाट आएको कुल दूध</label>
-                            <input type="number" id="farmers_total_collection" min="0" placeholder="e.g., 4000000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Highest Farmer Quantity (Liters) / एक जना किसानले बेचेको सबैभन्दा धेरै</label>
-                            <input type="number" id="farmer_highest" min="0" placeholder="e.g., 35000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Lowest Farmer Quantity (Liters) / एक जना किसानले बेचेको सबैभन्दा कम</label>
-                            <input type="number" id="farmer_lowest" min="0" placeholder="e.g., 10000">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Total Number of Farmers / कुल किसान संख्या</label>
-                            <input type="number" id="farmers_count" min="1" placeholder="e.g., 50">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Days with Milk Collection &gt; 0 / दूध सङ्कलन भएको दिनको संख्या</label>
-                            <input type="number" id="days_collection" min="0" max="365" placeholder="e.g., 330">
+                            <label class="bilingual-label">Total Net Worth (Auto)</label>
+                            <input type="number" id="total_net_worth" readonly style="background:var(--bg-alt);font-weight:700;">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 SECTION 8 — Risk Factor Declarations
+                 SECTION 8 — Milk Operations Breakdown
                  ========================================= -->
             <div class="form-section" id="section_8">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="shield-check"></i> Risk Factor Declarations
+                            <i data-lucide="droplets"></i> Milk Operations Breakdown
                             <span class="section-badge">Section 8</span>
                         </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 160 pts (Operational Stability)</span>
                     </div>
-
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="bilingual-label">Insurance Coverage / बीमा भएको छ</label>
-                            <select id="insurance">
-                                <option value="yes">Yes / छ</option>
-                                <option value="no">No / छैन</option>
+                            <label class="bilingual-label">Total Milk Collected (Liters)</label>
+                            <input type="number" id="total_milk_collected" min="0" placeholder="e.g., 310000" oninput="calculateMilkMetrics()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Milk Loss (Liters)</label>
+                            <input type="number" id="milk_loss" min="0" placeholder="e.g., 10000" oninput="calculateMilkMetrics()">
+                        </div>
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">Processing Loss (Liters)</label>
+                            <input type="number" id="processing_loss" min="0" placeholder="e.g., 10000" oninput="calculateMilkMetrics()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Milk Sold (Liters)</label>
+                            <input type="number" id="total_milk_sold" min="0" placeholder="e.g., 290000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Avg Monthly Milk (Liters)</label>
+                            <input type="number" id="avg_monthly_milk" min="0" placeholder="e.g., 25833.33">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Lowest Monthly Milk (Liters)</label>
+                            <input type="number" id="lowest_monthly_milk" min="0" placeholder="e.g., 20000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Highest Monthly Milk (Liters)</label>
+                            <input type="number" id="highest_monthly_milk" min="0" placeholder="e.g., 30000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Avg Inventory Value (NPR)</label>
+                            <input type="number" id="avg_inventory" min="0" placeholder="e.g., 2500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Credit Period to Farmers (Days)</label>
+                            <input type="number" id="farmer_credit_days" min="0" placeholder="e.g., 45">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Top 5 Farmers Collection (Liters)</label>
+                            <input type="number" id="top5_farmers" min="0" placeholder="e.g., 125000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Highest Farmer Supply (Liters)</label>
+                            <input type="number" id="highest_farmer" min="0" placeholder="e.g., 35000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Lowest Farmer Supply (Liters)</label>
+                            <input type="number" id="lowest_farmer" min="0" placeholder="e.g., 15000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Farmers</label>
+                            <input type="number" id="total_farmers" min="1" placeholder="e.g., 365">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Collection Days/Year</label>
+                            <input type="number" id="collection_days" min="0" max="366" placeholder="e.g., 326">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 9 — Member Loan Portfolio
+                 ========================================= -->
+            <div class="form-section" id="section_9">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="refresh-cw"></i> Member Loan Portfolio
+                            <span class="section-badge">Section 9</span>
+                        </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 100 pts (Recovery Risk)</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Member Loans (NPR)</label>
+                            <input type="number" id="total_member_loans" min="0" placeholder="e.g., 15000000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">NPA Member Loans (NPR)</label>
+                            <input type="number" id="npa_loans" min="0" placeholder="e.g., 2500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Overdue Member Loans (NPR)</label>
+                            <input type="number" id="overdue_loans" min="0" placeholder="e.g., 1500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Restructured Loans (Past 3 yrs)</label>
+                            <select id="restructured_loans">
+                                <option value="">Select</option>
+                                <option value="None">None</option>
+                                <option value="Few Times">Few Times</option>
+                                <option value="Frequently">Frequently</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Digital MIS / POS / QR Adoption / डिजिटल रजिष्टर / POS / QR</label>
-                            <select id="digital_mis">
-                                <option value="yes">Full / पूर्ण</option>
-                                <option value="partial">Partial / आंशिक</option>
-                                <option value="no">No / छैन</option>
-                            </select>
+                            <label class="bilingual-label">Max DPD (Days)</label>
+                            <input type="number" id="max_dpd_members" min="0" placeholder="e.g., 15">
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Regulatory Compliance / दर्ता, कर, NRB रिपोर्टिङ</label>
-                            <select id="regulatory">
-                                <option value="full">Full Compliance / पूर्ण पालना</option>
-                                <option value="partial">Partial / आंशिक</option>
-                                <option value="none">Non-compliant / अनुपालन छैन</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="bilingual-label">Climatic / Input Risk / जलवायु / इनपुट जोखिम</label>
-                            <select id="climate_risk">
-                                <option value="low">Low - कम</option>
-                                <option value="medium">Medium - मध्यम</option>
-                                <option value="high">High - उच्च</option>
+                            <label class="bilingual-label">Credit History Members</label>
+                            <select id="credit_history_members">
+                                <option value="">Select</option>
+                                <option value="Timely">Timely</option>
+                                <option value="Occasional Delays">Occasional Delays</option>
+                                <option value="Frequent Delays">Frequent Delays</option>
                             </select>
                         </div>
                     </div>
@@ -750,39 +785,271 @@
             </div>
 
             <!-- =========================================
-                 SECTION 9 — Banking Performance (Existing only)
+                 SECTION 10 — Collateral Breakdown
                  ========================================= -->
-            <div class="form-section existing-field hidden" id="section_9">
+            <div class="form-section" id="section_10">
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
-                            <i data-lucide="landmark"></i> Banking Performance (Existing Borrower)
-                            <span class="section-badge">Section 9</span>
+                            <i data-lucide="shield"></i> Collateral Breakdown
+                            <span class="section-badge">Section 10</span>
                         </div>
-                        <span style="color: var(--success); font-size: 0.82em; font-weight: 600;">Existing Customers Only</span>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 60 pts (Security)</span>
                     </div>
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column:1/-1;"><strong style="font-size:0.85em;color:var(--text-secondary);">Primary Collateral</strong></div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Primary Land Value (NPR)</label>
+                            <input type="number" id="primary_land" min="0" placeholder="e.g., 5000000" oninput="calculateCollateral()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Primary Building Value (NPR)</label>
+                            <input type="number" id="primary_building" min="0" placeholder="e.g., 5000000" oninput="calculateCollateral()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Primary Machinery Value (NPR)</label>
+                            <input type="number" id="primary_machinery" min="0" placeholder="e.g., 1500000" oninput="calculateCollateral()">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Primary Collateral (Auto)</label>
+                            <input type="number" id="total_primary_collateral" readonly style="background:var(--bg-alt);">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Secondary Collateral (NPR)</label>
+                            <input type="number" id="secondary_collateral" min="0" placeholder="e.g., 1500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Personal Guarantee (NPR)</label>
+                            <input type="number" id="personal_guarantee" min="0" placeholder="e.g., 1500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Movable Assets Value (NPR)</label>
+                            <input type="number" id="movable_assets" min="0" placeholder="e.g., 500000">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- =========================================
+                 SECTION 11 — Liquidity Tracking
+                 ========================================= -->
+            <div class="form-section" id="section_11">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="bar-chart-2"></i> Liquidity Tracking
+                            <span class="section-badge">Section 11</span>
+                        </div>
+                    </div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label class="bilingual-label">Credit History (BFI Records) / ऋण इतिहास</label>
-                            <select id="credit_history_bfis">
+                            <label class="bilingual-label">Last Year Cash/Bank (NPR)</label>
+                            <input type="number" id="cash_last_year" min="0" placeholder="e.g., 4500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Previous Year Cash/Bank (NPR)</label>
+                            <input type="number" id="cash_prev_year" min="0" placeholder="e.g., 4000000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 12 — Governance & Risk Variables
+                 ========================================= -->
+            <div class="form-section" id="section_12">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="users"></i> Governance &amp; Risk Variables
+                            <span class="section-badge">Section 12</span>
+                        </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 120 pts (Governance + External)</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Avg Management Experience (Years)</label>
+                            <input type="number" id="mgmt_experience" min="0" max="50" placeholder="e.g., 8">
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Internal Controls Score</label>
+                            <select id="internal_controls">
                                 <option value="">Select</option>
-                                <option value="pass">Pass - पास</option>
-                                <option value="Watch List">Watch List - मानक</option>
-                                <option value="substandard">Substandard - अपर्याप्त</option>
-                                <option value="doubtful">Doubtful - शंकास्पद</option>
-                                <option value="loss">Loss - नोक्सान</option>
+                                <option value="Robust">Robust</option>
+                                <option value="Adequate">Adequate</option>
+                                <option value="Weak">Weak</option>
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label class="bilingual-label">Max DPD (BFI) / सबैभन्दा धेरै ढिला भएको दिन (बैंक अनुसार)</label>
-                            <select id="max_dpd_bfi">
+                            <label class="bilingual-label">Audit Findings</label>
+                            <select id="audit_findings">
                                 <option value="">Select</option>
-                                <option value="timely">Timely - समयमै</option>
-                                <option value="delay_30">1-30 days</option>
-                                <option value="delay_60">31-60 days</option>
-                                <option value="delay_90">60+ days</option>
+                                <option value="None">None</option>
+                                <option value="Few">Few</option>
+                                <option value="Many">Many</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Loan Policy Compliance</label>
+                            <select id="loan_policy">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Vehicle Availability</label>
+                            <select id="vehicle_avail">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Storage/Cold Facility</label>
+                            <select id="storage_avail">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">Quality SOP Score</label>
+                            <select id="quality_sop">
+                                <option value="">Select</option>
+                                <option value="Fully Implemented">Fully Implemented</option>
+                                <option value="Few Gaps">Few Gaps</option>
+                                <option value="Large Gaps">Large Gaps</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Insurance Coverage</label>
+                            <select id="insurance">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Digital MIS/POS/QR</label>
+                            <select id="digital_mis">
+                                <option value="Yes">Yes</option>
+                                <option value="Partial">Partial</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Regulatory Compliance</label>
+                            <select id="regulatory">
+                                <option value="Full">Full Compliance</option>
+                                <option value="Partial">Partial</option>
+                                <option value="Non-compliant">Non-compliant</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Climatic Risk</label>
+                            <select id="climatic_risk">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Credit History (BFIs)</label>
+                            <select id="credit_history_bfi">
+                                <option value="Pass">Pass</option>
+                                <option value="Watch List">Watch List</option>
+                                <option value="Substandard">Substandard</option>
+                                <option value="Doubtful">Doubtful</option>
+                                <option value="Loss">Loss</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Max DPD (Bank Loan, Days)</label>
+                            <input type="number" id="max_dpd_bfi" min="0" placeholder="e.g., 5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 13 — Due Diligence (Psychometric)
+                 ========================================= -->
+            <div class="form-section" id="section_13">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="clipboard-list"></i> Due Diligence (Psychometric)
+                            <span class="section-badge">Section 13</span>
+                        </div>
+                        <span style="font-size:0.82em;color:var(--text-secondary);">Weight: 40 pts (Behavioral)</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Committee Meeting Frequency</label>
+                            <select id="meeting_freq">
+                                <option value="">Select</option>
+                                <option value="Rarely">Rarely</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Weekly">Weekly</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Member Info Transparency</label>
+                            <select id="transparency">
+                                <option value="">Select</option>
+                                <option value="Sometimes">Sometimes</option>
+                                <option value="Always">Always</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Fund Usage (Primary)</label>
+                            <select id="fund_usage">
+                                <option value="">Select</option>
+                                <option value="Buying milk">Buying milk</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Members">Members</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Member Records Status</label>
+                            <select id="records_status">
+                                <option value="">Select</option>
+                                <option value="Easily Found">Easily Found</option>
+                                <option value="Sometimes Lost">Sometimes Lost</option>
+                                <option value="Often Lost">Often Lost</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Income/Expense Checked</label>
+                            <select id="audit_check">
+                                <option value="">Select</option>
+                                <option value="Never">Never</option>
+                                <option value="Occasionally">Occasionally</option>
+                                <option value="Regularly">Regularly</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">New Rule Notification</label>
+                            <select id="rule_notification">
+                                <option value="">Select</option>
+                                <option value="Sometimes">Sometimes</option>
+                                <option value="Always beforehand">Always beforehand</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Community Support</label>
+                            <select id="community_support">
+                                <option value="">Select</option>
+                                <option value="Rarely">Rarely</option>
+                                <option value="Sometimes">Sometimes</option>
+                                <option value="Frequently">Frequently</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="bilingual-label">Emergency Preparedness</label>
+                            <select id="emergency_prep">
+                                <option value="">Select</option>
+                                <option value="No Plan">No Plan</option>
+                                <option value="Ad-hoc">Ad-hoc</option>
+                                <option value="Proper Plan">Proper Plan</option>
                             </select>
                         </div>
                     </div>
@@ -792,136 +1059,113 @@
             <!-- =========================================
                  RESULT SECTION
                  ========================================= -->
-            <div class="result-section" id="section_result">
+            <div class="result-section" id="result">
 
-                <!-- Score Hero Banner -->
-                <div class="score-hero">
-                    <div class="score-hero-inner">
-                        <div class="score-label">Credit Assessment Score</div>
-                        <div class="score-number" id="result_score_number">—</div>
-                        <div class="score-out-of">out of 100</div>
-                        <div id="result_risk_badge" class="risk-badge pending">
-                            <div class="risk-dot"></div>
+                <!-- ── HERO SCORE CARD ── -->
+                <div class="res-hero">
+                    <div class="res-hero-left">
+                        <div class="res-hero-label">Credit Assessment Score</div>
+                        <div class="res-hero-score" id="result_score_number">—</div>
+                        <div class="res-hero-out">out of 1,000</div>
+                        <div class="risk-badge pending" id="result_risk_badge">
                             <span id="result_risk_label">NOT SCORED</span>
                         </div>
-                        <div class="score-meta">
-                            <div class="score-meta-item">
-                                <span>Model</span>
-                                <strong id="result_coop_type">—</strong>
+                    </div>
+                    <div class="res-hero-right">
+                        <div class="res-meta-grid">
+                            <div class="res-meta-item">
+                                <span class="res-meta-label">Cooperative</span>
+                                <strong class="res-meta-val" id="result_coop_name">—</strong>
                             </div>
-                            <div class="score-meta-item">
-                                <span>Customer</span>
-                                <strong id="result_cust_type">—</strong>
+                            <div class="res-meta-item">
+                                <span class="res-meta-label">Model</span>
+                                <strong class="res-meta-val" id="result_coop_type">—</strong>
                             </div>
-                            <div class="score-meta-item">
-                                <span>Cooperative</span>
-                                <strong id="result_coop_name">—</strong>
+                            <div class="res-meta-item">
+                                <span class="res-meta-label">Customer</span>
+                                <strong class="res-meta-val" id="result_cust_type">—</strong>
                             </div>
                         </div>
+                        <div class="res-score-bar-wrap">
+                            <div class="res-score-bar-label">
+                                <span>Score Progress</span>
+                                <span id="score_pct_text">0%</span>
+                            </div>
+                            <div class="res-score-bar-bg">
+                                <div class="res-score-bar-fill" id="score_pct_fill"></div>
+                            </div>
+                        </div>
+                        <div class="res-action-row">
+                            <button class="print-btn" onclick="window.print()">
+                                <i data-lucide="printer"></i> Print Report
+                            </button>
+                            <button class="print-btn" style="background:var(--light);color:var(--text);" onclick="navigateTo('section_1')">
+                                <i data-lucide="edit"></i> Edit Inputs
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Result Header Bar -->
-                <div class="result-header-bar">
-                    <h2><i data-lucide="file-text"></i> Credit Assessment Report</h2>
-                    <button class="print-btn" onclick="window.print()"><i data-lucide="printer"></i> Print Report</button>
+                <!-- ── CATEGORY BREAKDOWN CARDS ── -->
+                <div class="res-section-title"><i data-lucide="grid"></i> Score Breakdown by Category</div>
+                <div class="cat-grid" id="category_analysis"></div>
+
+                <!-- ── CALCULATION TABLE ── -->
+                <div class="res-section-title"><i data-lucide="table"></i> Detailed Calculation Log</div>
+                <div class="calc-table-wrap">
+                    <table class="calc-table">
+                        <thead>
+                            <tr>
+                                <th>Indicator</th>
+                                <th>Formula</th>
+                                <th>Value</th>
+                                <th>Score</th>
+                                <th>Max</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calculation-log"></tbody>
+                    </table>
                 </div>
 
-                <!-- Result Tab Navigation -->
-                <div class="result-tabs">
-                    <button class="result-tab-btn active" onclick="showResultTab('summary', this)"><i data-lucide="layout-dashboard"></i> Executive Summary</button>
-                    <button class="result-tab-btn" onclick="showResultTab('charts', this)"><i data-lucide="trending-up"></i> Visual Analytics</button>
-                    <button class="result-tab-btn" onclick="showResultTab('detailed', this)"><i data-lucide="zoom-in"></i> Detailed Metrics</button>
-                    <button class="result-tab-btn" onclick="showResultTab('breakdown', this)"><i data-lucide="calculator"></i> Calculation Breakdown</button>
-                </div>
-
-                <!-- === TAB: Executive Summary === -->
-                <div class="result-tab-content active" id="tab_summary">
-
-                    <!-- Benchmark Bar -->
-                    <div class="benchmark-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <strong style="color:var(--primary); font-size:0.92em;">Your Score vs Industry Benchmark</strong>
-                            <span id="benchmark_text" style="font-weight:700; font-size:0.88em; color:var(--success);">Above Average</span>
+                <!-- ── STRENGTHS & WEAKNESSES ── -->
+                <div class="res-sw-grid">
+                    <div class="res-sw-card strengths">
+                        <div class="res-sw-title">
+                            <i data-lucide="check-circle"></i> Key Strengths
                         </div>
-                        <div class="benchmark-bar">
-                            <div class="benchmark-fill" id="benchmark_fill" style="width:0%; background:var(--success);">0%</div>
-                        </div>
-                        <div class="benchmark-labels">
-                            <span>Poor (0–45)</span>
-                            <span>Moderate (45–60)</span>
-                            <span>Good (60–75)</span>
-                            <span>Excellent (75+)</span>
-                        </div>
+                        <ul class="res-sw-list" id="strengths_list"></ul>
                     </div>
-
-                    <!-- Category Analysis Cards -->
-                    <div class="analysis-grid" id="category_analysis"></div>
-
-                    <!-- Decision Matrix -->
-                    <div class="decision-matrix">
-                        <div class="decision-title"><i data-lucide="clipboard-list"></i> Risk Assessment Summary / जोखिम मूल्याङ्कन सारांश</div>
-                        <div class="decision-grid" id="decision_grid"></div>
-                    </div>
-
-                    <!-- Strengths & Weaknesses -->
-                    <div class="strength-weakness">
-                        <div class="sw-box strengths">
-                            <div class="sw-title"><i data-lucide="check-circle"></i><span>Key Strengths / मुख्य बलियो पक्ष</span></div>
-                            <ul class="sw-list" id="strengths_list"></ul>
+                    <div class="res-sw-card weaknesses">
+                        <div class="res-sw-title">
+                            <i data-lucide="alert-triangle"></i> Risk Factors
                         </div>
-                        <div class="sw-box weaknesses">
-                            <div class="sw-title"><i data-lucide="alert-circle"></i><span>Risk Factors / जोखिम कारक</span></div>
-                            <ul class="sw-list" id="weaknesses_list"></ul>
-                        </div>
-                    </div>
-
-                    <!-- Final Recommendation -->
-                    <div class="recommendation-card">
-                        <h3>Assessment Summary / मूल्याङ्कन सारांश</h3>
-                        <div id="final_recommendation" style="font-size:1em; line-height:1.8; color:var(--text-secondary);"></div>
+                        <ul class="res-sw-list" id="weaknesses_list"></ul>
                     </div>
                 </div>
 
-                <!-- === TAB: Visual Analytics (Charts) === -->
-                <div class="result-tab-content" id="tab_charts">
-                    <div class="charts-grid">
-                        <div class="chart-card">
-                            <div class="chart-card-title"><i data-lucide="pie-chart"></i> Score Distribution by Category</div>
-                            <canvas id="pieChart"></canvas>
-                        </div>
-                        <div class="chart-card">
-                            <div class="chart-card-title"><i data-lucide="bar-chart"></i> Section-wise Performance (%)</div>
-                            <canvas id="barChart"></canvas>
-                        </div>
+                <!-- ── RECOMMENDATION ── -->
+                <div class="res-rec-card">
+                    <div class="res-rec-header">
+                        <i data-lucide="clipboard-check"></i>
+                        <span>Assessment Recommendation</span>
                     </div>
+                    <div id="final_recommendation" class="res-rec-body"></div>
+                </div>
 
-                    <!-- Radar style overview using bar -->
-                    <div class="chart-card" style="margin-bottom: 20px;">
-                        <div class="chart-card-title"><i data-lucide="activity"></i> Category Heatmap</div>
-                        <canvas id="radarChart" height="120"></canvas>
+                <!-- ── CHARTS ── -->
+                <div class="res-section-title"><i data-lucide="bar-chart-2"></i> Visual Analytics</div>
+                <div class="res-charts-grid">
+                    <div class="res-chart-card">
+                        <div class="res-chart-title">Score Profile (Radar)</div>
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <div class="res-chart-card">
+                        <div class="res-chart-title">Category Scores (Bar)</div>
+                        <canvas id="barChart"></canvas>
                     </div>
                 </div>
 
-                <!-- === TAB: Detailed Metrics === -->
-                <div class="result-tab-content" id="tab_detailed">
-                    <div id="detailed_metrics_container"></div>
-                </div>
-
-                <!-- === TAB: Calculation Breakdown === -->
-                <div class="result-tab-content" id="tab_breakdown">
-                    <div class="synopsis-container" style="margin-bottom:20px;">
-                        <h3 style="color:var(--primary); margin-bottom:10px;">Calculation Methodology / गणना विधि</h3>
-                        <p style="color:var(--text-secondary); line-height:1.6; font-size:0.93em;">
-                            Scores are calculated using weighted indicators across 10 risk categories. Each indicator is normalized to a 0–5 scale,
-                            then multiplied by its respective weight. The maximum possible score is 100 points.
-                        </p>
-                    </div>
-                    <div id="methodology_breakdown"></div>
-                </div>
-
-            </div>
-            <!-- end result-section -->
+            </div><!-- end result-section -->
 
         </div>
         <!-- end page-content -->
