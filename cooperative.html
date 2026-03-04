@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dairy Cooperative Credit Scoring System - Nepal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --light: #f3f4f6;
+            --border: #d1d5db;
+            --text: #1f2937;
+            --nepali-red: #DC143C;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #312e81 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .config-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            border-left: 5px solid var(--nepali-red);
+        }
+
+        .config-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bilingual-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .nepali-text {
+            font-family: 'Kalimati', 'Noto Sans Devanagari', sans-serif;
+            color: var(--nepali-red);
+            font-size: 0.95em;
+            margin-top: 2px;
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-hint {
+            font-size: 0.85em;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .conditional-field {
+            background: #fef3c7;
+            border: 2px dashed #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .conditional-field.model-b {
+            background: #dbeafe;
+            border-color: var(--secondary);
+        }
+
+        .conditional-field.existing {
+            background: #d1fae5;
+            border-color: var(--success);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, var(--success) 0%, #047857 100%);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin: 40px auto;
+            box-shadow: 0 4px 6px rgba(5, 150, 105, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(5, 150, 105, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+            margin-top: 30px;
+            border-top: 5px solid var(--success);
+        }
+
+        .results-panel.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--light);
+        }
+
+        .total-score {
+            font-size: 4em;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin: 20px 0;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .score-excellent { background: var(--success); }
+        .score-good { background: #2563eb; }
+        .score-average { background: var(--warning); }
+        .score-poor { background: var(--danger); }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .metric-name {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.95em;
+        }
+
+        .metric-value {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .score-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.5s ease;
+        }
+
+        .score-fill.medium { background: var(--warning); }
+        .score-fill.low { background: var(--danger); }
+
+        .weight-info {
+            font-size: 0.8em;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .calculation-detail {
+            font-size: 0.9em;
+            color: #4b5563;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .toggle-fields {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .radio-card {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .radio-card:hover {
+            border-color: var(--secondary);
+            background: #f0f9ff;
+        }
+
+        .radio-card.selected {
+            border-color: var(--primary);
+            background: #eff6ff;
+            box-shadow: 0 2px 4px rgba(30, 58, 138, 0.1);
+        }
+
+        .radio-card input {
+            display: none;
+        }
+
+        .alert {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-color: var(--secondary);
+        }
+
+        .section-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border: none;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--light);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .config-row,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .total-score {
+                font-size: 3em;
+            }
+        }
+
+        .print-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+            margin-top: -10px;
+        }
+
+        .validation-error {
+            border-color: var(--danger) !important;
+            background: #fef2f2;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.85em;
+            margin-top: 4px;
+            display: none;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🏛️ Dairy Cooperative Credit Scoring System</h1>
+        <div class="subtitle">Nepal Agricultural Finance & Cooperative Risk Assessment Platform</div>
+    </header>
+
+    <!-- Configuration Panel -->
+    <div class="config-panel">
+        <h2 style="margin-bottom: 15px; color: var(--primary);">Application Configuration</h2>
+        <div class="config-row">
+            <div>
+                <label class="bilingual-label">
+                    Cooperative Model Type
+                    <span class="nepali-text">सहकारी मोडलको प्रकार</span>
+                </label>
+                <div class="toggle-fields">
+                    <label class="radio-card" onclick="setCoopType('collection')">
+                        <input type="radio" name="coop_type" value="collection" id="type_collection">
+                        <div>
+                            <strong>Collection Only</strong><br>
+                            <small style="color: #6b7280;">दूध सङ्कलन मात्र</small>
+                        </div>
+                    </label>
+                    <label class="radio-card" onclick="setCoopType('processing')">
+                        <input type="radio" name="coop_type" value="processing" id="type_processing">
+                        <div>
+                            <strong>Collection & Processing</strong><br>
+                            <small style="color: #6b7280;">सङ्कलन र प्रशोधन</small>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="bilingual-label">
+                    Customer Status
+                    <span class="nepali-text">ग्राहक स्थिति</span>
+                </label>
+                <div class="toggle-fields">
+                    <label class="radio-card" onclick="setCustomerType('new')">
+                        <input type="radio" name="customer_type" value="new" id="cust_new">
+                        <div>
+                            <strong>New Customer</strong><br>
+                            <small style="color: #6b7280;">नयाँ ग्राहक</small>
+                        </div>
+                    </label>
+                    <label class="radio-card" onclick="setCustomerType('existing')">
+                        <input type="radio" name="customer_type" value="existing" id="cust_existing">
+                        <div>
+                            <strong>Existing Customer</strong><br>
+                            <small style="color: #6b7280;">पुरानो ग्राहक</small>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div id="config_alert" class="alert hidden" style="margin-top: 15px;">
+            Please select both Cooperative Type and Customer Status to proceed.
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="section-nav" id="section_nav" style="display: none;">
+        <button class="nav-btn active" onclick="showTab('basic')">Basic Info</button>
+        <button class="nav-btn" onclick="showTab('financial')">Financial</button>
+        <button class="nav-btn" onclick="showTab('milk')">Milk Metrics</button>
+        <button class="nav-btn" onclick="showTab('operations')">Operations</button>
+        <button class="nav-btn" onclick="showTab('management')">Management</button>
+        <button class="nav-btn" onclick="showTab('farmers')">Farmers</button>
+        <button class="nav-btn" onclick="showTab('declaration')">Declarations</button>
+        <button class="nav-btn hidden" id="nav_credit" onclick="showTab('credit')">Credit History</button>
+    </div>
+
+    <form id="scoringForm" onsubmit="event.preventDefault(); calculateScores();">
+        
+        <!-- Section 1: Basic Information -->
+        <div class="form-section active" id="section_basic">
+            <div class="section-header">
+                <div class="section-title">
+                    🏢 Cooperative Information
+                    <span class="section-badge">Section 1</span>
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Cooperative Name / सहकारीको नाम
+                    </label>
+                    <input type="text" id="coop_name" required placeholder="e.g., Laxmi Milk Coop">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Model Type / मोडलको प्रकार
+                    </label>
+                    <select id="model_type" disabled>
+                        <option value="">-- Select Above --</option>
+                        <option value="Collection">Collection Only</option>
+                        <option value="Processing">Collection & Processing</option>
+                    </select>
+                    <div class="input-hint">Auto-filled from configuration</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Proposed Loan Amount (NPR) / प्रस्तावित ऋण रकम (रु)
+                    </label>
+                    <input type="number" id="loan_proposed" min="0" required placeholder="e.g., 3000000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Financial Metrics -->
+        <div class="form-section" id="section_financial">
+            <div class="section-header">
+                <div class="section-title">
+                    💰 Loan & Financial Metrics
+                    <span class="section-badge">Section 2</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Existing Loan Amount (NPR) / हाल चलिरहेको ऋण रकम (रु)
+                    </label>
+                    <input type="number" id="loan_existing" min="0" placeholder="e.g., 5000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Revenue (NPR) / कुल आम्दानी (रु)
+                    </label>
+                    <input type="number" id="revenue_total" min="0" required placeholder="e.g., 35000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        EBITDA (NPR) / संचालनबाट भएको आम्दानी (रु)
+                    </label>
+                    <input type="number" id="ebitda" required placeholder="e.g., 2000000">
+                    <div class="input-hint">Operating Income</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Principal Repayment (NPR) / मूलधन भुक्तानी रकम (रु)
+                    </label>
+                    <input type="number" id="repayment_principal" min="0" required placeholder="e.g., 1000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Interest Payment (NPR) / ब्याज रकम (रु)
+                    </label>
+                    <input type="number" id="repayment_interest" min="0" required placeholder="e.g., 250000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Assets (NPR) / कुल सम्पत्ति (रु)
+                    </label>
+                    <input type="number" id="assets_total" min="0" required placeholder="e.g., 15000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Liabilities (NPR) / कुल दायित्व (रु)
+                    </label>
+                    <input type="number" id="liabilities_total" min="0" required placeholder="e.g., 9000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Current Assets (NPR) / चालु सम्पत्ति (रु)
+                    </label>
+                    <input type="number" id="assets_current" min="0" required placeholder="e.g., 5000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Current Liabilities (NPR) / चालु दायित्व (रु)
+                    </label>
+                    <input type="number" id="liabilities_current" min="0" required placeholder="e.g., 2800000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Debt (NPR) / कुल ऋण (रु)
+                    </label>
+                    <input type="number" id="debt_total" min="0" required placeholder="e.g., 9000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Equity (NPR) / पूँजी / इक्विटी (रु)
+                    </label>
+                    <input type="number" id="equity" min="0" required placeholder="e.g., 6000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Grant Income (NPR) / अनुदानबाट प्राप्त आम्दानी (रु)
+                    </label>
+                    <input type="number" id="income_grant" min="0" placeholder="e.g., 200000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Operating Expenses (NPR) / कुल सञ्चालन खर्च (रु)
+                    </label>
+                    <input type="number" id="expenses_operating" min="0" required placeholder="e.g., 10000000">
+                    <div class="input-hint">Exclude depreciation & non-operating items</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Average Inventory (NPR) / औसत भण्डारण मूल्य (रु)
+                    </label>
+                    <input type="number" id="inventory_avg" min="0" placeholder="e.g., 1000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        COGS (NPR) / लागत (रु)
+                    </label>
+                    <input type="number" id="cogs" min="0" required placeholder="e.g., 28000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Accounts Receivable (NPR) / प्राप्त रकम (रु)
+                    </label>
+                    <input type="number" id="ar_total" min="0" placeholder="e.g., 2500000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Milk Metrics -->
+        <div class="form-section" id="section_milk">
+            <div class="section-header">
+                <div class="section-title">
+                    🥛 Milk Supply & Operations
+                    <span class="section-badge">Section 3</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Avg Monthly Milk (Liters) / मासिक औसत दूध सङ्कलन (लिटर)
+                    </label>
+                    <input type="number" id="milk_monthly_avg" min="0" required placeholder="e.g., 50000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Lowest Monthly Milk (Liters) / सबैभन्दा कम मासिक दूध सङ्कलन (लिटर)
+                    </label>
+                    <input type="number" id="milk_monthly_low" min="0" required placeholder="e.g., 40000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Milk Collected (Liters) / कुल सङ्कलित दूध (लिटर)
+                    </label>
+                    <input type="number" id="milk_total" min="0" required placeholder="e.g., 600000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Milk Loss (Liters) / बिग्रिएको / नोक्सानी भएको दूध (लिटर)
+                    </label>
+                    <input type="number" id="milk_loss" min="0" placeholder="e.g., 75000">
+                </div>
+
+                <!-- Model B Only Fields -->
+                <div class="form-group model-b-field hidden">
+                    <label class="bilingual-label">
+                        Produced Milk (Liters) [Model B] / उत्पादन गरिएको दूध (लिटर)
+                    </label>
+                    <input type="number" id="milk_produced" min="0" placeholder="e.g., 550000">
+                    <div class="input-hint" style="color: var(--secondary);">Required for Collection & Processing model</div>
+                </div>
+
+                <div class="form-group model-b-field hidden">
+                    <label class="bilingual-label">
+                        Sold Products Value (NPR) [Model B] / बिक्री भएका उत्पादनको मूल्य (रु)
+                    </label>
+                    <input type="number" id="sales_products" min="0" placeholder="e.g., 9000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Lean Month Expenses (NPR) / न्यूनतम महिना खर्च (रु)
+                    </label>
+                    <input type="number" id="expenses_lean" min="0" required placeholder="e.g., 1041666">
+                    <div class="input-hint">Monthly expenses during low season</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Operations & Recovery -->
+        <div class="form-section" id="section_operations">
+            <div class="section-header">
+                <div class="section-title">
+                    🔄 Loan Recovery & Collateral
+                    <span class="section-badge">Section 4</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Member Loans (NPR) / सदस्यहरूलाई दिएको कुल ऋण (रु)
+                    </label>
+                    <input type="number" id="loans_members_total" min="0" required placeholder="e.g., 5000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        NPA Member Loans (NPR) / खराब / एनपीए सदस्य ऋण (रु)
+                    </label>
+                    <input type="number" id="loans_npa" min="0" placeholder="e.g., 200000">
+                    <div class="input-hint">Non-performing assets / overdue loans</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Recovery via Milk Deduction (NPR) / दूध कटौतीमार्फत असुल भएको रकम (रु)
+                    </label>
+                    <input type="number" id="recovery_milk" min="0" placeholder="e.g., 4700000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Primary Collateral Value (NPR) / मुख्य धितोको मूल्य (रु)
+                    </label>
+                    <input type="number" id="collateral_primary" min="0" required placeholder="e.g., 5000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Secondary Collateral Value (NPR) / अतिरिक्त धितोको मूल्य (रु)
+                    </label>
+                    <input type="number" id="collateral_secondary" min="0" placeholder="e.g., 5000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Bank Sales (NPR) / बैंकमार्फत भएको बिक्री (रु)
+                    </label>
+                    <input type="number" id="sales_bank" min="0" required placeholder="e.g., 25000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Sales (NPR) / कुल बिक्री (रु)
+                    </label>
+                    <input type="number" id="sales_total" min="0" required placeholder="e.g., 30000000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Management -->
+        <div class="form-section" id="section_management">
+            <div class="section-header">
+                <div class="section-title">
+                    👥 Management & Governance
+                    <span class="section-badge">Section 5</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Key Management Experience (Avg Years) / प्रमुख व्यवस्थापनको औसत अनुभव (वर्ष)
+                    </label>
+                    <input type="number" id="mgmt_experience" min="0" max="50" required placeholder="e.g., 8">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Internal Controls Score / आन्तरिक नियन्त्रण स्कोर
+                    </label>
+                    <select id="internal_controls" required>
+                        <option value="">Select</option>
+                        <option value="robust">Robust - मजबुत</option>
+                        <option value="adequate">Adequate - पर्याप्त</option>
+                        <option value="weak">Weak - कमजोर</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Audit Findings / अडिटमा देखिएका कैफियत संख्या
+                    </label>
+                    <select id="audit_findings" required>
+                        <option value="">Select</option>
+                        <option value="none">None - कुनै छैन</option>
+                        <option value="few">Few - केही</option>
+                        <option value="many">Many - धेरै</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Lending Policy Compliance / ऋण नीतिको पालना
+                    </label>
+                    <select id="lending_compliance" required>
+                        <option value="">Select</option>
+                        <option value="yes">Yes - छ</option>
+                        <option value="partial">Partial - आंशिक</option>
+                        <option value="no">No - छैन</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Collection Average / दूध सङ्कलनका औसत दिनहरू
+                    </label>
+                    <select id="collection_avg" required>
+                        <option value="">Select</option>
+                        <option value="high">High - उच्च</option>
+                        <option value="medium">Medium - मध्यम</option>
+                        <option value="low">Low - न्यून</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Fleet Availability / सङ्कलन सवारी साधन उपलब्धता
+                    </label>
+                    <select id="fleet_available" required>
+                        <option value="yes">Yes / छ</option>
+                        <option value="no">No / छैन</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Cold Storage Availability / भण्डारण / चिसो श्रृंखला उपलब्धता
+                    </label>
+                    <select id="storage_available" required>
+                        <option value="yes">Yes / छ</option>
+                        <option value="no">No / छैन</option>
+                    </select>
+                </div>
+
+                <div class="form-group model-b-field hidden">
+                    <label class="bilingual-label">
+                        Quality SOP Score (1-10) [Model B] / गुणस्तर प्रक्रिया (SOP) स्कोर
+                    </label>
+                    <input type="number" id="quality_sop" min="0" max="10" placeholder="e.g., 7">
+                    <div class="input-hint">1=Poor, 10=Excellent</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Limit Discipline Score (1-10) / ऋण सीमा पालना स्कोर
+                    </label>
+                    <input type="number" id="limit_discipline" min="0" max="10" required placeholder="e.g., 8">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Cash & Credit -->
+        <div class="form-section" id="section_farmers">
+            <div class="section-header">
+                <div class="section-title">
+                    💵 Cash & Farmer Metrics
+                    <span class="section-badge">Section 6</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Cash/Bank Balance Last Year (NPR) / पछिल्लो १ वर्ष औसत नगद/बैंक मौज्दात
+                    </label>
+                    <input type="number" id="cash_last_year" min="0" required placeholder="e.g., 2500000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Cash/Bank Balance Previous Year (NPR) / अघिल्लो १ वर्ष औसत नगद/बैंक मौज्दात
+                    </label>
+                    <input type="number" id="cash_prev_year" min="0" required placeholder="e.g., 2000000">
+                </div>
+
+                <!-- Existing Customer Only Fields -->
+                <div class="form-group existing-field hidden">
+                    <label class="bilingual-label">
+                        Credit History / ऋण इतिहास
+                    </label>
+                    <select id="credit_history">
+                        <option value="">Select</option>
+                        <option value="excellent">Excellent - उत्कृष्ट</option>
+                        <option value="good">Good - राम्रो</option>
+                        <option value="satisfactory">Satisfactory - सन्तोषजनक</option>
+                        <option value="fair">Fair - औसत</option>
+                        <option value="poor">Poor - नराम्रो</option>
+                    </select>
+                </div>
+
+                <div class="form-group existing-field hidden">
+                    <label class="bilingual-label">
+                        Max DPD (Days) / सबैभन्दा धेरै ढिला भएको दिन
+                    </label>
+                    <input type="number" id="max_dpd_days" min="0" placeholder="e.g., 5">
+                    <div class="input-hint">Days Past Due</div>
+                </div>
+
+                <div class="form-group existing-field hidden">
+                    <label class="bilingual-label">
+                        Restructures (Past 3 yrs) / पछिल्ला ३ वर्षमा ऋण पुनःसंरचना संख्या
+                    </label>
+                    <input type="number" id="restructures" min="0" placeholder="e.g., 0">
+                </div>
+
+                <hr style="grid-column: 1/-1; margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Top 5 Farmer Collection (Liters) / शीर्ष ५ किसानबाट आएको दूध मात्रा
+                    </label>
+                    <input type="number" id="farmers_top5" min="0" required placeholder="e.g., 120000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Farmer Collection (Liters) / सबै किसानबाट आएको कुल दूध
+                    </label>
+                    <input type="number" id="farmers_total_collection" min="0" required placeholder="e.g., 4000000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Highest Farmer Quantity (Liters) / एक जना किसानले बेचेको सबैभन्दा धेरै
+                    </label>
+                    <input type="number" id="farmer_highest" min="0" required placeholder="e.g., 35000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Lowest Farmer Quantity (Liters) / एक जना किसानले बेचेको सबैभन्दा कम
+                    </label>
+                    <input type="number" id="farmer_lowest" min="0" placeholder="e.g., 10000">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Total Number of Farmers / कुल किसान संख्या
+                    </label>
+                    <input type="number" id="farmers_count" min="1" required placeholder="e.g., 50">
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Days with Milk Collection > 0 / दूध सङ्कलन भएको दिनको संख्या
+                    </label>
+                    <input type="number" id="days_collection" min="0" max="365" required placeholder="e.g., 330">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 7: Declarations -->
+        <div class="form-section" id="section_declaration">
+            <div class="section-header">
+                <div class="section-title">
+                    🛡️ Risk Factor Declarations
+                    <span class="section-badge">Section 7</span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Insurance Coverage / बीमा भएको छ
+                    </label>
+                    <select id="insurance" required>
+                        <option value="yes">Yes / छ</option>
+                        <option value="no">No / छैन</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Digital MIS / POS / QR Adoption / डिजिटल रजिष्टर / POS / QR
+                    </label>
+                    <select id="digital_mis" required>
+                        <option value="yes">Full / पूर्ण</option>
+                        <option value="partial">Partial / आंशिक</option>
+                        <option value="no">No / छैन</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Regulatory Compliance / दर्ता, कर, NRB रिपोर्टिङ
+                    </label>
+                    <select id="regulatory" required>
+                        <option value="full">Full Compliance / पूर्ण पालना</option>
+                        <option value="partial">Partial / आंशिक</option>
+                        <option value="none">Non-compliant / अनुपालन छैन</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Climatic / Input Risk / जलवायु / इनपुट जोखिम
+                    </label>
+                    <select id="climate_risk" required>
+                        <option value="low">Low - कम</option>
+                        <option value="medium">Medium - मध्यम</option>
+                        <option value="high">High - उच्च</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 8: Credit History Extended (Existing Only) -->
+        <div class="form-section existing-field hidden" id="section_credit">
+            <div class="section-header">
+                <div class="section-title">
+                    🏦 Banking Performance (Existing Borrower)
+                    <span class="section-badge">Section 8</span>
+                </div>
+                <span style="color: var(--success); font-size: 0.9em;">Only for Existing Customers</span>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Credit History (BFI Records) / ऋण इतिहास
+                    </label>
+                    <select id="credit_history_bfis">
+                        <option value="">Select</option>
+                        <option value="graded">Graded - ग्रेडेड</option>
+                        <option value="standard">Standard - मानक</option>
+                        <option value="substandard">Substandard - अपर्याप्त</option>
+                        <option value="doubtful">Doubtful - शंकास्पद</option>
+                        <option value="loss">Loss - नोक्सान</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="bilingual-label">
+                        Max DPD (BFI) / सबैभन्दा धेरै ढिला भएको दिन (बैंक अनुसार)
+                    </label>
+                    <select id="max_dpd_bfi">
+                        <option value="">Select</option>
+                        <option value="timely">Timely - समयमै</option>
+                        <option value="delay_30">1-30 days</option>
+                        <option value="delay_60">31-60 days</option>
+                        <option value="delay_90">60+ days</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="calculate-btn" id="calc_btn" style="display: none;">
+            Calculate Credit Score / क्रेडिट स्कोर गणना गर्नुहोस्
+        </button>
+    </form>
+
+    <!-- Results Panel -->
+    <div class="results-panel" id="results_panel">
+        <button class="print-btn" onclick="window.print()">Print Report</button>
+        <h2 style="color: var(--primary); margin-bottom: 20px;">Credit Assessment Report</h2>
+        
+        <div class="score-header">
+            <div style="font-size: 1.2em; color: #6b7280; margin-bottom: 10px;">Total Weighted Score / कुल भारित स्कोर</div>
+            <div class="total-score" id="total_score">0</div>
+            <div id="score_rating" class="score-badge score-good">RATING</div>
+            <div style="margin-top: 15px; font-size: 0.95em; color: #4b5563;">
+                Maximum Possible: <strong>100</strong> | Calculated for: 
+                <span id="result_coop_type">-</span> | 
+                <span id="result_cust_type">-</span>
+            </div>
+        </div>
+
+        <div id="calculations_breakdown" class="metrics-grid">
+            <!-- Dynamic content inserted here -->
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f3f4f6; border-radius: 8px; border-left: 4px solid var(--primary);">
+            <h3 style="color: var(--primary); margin-bottom: 10px;">Recommendation / सिफारिस</h3>
+            <p id="recommendation_text" style="font-size: 1.1em; line-height: 1.6;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// State Management
+let state = {
+    coopType: null, // 'collection' or 'processing'
+    customerType: null, // 'new' or 'existing'
+    currentTab: 'basic'
+};
+
+// Scoring Weights (from Model sheet)
+const weights = {
+    // Category 1: Cash Flow & Loan Repayment (Weight: 20)
+    dscr: { weight: 5, maxScore: 5, name: 'DSCR' },
+    seasonality: { weight: 5, maxScore: 5, name: 'Seasonality Coverage' },
+    inventory_days: { weight: 5, maxScore: 5, name: 'Inventory Days' },
+    receivable_days: { weight: 5, maxScore: 5, name: 'Receivable Days' },
+    
+    // Category 2: Milk Supply & Operational Stability (Weight: 15)
+    milk_stability: { weight: 3, maxScore: 5, name: 'Milk Stability %' },
+    days_stability: { weight: 3, maxScore: 5, name: 'Days Stability %' },
+    milk_loss: { weight: 2, maxScore: 5, name: 'Milk Loss %' },
+    yield_loss: { weight: 2, maxScore: 5, name: 'Yield Loss % [Model B]' },
+    farmer_concentration: { weight: 1.25, maxScore: 5, name: 'Farmer Concentration %' },
+    collection_stability: { weight: 1.25, maxScore: 5, name: 'Collection Stability %' },
+    payment_fairness: { weight: 1.25, maxScore: 5, name: 'Payment Fairness %' },
+    logistics: { weight: 1.25, maxScore: 10, name: 'Logistics Reliability' }, // Scale 0-10
+    
+    // Category 3: Financial Strength (Weight: 15)
+    net_worth: { weight: 4, maxScore: 5, name: 'Net Worth' },
+    debt_equity: { weight: 4, maxScore: 5, name: 'Debt/Equity Ratio' },
+    current_ratio: { weight: 3, maxScore: 5, name: 'Current Ratio' },
+    grant_dependence: { weight: 2, maxScore: 5, name: 'Grant Dependence %' },
+    cash_trend: { weight: 2, maxScore: 5, name: 'Cash/Bank Trend' },
+    
+    // Category 4: Loan Recovery & Member Credit Risk (Weight: 15)
+    member_gnpa: { weight: 5, maxScore: 5, name: 'Member GNPA %' },
+    recovery_rate: { weight: 5, maxScore: 5, name: 'Recovery % via Milk' },
+    max_dpd: { weight: 2.5, maxScore: 5, name: 'Max DPD (Days)' },
+    restructuring: { weight: 2.5, maxScore: 5, name: 'Restructuring Count' },
+    
+    // Category 5: Management & Governance (Weight: 10)
+    mgmt_exp: { weight: 2.5, maxScore: 5, name: 'Management Experience' },
+    internal_controls: { weight: 2.5, maxScore: 5, name: 'Internal Controls' },
+    audit_findings: { weight: 2.5, maxScore: 5, name: 'Audit Findings' },
+    lending_compliance: { weight: 2.5, maxScore: 5, name: 'Lending Policy Compliance' },
+    
+    // Category 6: Operational Quality (Weight: 8)
+    quality_sop: { weight: 4, maxScore: 5, name: 'Quality SOP Score' },
+    limit_discipline: { weight: 2, maxScore: 5, name: 'Limit Discipline' },
+    bank_sales_pct: { weight: 2, maxScore: 5, name: '% Sales via Bank' },
+    
+    // Category 7: Collateral & Security (Weight: 7)
+    primary_collateral: { weight: 5, maxScore: 5, name: 'Primary Collateral %' },
+    secondary_collateral: { weight: 2, maxScore: 5, name: 'Secondary Collateral %' },
+    
+    // Category 8: Declaration-Based / Risk Factors (Weight: 5)
+    insurance: { weight: 1.25, maxScore: 5, name: 'Insurance Coverage' },
+    digital_mis: { weight: 1.25, maxScore: 5, name: 'Digital MIS Adoption' },
+    regulatory: { weight: 1.25, maxScore: 5, name: 'Regulatory Compliance' },
+    climate_risk: { weight: 1.25, maxScore: 5, name: 'Climatic Risk' },
+    
+    // Category 9: Credit History (Weight: 5) - Existing Only
+    credit_history: { weight: 2.5, maxScore: 5, name: 'Credit History' },
+    max_delays: { weight: 2.5, maxScore: 5, name: 'Max Delays (BFI)' }
+};
+
+function setCoopType(type) {
+    state.coopType = type;
+    document.querySelectorAll('input[name="coop_type"]').forEach(el => {
+        el.closest('.radio-card').classList.remove('selected');
+    });
+    document.getElementById(type === 'collection' ? 'type_collection' : 'type_processing').closest('.radio-card').classList.add('selected');
+    
+    updateFormVisibility();
+}
+
+function setCustomerType(type) {
+    state.customerType = type;
+    document.querySelectorAll('input[name="customer_type"]').forEach(el => {
+        el.closest('.radio-card').classList.remove('selected');
+    });
+    document.getElementById(type === 'new' ? 'cust_new' : 'cust_existing').closest('.radio-card').classList.add('selected');
+    
+    updateFormVisibility();
+}
+
+function updateFormVisibility() {
+    const alert = document.getElementById('config_alert');
+    
+    if (!state.coopType || !state.customerType) {
+        alert.classList.remove('hidden');
+        return;
+    }
+    
+    alert.classList.add('hidden');
+    
+    // Show navigation and form sections
+    document.getElementById('section_nav').style.display = 'flex';
+    document.querySelectorAll('.form-section').forEach(s => s.classList.add('active'));
+    document.getElementById('calc_btn').style.display = 'block';
+    
+    // Set model type dropdown
+    document.getElementById('model_type').value = state.coopType === 'processing' ? 'Processing' : 'Collection';
+    
+    // Handle Model B specific fields
+    document.querySelectorAll('.model-b-field').forEach(el => {
+        if (state.coopType === 'processing') {
+            el.classList.remove('hidden');
+            if (el.querySelector('input')) el.querySelector('input').required = true;
+        } else {
+            el.classList.add('hidden');
+            if (el.querySelector('input')) el.querySelector('input').required = false;
+        }
+    });
+    
+    // Handle Existing Customer specific fields
+    document.querySelectorAll('.existing-field').forEach(el => {
+        if (state.customerType === 'existing') {
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    });
+    
+    // Show/hide credit history nav
+    document.getElementById('nav_credit').classList.toggle('hidden', state.customerType !== 'existing');
+    
+    // Update result headers
+    document.getElementById('result_coop_type').textContent = 
+        state.coopType === 'processing' ? 'Collection & Processing' : 'Collection Only';
+    document.getElementById('result_cust_type').textContent = 
+        state.customerType === 'existing' ? 'Existing Customer' : 'New Customer';
+}
+
+function showTab(tabName) {
+    document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById('section_' + tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Calculation Functions
+function calculateDSCR(ebitda, principal, interest) {
+    const totalDebtService = principal + interest;
+    return totalDebtService > 0 ? ebitda / totalDebtService : 0;
+}
+
+function getDSCRScore(dscr) {
+    if (dscr >= 2.0) return 5;
+    if (dscr >= 1.75) return 4;
+    if (dscr >= 1.5) return 3;
+    if (dscr >= 1.25) return 2;
+    if (dscr >= 1.0) return 1;
+    return 0;
+}
+
+function calculateScores() {
+    if (!state.coopType || !state.customerType) {
+        alert('Please select Cooperative Type and Customer Status first.');
+        return;
+    }
+    
+    // Gather all inputs
+    const inputs = {
+        // Financial
+        revenue: parseFloat(document.getElementById('revenue_total').value) || 0,
+        ebitda: parseFloat(document.getElementById('ebitda').value) || 0,
+        principal: parseFloat(document.getElementById('repayment_principal').value) || 0,
+        interest: parseFloat(document.getElementById('repayment_interest').value) || 0,
+        assets: parseFloat(document.getElementById('assets_total').value) || 0,
+        liabilities: parseFloat(document.getElementById('liabilities_total').value) || 0,
+        currentAssets: parseFloat(document.getElementById('assets_current').value) || 0,
+        currentLiabilities: parseFloat(document.getElementById('liabilities_current').value) || 0,
+        totalDebt: parseFloat(document.getElementById('debt_total').value) || 0,
+        equity: parseFloat(document.getElementById('equity').value) || 0,
+        grantIncome: parseFloat(document.getElementById('income_grant').value) || 0,
+        cogs: parseFloat(document.getElementById('cogs').value) || 0,
+        inventory: parseFloat(document.getElementById('inventory_avg').value) || 0,
+        ar: parseFloat(document.getElementById('ar_total').value) || 0,
+        cashLast: parseFloat(document.getElementById('cash_last_year').value) || 0,
+        cashPrev: parseFloat(document.getElementById('cash_prev_year').value) || 0,
+        leanExpenses: parseFloat(document.getElementById('expenses_lean').value) || 0,
+        proposedLoan: parseFloat(document.getElementById('loan_proposed').value) || 0,
+        
+        // Milk
+        milkAvg: parseFloat(document.getElementById('milk_monthly_avg').value) || 0,
+        milkLow: parseFloat(document.getElementById('milk_monthly_low').value) || 0,
+        milkTotal: parseFloat(document.getElementById('milk_total').value) || 0,
+        milkLoss: parseFloat(document.getElementById('milk_loss').value) || 0,
+        milkProduced: parseFloat(document.getElementById('milk_produced')?.value) || 0,
+        daysCollection: parseInt(document.getElementById('days_collection').value) || 0,
+        
+        // Farmers
+        top5Farmers: parseFloat(document.getElementById('farmers_top5').value) || 0,
+        totalFarmerCollection: parseFloat(document.getElementById('farmers_total_collection').value) || 0,
+        highestFarmer: parseFloat(document.getElementById('farmer_highest').value) || 0,
+        farmerCount: parseInt(document.getElementById('farmers_count').value) || 1,
+        
+        // Loans
+        memberLoans: parseFloat(document.getElementById('loans_members_total').value) || 0,
+        npaLoans: parseFloat(document.getElementById('loans_npa').value) || 0,
+        recoveryMilk: parseFloat(document.getElementById('recovery_milk').value) || 0,
+        collateralPrimary: parseFloat(document.getElementById('collateral_primary').value) || 0,
+        collateralSecondary: parseFloat(document.getElementById('collateral_secondary').value) || 0,
+        
+        // Sales
+        bankSales: parseFloat(document.getElementById('sales_bank').value) || 0,
+        totalSales: parseFloat(document.getElementById('sales_total').value) || 0,
+        
+        // Management & Qualitative
+        mgmtExp: parseInt(document.getElementById('mgmt_experience').value) || 0,
+        internalControls: document.getElementById('internal_controls').value,
+        auditFindings: document.getElementById('audit_findings').value,
+        lendingCompliance: document.getElementById('lending_compliance').value,
+        fleet: document.getElementById('fleet_available').value,
+        storage: document.getElementById('storage_available').value,
+        qualitySop: parseInt(document.getElementById('quality_sop')?.value) || 0,
+        limitDiscipline: parseInt(document.getElementById('limit_discipline').value) || 0,
+        
+        // Existing Customer
+        maxDpd: parseInt(document.getElementById('max_dpd_days')?.value) || 0,
+        restructures: parseInt(document.getElementById('restructures')?.value) || 0,
+        creditHistory: document.getElementById('credit_history')?.value || 'good',
+        
+        // Declarations
+        insurance: document.getElementById('insurance').value,
+        digital: document.getElementById('digital_mis').value,
+        regulatory: document.getElementById('regulatory').value,
+        climate: document.getElementById('climate_risk').value
+    };
+    
+    // Perform Calculations
+    const calculations = {};
+    const scores = {};
+    
+    // 1. DSCR
+    calculations.dscr = calculateDSCR(inputs.ebitda, inputs.principal, inputs.interest);
+    scores.dscr = getDSCRScore(calculations.dscr);
+    
+    // 2. Seasonality Coverage (months)
+    calculations.seasonality = inputs.leanExpenses > 0 ? inputs.cashLast / inputs.leanExpenses : 0;
+    scores.seasonality = calculations.seasonality >= 3 ? 5 : 
+                        calculations.seasonality >= 2 ? 4 :
+                        calculations.seasonality >= 1.5 ? 3 :
+                        calculations.seasonality >= 1 ? 2 :
+                        calculations.seasonality >= 0.5 ? 1 : 0;
+    
+    // 3. Inventory Days
+    calculations.inventory_days = inputs.cogs > 0 ? (inputs.inventory / inputs.cogs) * 365 : 0;
+    scores.inventory_days = calculations.inventory_days <= 15 ? 5 :
+                           calculations.inventory_days <= 30 ? 4 :
+                           calculations.inventory_days <= 45 ? 3 :
+                           calculations.inventory_days <= 60 ? 2 : 1;
+    
+    // 4. Receivable Days
+    calculations.receivable_days = inputs.revenue > 0 ? (inputs.ar / inputs.revenue) * 365 : 0;
+    scores.receivable_days = calculations.receivable_days <= 15 ? 5 :
+                            calculations.receivable_days <= 30 ? 4 :
+                            calculations.receivable_days <= 45 ? 3 :
+                            calculations.receivable_days <= 60 ? 2 : 0;
+    
+    // 5. Milk Stability %
+    calculations.milk_stability = inputs.milkAvg > 0 ? (inputs.milkLow / inputs.milkAvg) * 100 : 0;
+    scores.milk_stability = calculations.milk_stability >= 90 ? 5 :
+                           calculations.milk_stability >= 80 ? 4 :
+                           calculations.milk_stability >= 70 ? 3 :
+                           calculations.milk_stability >= 60 ? 2 : 1;
+    
+    // 6. Days Stability %
+    calculations.days_stability = (inputs.daysCollection / 365) * 100;
+    scores.days_stability = calculations.days_stability >= 95 ? 5 :
+                           calculations.days_stability >= 90 ? 4 :
+                           calculations.days_stability >= 85 ? 3 :
+                           calculations.days_stability >= 80 ? 2 : 1;
+    
+    // 7. Milk Loss %
+    calculations.milk_loss = inputs.milkTotal > 0 ? (inputs.milkLoss / inputs.milkTotal) * 100 : 0;
+    scores.milk_loss = calculations.milk_loss <= 2 ? 5 :
+                      calculations.milk_loss <= 5 ? 4 :
+                      calculations.milk_loss <= 8 ? 3 :
+                      calculations.milk_loss <= 12 ? 2 : 1;
+    
+    // 8. Yield Loss % (Model B only, otherwise score 0 or neutral)
+    if (state.coopType === 'processing' && inputs.milkProduced > 0) {
+        calculations.yield_loss = (inputs.milkLoss / inputs.milkProduced) * 100;
+        scores.yield_loss = calculations.yield_loss <= 2 ? 5 :
+                           calculations.yield_loss <= 5 ? 4 :
+                           calculations.yield_loss <= 8 ? 3 :
+                           calculations.yield_loss <= 12 ? 2 : 1;
+    } else {
+        calculations.yield_loss = 0;
+        scores.yield_loss = 0; // Will be excluded from total
+    }
+    
+    // 9. Farmer Concentration %
+    calculations.farmer_concentration = inputs.totalFarmerCollection > 0 ? 
+        (inputs.top5Farmers / inputs.totalFarmerCollection) * 100 : 0;
+    scores.farmer_concentration = calculations.farmer_concentration <= 10 ? 5 :
+                                 calculations.farmer_concentration <= 20 ? 4 :
+                                 calculations.farmer_concentration <= 30 ? 3 :
+                                 calculations.farmer_concentration <= 40 ? 2 : 1;
+    
+    // 10. Collection Stability % (interpreted as milk volume per unit of loan exposure)
+    calculations.collection_stability = inputs.memberLoans > 0 ? 
+        (inputs.totalFarmerCollection / inputs.memberLoans) * 100 : 0;
+    // Higher is better - more milk collection relative to loan exposure
+    scores.collection_stability = calculations.collection_stability >= 200 ? 5 :
+                                 calculations.collection_stability >= 150 ? 4 :
+                                 calculations.collection_stability >= 100 ? 3 :
+                                 calculations.collection_stability >= 50 ? 2 : 1;
+    
+    // 11. Payment Fairness %
+    const avgFarmer = inputs.farmerCount > 0 ? inputs.totalFarmerCollection / inputs.farmerCount : 0;
+    calculations.payment_fairness = inputs.highestFarmer > 0 ? 
+        (avgFarmer / inputs.highestFarmer) * 100 : 0;
+    scores.payment_fairness = calculations.payment_fairness >= 80 ? 5 :
+                             calculations.payment_fairness >= 60 ? 4 :
+                             calculations.payment_fairness >= 40 ? 3 :
+                             calculations.payment_fairness >= 20 ? 2 : 1;
+    
+    // 12. Logistics Reliability (0-10 scale)
+    calculations.logistics = (inputs.fleet === 'yes' ? 5 : 0) + (inputs.storage === 'yes' ? 5 : 0);
+    scores.logistics = calculations.logistics; // Already on 0-10 scale
+    
+    // 13. Net Worth (absolute value assessment - requires context, simplified)
+    calculations.net_worth = inputs.assets - inputs.liabilities;
+    // Score based on relation to proposed loan (coverage)
+    const worthCoverage = inputs.proposedLoan > 0 ? calculations.net_worth / inputs.proposedLoan : 0;
+    scores.net_worth = worthCoverage >= 5 ? 5 :
+                      worthCoverage >= 3 ? 4 :
+                      worthCoverage >= 2 ? 3 :
+                      worthCoverage >= 1 ? 2 :
+                      calculations.net_worth > 0 ? 1 : 0;
+    
+    // 14. Debt/Equity
+    calculations.debt_equity = inputs.equity > 0 ? inputs.totalDebt / inputs.equity : 999;
+    scores.debt_equity = calculations.debt_equity <= 0.5 ? 5 :
+                        calculations.debt_equity <= 1.0 ? 4 :
+                        calculations.debt_equity <= 1.5 ? 3 :
+                        calculations.debt_equity <= 2.0 ? 2 : 1;
+    
+    // 15. Current Ratio
+    calculations.current_ratio = inputs.currentLiabilities > 0 ? 
+        inputs.currentAssets / inputs.currentLiabilities : 0;
+    scores.current_ratio = calculations.current_ratio >= 2.0 ? 5 :
+                          calculations.current_ratio >= 1.5 ? 4 :
+                          calculations.current_ratio >= 1.25 ? 3 :
+                          calculations.current_ratio >= 1.0 ? 2 : 0;
+    
+    // 16. Grant %
+    calculations.grant_pct = inputs.revenue > 0 ? (inputs.grantIncome / inputs.revenue) * 100 : 0;
+    scores.grant_dependence = calculations.grant_pct <= 5 ? 5 :
+                             calculations.grant_pct <= 10 ? 4 :
+                             calculations.grant_pct <= 20 ? 3 :
+                             calculations.grant_pct <= 30 ? 2 : 1;
+    
+    // 17. Cash Trend
+    calculations.cash_trend = inputs.cashPrev > 0 ? 
+        ((inputs.cashLast - inputs.cashPrev) / inputs.cashPrev) * 100 : 0;
+    scores.cash_trend = calculations.cash_trend > 10 ? 5 :
+                       calculations.cash_trend >= 0 ? 3 :
+                       calculations.cash_trend > -10 ? 2 : 1;
+    
+    // 18. Member GNPA %
+    calculations.gnpa_pct = inputs.memberLoans > 0 ? (inputs.npaLoans / inputs.memberLoans) * 100 : 0;
+    scores.member_gnpa = calculations.gnpa_pct <= 2 ? 5 :
+                        calculations.gnpa_pct <= 5 ? 4 :
+                        calculations.gnpa_pct <= 10 ? 3 :
+                        calculations.gnpa_pct <= 15 ? 2 : 0;
+    
+    // 19. Recovery %
+    calculations.recovery_pct = inputs.memberLoans > 0 ? 
+        (inputs.recoveryMilk / inputs.memberLoans) * 100 : 0;
+    scores.recovery_rate = calculations.recovery_pct >= 95 ? 5 :
+                          calculations.recovery_pct >= 90 ? 4 :
+                          calculations.recovery_pct >= 85 ? 3 :
+                          calculations.recovery_pct >= 80 ? 2 : 1;
+    
+    // 20. Max DPD
+    scores.max_dpd = inputs.maxDpd === 0 ? 5 :
+                    inputs.maxDpd <= 5 ? 4 :
+                    inputs.maxDpd <= 15 ? 3 :
+                    inputs.maxDpd <= 30 ? 2 : 0;
+    
+    // 21. Restructures
+    scores.restructuring = inputs.restructures === 0 ? 5 :
+                          inputs.restructures === 1 ? 3 : 0;
+    
+    // 22. Management Experience
+    scores.mgmt_exp = inputs.mgmtExp >= 10 ? 5 :
+                     inputs.mgmtExp >= 8 ? 4 :
+                     inputs.mgmtExp >= 5 ? 3 :
+                     inputs.mgmtExp >= 2 ? 2 : 1;
+    
+    // 23. Internal Controls
+    scores.internal_controls = inputs.internalControls === 'robust' ? 5 :
+                              inputs.internalControls === 'adequate' ? 3 : 1;
+    
+    // 24. Audit Findings
+    scores.audit_findings = inputs.auditFindings === 'none' ? 5 :
+                           inputs.auditFindings === 'few' ? 4 :
+                           inputs.auditFindings === 'some' ? 2 : 1;
+    
+    // 25. Lending Compliance
+    scores.lending_compliance = inputs.lendingCompliance === 'yes' ? 5 :
+                               inputs.lendingCompliance === 'partial' ? 3 : 0;
+    
+    // 26. Quality SOP (Model B) - convert 1-10 to 0-5 scale approximately
+    if (state.coopType === 'processing') {
+        scores.quality_sop = inputs.qualitySop >= 8 ? 5 :
+                            inputs.qualitySop >= 6 ? 4 :
+                            inputs.qualitySop >= 4 ? 3 :
+                            inputs.qualitySop >= 2 ? 2 : 1;
+    } else {
+        scores.quality_sop = 0;
+    }
+    
+    // 27. Limit Discipline (1-10 input, normalize to 0-5)
+    scores.limit_discipline = inputs.limitDiscipline >= 8 ? 5 :
+                             inputs.limitDiscipline >= 6 ? 4 :
+                             inputs.limitDiscipline >= 4 ? 3 :
+                             inputs.limitDiscipline >= 2 ? 2 : 1;
+    
+    // 28. Bank Sales %
+    calculations.bank_sales_pct = inputs.totalSales > 0 ? (inputs.bankSales / inputs.totalSales) * 100 : 0;
+    scores.bank_sales_pct = calculations.bank_sales_pct >= 90 ? 5 :
+                           calculations.bank_sales_pct >= 75 ? 4 :
+                           calculations.bank_sales_pct >= 50 ? 3 :
+                           calculations.bank_sales_pct >= 25 ? 2 : 1;
+    
+    // 29. Primary Collateral %
+    calculations.primary_collateral = inputs.proposedLoan > 0 ? 
+        (inputs.collateralPrimary / inputs.proposedLoan) * 100 : 0;
+    scores.primary_collateral = calculations.primary_collateral >= 200 ? 5 :
+                               calculations.primary_collateral >= 150 ? 4 :
+                               calculations.primary_collateral >= 125 ? 3 :
+                               calculations.primary_collateral >= 100 ? 2 : 0;
+    
+    // 30. Secondary Collateral %
+    calculations.secondary_collateral = inputs.proposedLoan > 0 ? 
+        (inputs.collateralSecondary / inputs.proposedLoan) * 100 : 0;
+    scores.secondary_collateral = calculations.secondary_collateral >= 200 ? 5 :
+                                 calculations.secondary_collateral >= 150 ? 4 :
+                                 calculations.secondary_collateral >= 100 ? 3 :
+                                 calculations.secondary_collateral >= 50 ? 2 : 0;
+    
+    // 31. Insurance
+    scores.insurance = inputs.insurance === 'yes' ? 5 : 0;
+    
+    // 32. Digital MIS
+    scores.digital_mis = inputs.digital === 'yes' ? 5 :
+                        inputs.digital === 'partial' ? 3 : 1;
+    
+    // 33. Regulatory
+    scores.regulatory = inputs.regulatory === 'full' ? 5 :
+                       inputs.regulatory === 'partial' ? 3 : 0;
+    
+    // 34. Climate Risk
+    scores.climate_risk = inputs.climate === 'low' ? 5 :
+                         inputs.climate === 'medium' ? 3 : 1;
+    
+    // 35 & 36. Credit History (Existing Only)
+    if (state.customerType === 'existing') {
+        scores.credit_history = inputs.creditHistory === 'excellent' ? 5 :
+                               inputs.creditHistory === 'good' ? 4 :
+                               inputs.creditHistory === 'satisfactory' ? 3 :
+                               inputs.creditHistory === 'fair' ? 2 : 0;
+        
+        // Max DPD from dropdown
+        const maxDpdBfi = document.getElementById('max_dpd_bfi')?.value || 'timely';
+        scores.max_delays = maxDpdBfi === 'timely' ? 5 :
+                           maxDpdBfi === 'delay_30' ? 3 :
+                           maxDpdBfi === 'delay_60' ? 1 : 0;
+    } else {
+        scores.credit_history = 0;
+        scores.max_delays = 0;
+    }
+    
+    // Calculate Weighted Scores and Total
+    let totalWeightedScore = 0;
+    let maxPossibleScore = 0;
+    const results = [];
+    
+    // Process each metric
+    for (const [key, config] of Object.entries(weights)) {
+        // Skip Model B specific metrics if not processing type
+        if ((key === 'yield_loss' || key === 'quality_sop') && state.coopType !== 'processing') {
+            continue;
+        }
+        
+        // Skip Existing Customer metrics if new customer
+        if ((key === 'credit_history' || key === 'max_delays') && state.customerType !== 'existing') {
+            continue;
+        }
+        
+        const score = scores[key] || 0;
+        const normalizedScore = (score / config.maxScore) * config.weight;
+        totalWeightedScore += normalizedScore;
+        maxPossibleScore += config.weight;
+        
+        results.push({
+            name: config.name,
+            weight: config.weight,
+            rawScore: score,
+            maxScore: config.maxScore,
+            weightedScore: normalizedScore.toFixed(2),
+            calculation: calculations[key] !== undefined ? calculations[key].toFixed(2) : null,
+            unit: getUnit(key)
+        });
+    }
+    
+    displayResults(totalWeightedScore, maxPossibleScore, results);
+}
+
+function getUnit(key) {
+    const units = {
+        dscr: 'ratio',
+        seasonality: 'months',
+        inventory_days: 'days',
+        receivable_days: 'days',
+        milk_stability: '%',
+        days_stability: '%',
+        milk_loss: '%',
+        yield_loss: '%',
+        farmer_concentration: '%',
+        collection_stability: '%',
+        payment_fairness: '%',
+        logistics: 'score',
+        net_worth: 'NPR',
+        debt_equity: 'ratio',
+        current_ratio: 'ratio',
+        grant_dependence: '%',
+        cash_trend: '% change',
+        member_gnpa: '%',
+        recovery_rate: '%',
+        primary_collateral: '%',
+        secondary_collateral: '%',
+        bank_sales_pct: '%'
+    };
+    return units[key] || '';
+}
+
+function displayResults(total, maxPossible, results) {
+    const resultsPanel = document.getElementById('results_panel');
+    const totalScoreEl = document.getElementById('total_score');
+    const ratingEl = document.getElementById('score_rating');
+    const breakdownEl = document.getElementById('calculations_breakdown');
+    const recEl = document.getElementById('recommendation_text');
+    
+    resultsPanel.classList.add('show');
+    totalScoreEl.textContent = total.toFixed(2);
+    
+    // Determine Rating
+    let rating, ratingClass, recommendation;
+    const percentage = (total / maxPossible) * 100;
+    
+    if (total >= 75) {
+        rating = 'EXCELLENT / उत्कृष्ट';
+        ratingClass = 'score-excellent';
+        recommendation = 'Strong credit profile. Recommended for approval with standard terms. The cooperative demonstrates robust financial health, operational stability, and good governance.';
+    } else if (total >= 60) {
+        rating = 'GOOD / राम्रो';
+        ratingClass = 'score-good';
+        recommendation = 'Creditworthy with minor observations. Recommended for approval with standard monitoring. Address minor gaps in [specific areas noted below].';
+    } else if (total >= 45) {
+        rating = 'MODERATE / मध्यम';
+        ratingClass = 'score-average';
+        recommendation = 'Conditional approval recommended. Requires enhanced monitoring, shorter review periods, and possibly additional collateral or guarantees. Address operational inefficiencies.';
+    } else {
+        rating = 'HIGH RISK / उच्च जोखिम';
+        ratingClass = 'score-poor';
+        recommendation = 'Not recommended for credit at this time. Significant risks identified in financial performance, operational stability, or governance. Requires substantial improvements before reconsideration.';
+    }
+    
+    ratingEl.textContent = rating;
+    ratingEl.className = 'score-badge ' + ratingClass;
+    recEl.textContent = recommendation;
+    
+    // Group results by category for better display
+    const categories = [
+        { name: 'Cash Flow & Loan Repayment (20%)', keys: ['dscr', 'seasonality', 'inventory_days', 'receivable_days'] },
+        { name: 'Milk Supply & Operational Stability (15%)', keys: ['milk_stability', 'days_stability', 'milk_loss', 'yield_loss', 'farmer_concentration', 'collection_stability', 'payment_fairness', 'logistics'] },
+        { name: 'Financial Strength (15%)', keys: ['net_worth', 'debt_equity', 'current_ratio', 'grant_dependence', 'cash_trend'] },
+        { name: 'Loan Recovery & Member Credit Risk (15%)', keys: ['member_gnpa', 'recovery_rate', 'max_dpd', 'restructuring'] },
+        { name: 'Management & Governance (10%)', keys: ['mgmt_exp', 'internal_controls', 'audit_findings', 'lending_compliance'] },
+        { name: 'Operational Quality (8%)', keys: ['quality_sop', 'limit_discipline', 'bank_sales_pct'] },
+        { name: 'Collateral & Security (7%)', keys: ['primary_collateral', 'secondary_collateral'] },
+        { name: 'Risk Factors (5%)', keys: ['insurance', 'digital_mis', 'regulatory', 'climate_risk'] }
+    ];
+    
+    if (state.customerType === 'existing') {
+        categories.push({ name: 'Credit History (5%)', keys: ['credit_history', 'max_delays'] });
+    }
+    
+    let html = '';
+    
+    categories.forEach(cat => {
+        const catResults = results.filter(r => cat.keys.includes(Object.keys(weights).find(k => weights[k].name === r.name)));
+        if (catResults.length === 0) return;
+        
+        const catScore = catResults.reduce((sum, r) => sum + parseFloat(r.weightedScore), 0);
+        const catMax = catResults.reduce((sum, r) => sum + r.weight, 0);
+        
+        html += `
+            <div style="grid-column: 1/-1; margin-top: 20px; margin-bottom: 10px; padding: 10px; background: #e0e7ff; border-radius: 6px; font-weight: 700; color: var(--primary); display: flex; justify-content: space-between;">
+                <span>${cat.name}</span>
+                <span>Score: ${catScore.toFixed(2)}/${catMax}</span>
+            </div>
+        `;
+        
+        catResults.forEach(metric => {
+            const percent = (metric.rawScore / metric.maxScore) * 100;
+            const barColor = percent >= 80 ? 'var(--success)' : percent >= 60 ? 'var(--warning)' : 'var(--danger)';
+            
+            html += `
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-name">${metric.name}</div>
+                        <div class="metric-value" style="color: ${percent >= 60 ? 'var(--success)' : percent >= 40 ? 'var(--warning)' : 'var(--danger)'}">
+                            ${metric.rawScore}/${metric.maxScore}
+                        </div>
+                    </div>
+                    <div class="weight-info">Weight: ${metric.weight} | Calculation: ${metric.calculation !== null ? metric.calculation + ' ' + metric.unit : 'N/A'}</div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${(metric.weightedScore / metric.weight) * 100}%; background: ${barColor}"></div>
+                    </div>
+                    <div style="text-align: right; font-size: 0.9em; color: #6b7280; margin-top: 5px;">
+                        Weighted: ${metric.weightedScore}
+                    </div>
+                </div>
+            `;
+        });
+    });
+    
+    breakdownEl.innerHTML = html;
+    
+    // Scroll to results
+    resultsPanel.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Set first tab active by default
+    showTab('basic');
+});
+</script>
+
+</body>
+</html>

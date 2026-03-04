@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dairy Cooperative Credit Scoring Portal — Nepal</title>
+    <meta name="description" content="Professional credit scoring portal for Dairy Cooperatives in Nepal. Built for agricultural finance and cooperative risk assessment.">
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<div class="portal-layout">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i data-lucide="landmark"></i></div>
+                <div>
+                    <div class="logo-text">Coop Credit<br>Scoring Portal</div>
+                </div>
+            </div>
+            <div class="sidebar-subtitle">Nepal Agricultural Finance</div>
+        </div>
+
+        <!-- Sidebar Progress -->
+        <div class="sidebar-progress">
+            <div class="sidebar-progress-label">Completion</div>
+            <div class="sidebar-progress-bar">
+                <div class="sidebar-progress-fill" id="sidebar_progress_fill"></div>
+            </div>
+            <div class="sidebar-progress-text" id="sidebar_progress_text">Configure to begin</div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav" id="sidebar_nav">
+            <div class="nav-group-label">Setup</div>
+            <button class="sidebar-nav-item active" data-section="config" onclick="handleSidebarClick('config')">
+                <i data-lucide="settings" class="nav-icon"></i>
+                <span>Configuration</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+
+            <div class="nav-group-label">Assessment Sections</div>
+            <button class="sidebar-nav-item disabled" data-section="section-1" onclick="handleSidebarClick('section-1')">
+                <i data-lucide="building-2" class="nav-icon"></i>
+                <span>1. Cooperative Info</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-2" onclick="handleSidebarClick('section-2')">
+                <i data-lucide="bar-chart-2" class="nav-icon"></i>
+                <span>2. Financial Metrics</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-3" onclick="handleSidebarClick('section-3')">
+                <i data-lucide="droplets" class="nav-icon"></i>
+                <span>3. Milk &amp; Operations</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-4" onclick="handleSidebarClick('section-4')">
+                <i data-lucide="refresh-cw" class="nav-icon"></i>
+                <span>4. Loan Recovery</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-5" onclick="handleSidebarClick('section-5')">
+                <i data-lucide="factory" class="nav-icon"></i>
+                <span>5. Buyer Risk</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-6" onclick="handleSidebarClick('section-6')">
+                <i data-lucide="users" class="nav-icon"></i>
+                <span>6. Management</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-7" onclick="handleSidebarClick('section-7')">
+                <i data-lucide="banknote" class="nav-icon"></i>
+                <span>7. Cash &amp; Farmers</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled" data-section="section-8" onclick="handleSidebarClick('section-8')">
+                <i data-lucide="shield-check" class="nav-icon"></i>
+                <span>8. Declarations</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+            <button class="sidebar-nav-item disabled hidden" data-section="section-9" id="nav_section9" onclick="handleSidebarClick('section-9')">
+                <i data-lucide="landmark" class="nav-icon"></i>
+                <span>9. Banking History</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+
+            <div class="nav-group-label">Output</div>
+            <button class="sidebar-nav-item disabled" data-section="result" id="nav_result" onclick="handleSidebarClick('result')">
+                <i data-lucide="chart-bar" class="nav-icon"></i>
+                <span>Credit Score Result</span>
+                <i data-lucide="check" class="nav-check"></i>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-toggle-overlay" id="sidebar_overlay" onclick="closeSidebar()"></div>
+
+    <!-- ===================== MAIN ===================== -->
+    <main class="portal-main">
+
+        <!-- Top Header Bar -->
+        <header class="portal-header">
+            <div class="header-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu"><i data-lucide="menu"></i></button>
+                <div class="portal-title">
+                    Dairy Cooperative Credit Scoring
+                    <span class="title-badge">Nepal</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-step-indicator" id="header_step">
+                    <span>Configure to start</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Global Progress Bar -->
+        <div class="global-progress">
+            <div class="global-progress-fill" id="global_progress_fill"></div>
+        </div>
+
+        <!-- ===== Page Content ===== -->
+        <div class="page-content">
+
+            <!-- =========================================
+                 CONFIGURATION PANEL (always visible)
+                 ========================================= -->
+            <div class="config-panel" id="section_config">
+                <h2><i data-lucide="settings"></i> Application Configuration</h2>
+                <div class="config-row">
+                    <div class="config-card-group" id="config_group_coop">
+                        <label class="bilingual-label">
+                            Cooperative Model Type
+                            <span class="required-tag">Required</span>
+                            <span class="nepali-text">सहकारी मोडलको प्रकार</span>
+                        </label>
+                        <div class="toggle-fields">
+                            <label class="radio-card" onclick="setCoopType('collection')">
+                                <input type="radio" name="coop_type" value="collection" id="type_collection">
+                                <div>
+                                    <i data-lucide="truck" style="margin-bottom:8px"></i><br>
+                                    <strong>Collection Only</strong>
+                                    <small>दूध सङ्कलन मात्र</small>
+                                </div>
+                            </label>
+                            <label class="radio-card" onclick="setCoopType('processing')">
+                                <input type="radio" name="coop_type" value="processing" id="type_processing">
+                                <div>
+                                    <i data-lucide="settings-2" style="margin-bottom:8px"></i><br>
+                                    <strong>Collection &amp; Processing</strong>
+                                    <small>सङ्कलन र प्रशोधन</small>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="config-validation-msg">Please select a cooperative model type</div>
+                    </div>
+
+                    <div class="config-card-group" id="config_group_cust">
+                        <label class="bilingual-label">
+                            Customer Status
+                            <span class="required-tag">Required</span>
+                            <span class="nepali-text">ग्राहक स्थिति</span>
+                        </label>
+                        <div class="toggle-fields">
+                            <label class="radio-card" onclick="setCustomerType('new')">
+                                <input type="radio" name="customer_type" value="new" id="cust_new">
+                                <div>
+                                    <i data-lucide="user-plus" style="margin-bottom:8px"></i><br>
+                                    <strong>New Customer</strong>
+                                    <small>नयाँ ग्राहक</small>
+                                </div>
+                            </label>
+                            <label class="radio-card" onclick="setCustomerType('existing')">
+                                <input type="radio" name="customer_type" value="existing" id="cust_existing">
+                                <div>
+                                    <i data-lucide="user-check" style="margin-bottom:8px"></i><br>
+                                    <strong>Existing Customer</strong>
+                                    <small>पुरानो ग्राहक</small>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="config-validation-msg">Please select a customer status</div>
+                    </div>
+                </div>
+
+                <div id="config_alert" class="alert hidden" style="margin-top: 16px;">
+                    <i data-lucide="alert-triangle"></i> Please select both Cooperative Type and Customer Status to begin the assessment.
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 1 — Cooperative Information
+                 ========================================= -->
+            <div class="form-section" id="section_1">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="building-2"></i> Cooperative Information
+                            <span class="section-badge">Section 1</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Cooperative Name / सहकारीको नाम</label>
+                            <input type="text" id="coop_name" placeholder="e.g., Laxmi Milk Cooperative">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">
+                                Model Type / मोडलको प्रकार
+                            </label>
+                            <select id="model_type" disabled>
+                                <option value="">-- Select Above --</option>
+                                <option value="Collection">Collection Only</option>
+                                <option value="Processing">Collection &amp; Processing</option>
+                            </select>
+                            <div class="input-hint">Auto-filled from configuration above</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">
+                                Proposed Loan Amount (NPR) / प्रस्तावित ऋण रकम (रु)
+                            </label>
+                            <input type="number" id="loan_proposed" min="0" placeholder="e.g., 3000000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 2 — Financial Metrics
+                 ========================================= -->
+            <div class="form-section" id="section_2">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="bar-chart-2"></i> Loan &amp; Financial Metrics
+                            <span class="section-badge">Section 2</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Existing Loan Amount (NPR) / हाल चलिरहेको ऋण रकम (रु)</label>
+                            <input type="number" id="loan_existing" min="0" placeholder="e.g., 5000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Revenue (NPR) / कुल आम्दानी (रु)</label>
+                            <input type="number" id="revenue_total" min="0" placeholder="e.g., 35000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">EBITDA (NPR) / संचालनबाट भएको आम्दानी (रु)</label>
+                            <input type="number" id="ebitda" placeholder="e.g., 2000000">
+                            <div class="input-hint">Operating Income</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Principal Repayment (NPR) / मूलधन भुक्तानी रकम (रु)</label>
+                            <input type="number" id="repayment_principal" min="0" placeholder="e.g., 1000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Interest Payment (NPR) / ब्याज रकम (रु)</label>
+                            <input type="number" id="repayment_interest" min="0" placeholder="e.g., 250000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Assets (NPR) / कुल सम्पत्ति (रु)</label>
+                            <input type="number" id="assets_total" min="0" placeholder="e.g., 15000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Liabilities (NPR) / कुल दायित्व (रु)</label>
+                            <input type="number" id="liabilities_total" min="0" placeholder="e.g., 9000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Current Assets (NPR) / चालु सम्पत्ति (रु)</label>
+                            <input type="number" id="assets_current" min="0" placeholder="e.g., 5000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Current Liabilities (NPR) / चालु दायित्व (रु)</label>
+                            <input type="number" id="liabilities_current" min="0" placeholder="e.g., 2800000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Debt (NPR) / कुल ऋण (रु)</label>
+                            <input type="number" id="debt_total" min="0" placeholder="e.g., 9000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Equity (NPR) / पूँजी / इक्विटी (रु)</label>
+                            <input type="number" id="equity" min="0" placeholder="e.g., 6000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Grant Income (NPR) / अनुदानबाट प्राप्त आम्दानी (रु)</label>
+                            <input type="number" id="income_grant" min="0" placeholder="e.g., 200000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Operating Expenses (NPR) / कुल सञ्चालन खर्च (रु)</label>
+                            <input type="number" id="expenses_operating" min="0" placeholder="e.g., 10000000">
+                            <div class="input-hint">Exclude depreciation &amp; non-operating items</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Average Inventory (NPR) / औसत भण्डारण मूल्य (रु)</label>
+                            <input type="number" id="inventory_avg" min="0" placeholder="e.g., 1000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">COGS (NPR) / लागत (रु)</label>
+                            <input type="number" id="cogs" min="0" placeholder="e.g., 28000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Accounts Receivable (NPR) / प्राप्त रकम (रु)</label>
+                            <input type="number" id="ar_total" min="0" placeholder="e.g., 2500000">
+                        </div>
+
+                        <!-- Model B Only -->
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">
+                                Quality SOP Score / गुणस्तर प्रक्रिया (SOP) स्कोर
+                            </label>
+                            <select id="quality_sop">
+                                <option value="">Select / छान्नुहोस्</option>
+                                <option value="consistent">Consistent - सुसंगत</option>
+                                <option value="few_gaps">Few Gaps - केही कमजोरी</option>
+                                <option value="large_gaps">Large Gaps - धेरै कमजोरी</option>
+                            </select>
+                            <div class="input-hint">Required for Collection &amp; Processing model</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 3 — Milk Supply & Operations
+                 ========================================= -->
+            <div class="form-section" id="section_3">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="droplets"></i> Milk Supply &amp; Operations
+                            <span class="section-badge">Section 3</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Avg Monthly Milk (Liters) / मासिक औसत दूध सङ्कलन (लिटर)</label>
+                            <input type="number" id="milk_monthly_avg" min="0" placeholder="e.g., 50000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Lowest Monthly Milk (Liters) / सबैभन्दा कम मासिक दूध सङ्कलन (लिटर)</label>
+                            <input type="number" id="milk_monthly_low" min="0" placeholder="e.g., 40000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Milk Collected (Liters) / कुल सङ्कलित दूध (लिटर)</label>
+                            <input type="number" id="milk_total" min="0" placeholder="e.g., 600000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Milk Loss (Liters) / बिग्रिएको / नोक्सानी भएको दूध (लिटर)</label>
+                            <input type="number" id="milk_loss" min="0" placeholder="e.g., 75000">
+                        </div>
+
+                        <!-- Model B Only Fields -->
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">Produced Milk (Liters) [Model B] / उत्पादन गरिएको दूध (लिटर)</label>
+                            <input type="number" id="milk_produced" min="0" placeholder="e.g., 550000">
+                            <div class="input-hint">Required for Collection &amp; Processing model</div>
+                        </div>
+
+                        <div class="form-group model-b-field hidden">
+                            <label class="bilingual-label">Sold Products Value (NPR) [Model B] / बिक्री भएका उत्पादनको मूल्य (रु)</label>
+                            <input type="number" id="sales_products" min="0" placeholder="e.g., 9000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Lean Month Expenses (NPR) / न्यूनतम महिना खर्च (रु)</label>
+                            <input type="number" id="expenses_lean" min="0" placeholder="e.g., 1041666">
+                            <div class="input-hint">Monthly expenses during low season</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 4 — Loan Recovery & Collateral
+                 ========================================= -->
+            <div class="form-section" id="section_4">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="refresh-cw"></i> Loan Recovery &amp; Collateral
+                            <span class="section-badge">Section 4</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Member Loans (NPR) / सदस्यहरूलाई दिएको कुल ऋण (रु)</label>
+                            <input type="number" id="loans_members_total" min="0" placeholder="e.g., 5000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">NPA Member Loans (NPR) / खराब / एनपीए सदस्य ऋण (रु)</label>
+                            <input type="number" id="loans_npa" min="0" placeholder="e.g., 200000">
+                            <div class="input-hint">Non-performing assets / overdue loans</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Recovery via Milk Deduction (NPR) / दूध कटौतीमार्फत असुल भएको रकम (रु)</label>
+                            <input type="number" id="recovery_milk" min="0" placeholder="e.g., 4700000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Primary Collateral Value (NPR) / मुख्य धितोको मूल्य (रु)</label>
+                            <input type="number" id="collateral_primary" min="0" placeholder="e.g., 5000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Secondary Collateral Value (NPR) / अतिरिक्त धितोको मूल्य (रु)</label>
+                            <input type="number" id="collateral_secondary" min="0" placeholder="e.g., 5000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Bank Sales (NPR) / बैंकमार्फत भएको बिक्री (रु)</label>
+                            <input type="number" id="sales_bank" min="0" placeholder="e.g., 25000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Sales (NPR) / कुल बिक्री (रु)</label>
+                            <input type="number" id="sales_total" min="0" placeholder="e.g., 30000000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 5 — Buyer Concentration Risk
+                 ========================================= -->
+            <div class="form-section" id="section_5">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="factory"></i> Buyer Concentration Risk
+                            <span class="section-badge">Section 5</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Buyer Risk Assessment:</strong> Evaluate the reliability and diversification of dairy buyers.
+                        Multiple strong buyers reduce concentration risk, while few unreliable buyers increase risk significantly.
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Number of Buyers / कुल खरिदकर्ता संख्या</label>
+                            <input type="number" id="buyer_total_count" min="1" placeholder="e.g., 5">
+                            <div class="input-hint">Total active buyers purchasing milk/products</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Top 3 Buyers Sales (NPR) / शीर्ष ३ खरिदकर्ताबाट भएको बिक्री (रु)</label>
+                            <input type="number" id="buyer_top3_sales" min="0" placeholder="e.g., 24000000">
+                            <div class="input-hint">Combined sales from top 3 buyers</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Single Largest Buyer Sales (NPR) / सबैभन्दा ठूलो खरिदकर्ताबाट बिक्री (रु)</label>
+                            <input type="number" id="buyer_single_max" min="0" placeholder="e.g., 12000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Government/Public Sector Buyers / सरकारी/सार्वजनिक क्षेत्रका खरिदकर्ता</label>
+                            <input type="number" id="buyer_govt_count" min="0" placeholder="e.g., 2">
+                            <div class="input-hint">Number of government-owned dairy buyers</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Large Private Dairy Buyers / ठूला निजी दुग्ध उद्योग खरिदकर्ता</label>
+                            <input type="number" id="buyer_large_private" min="0" placeholder="e.g., 2">
+                            <div class="input-hint">Established private dairies with strong market position</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Small/Uncertain Buyers / साना/अनिश्चित खरिदकर्ता</label>
+                            <input type="number" id="buyer_small_uncertain" min="0" placeholder="e.g., 1">
+                            <div class="input-hint">Small or financially unstable buyers</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Average Payment Days from Buyers / खरिदकर्ताबाट औसत भुक्तानी दिन</label>
+                            <input type="number" id="buyer_payment_days" min="0" placeholder="e.g., 30">
+                            <div class="input-hint">Average days taken by buyers to pay</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Buyer Default History (Past 2 Years) / खरिदकर्ता चुक्ता इतिहास</label>
+                            <select id="buyer_default_history">
+                                <option value="">Select</option>
+                                <option value="none">No Defaults - कुनै चुक्ता छैन</option>
+                                <option value="minor">Minor Delays (1-15 days) - सामान्य ढिलाइ</option>
+                                <option value="moderate">Moderate Delays (16-45 days) - मध्यम ढिलाइ</option>
+                                <option value="severe">Severe Delays/Defaults (&gt;45 days) - गम्भीर ढिलाइ</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Contract Coverage with Buyers (%) / खरिदकर्तासँग सम्झौता कभरेज (%)</label>
+                            <input type="number" id="buyer_contract_coverage" min="0" max="100" placeholder="e.g., 60">
+                            <div class="input-hint">% of sales covered by formal contracts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 6 — Management & Governance
+                 ========================================= -->
+            <div class="form-section" id="section_6">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="users"></i> Management &amp; Governance
+                            <span class="section-badge">Section 6</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Key Management Experience (Avg Years) / प्रमुख व्यवस्थापनको औसत अनुभव (वर्ष)</label>
+                            <input type="number" id="mgmt_experience" min="0" max="50" placeholder="e.g., 8">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Internal Controls Score / आन्तरिक नियन्त्रण स्कोर</label>
+                            <select id="internal_controls">
+                                <option value="">Select</option>
+                                <option value="robust">Robust - मजबुत</option>
+                                <option value="adequate">Adequate - पर्याप्त</option>
+                                <option value="weak">Weak - कमजोर</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Audit Findings / अडिटमा देखिएका कैफियत संख्या</label>
+                            <select id="audit_findings">
+                                <option value="">Select</option>
+                                <option value="none">None - कुनै छैन</option>
+                                <option value="few">Few - केही</option>
+                                <option value="many">Many - धेरै</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Lending Policy Compliance / ऋण नीतिको पालना</label>
+                            <select id="lending_compliance">
+                                <option value="">Select</option>
+                                <option value="yes">Yes - छ</option>
+                                <option value="partial">Partial - आंशिक</option>
+                                <option value="no">No - छैन</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Collection Average / दूध सङ्कलनका औसत दिनहरू</label>
+                            <select id="collection_avg">
+                                <option value="">Select</option>
+                                <option value="high">High - उच्च</option>
+                                <option value="medium">Medium - मध्यम</option>
+                                <option value="low">Low - न्यून</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Fleet Availability / सङ्कलन सवारी साधन उपलब्धता</label>
+                            <select id="fleet_available">
+                                <option value="yes">Yes / छ</option>
+                                <option value="no">No / छैन</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Cold Storage Availability / भण्डारण / चिसो श्रृंखला उपलब्धता</label>
+                            <select id="storage_available">
+                                <option value="yes">Yes / छ</option>
+                                <option value="no">No / छैन</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 7 — Cash & Farmer Metrics
+                 ========================================= -->
+            <div class="form-section" id="section_7">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="banknote"></i> Cash &amp; Farmer Metrics
+                            <span class="section-badge">Section 7</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Cash/Bank Balance Last Year (NPR) / पछिल्लो १ वर्ष औसत नगद/बैंक मौज्दात</label>
+                            <input type="number" id="cash_last_year" min="0" placeholder="e.g., 2500000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Cash/Bank Balance Previous Year (NPR) / अघिल्लो १ वर्ष औसत नगद/बैंक मौज्दात</label>
+                            <input type="number" id="cash_prev_year" min="0" placeholder="e.g., 2000000">
+                        </div>
+
+                        <!-- Existing Customer Only Fields -->
+                        <div class="form-group existing-field hidden">
+                            <label class="bilingual-label">Credit History / ऋण इतिहास</label>
+                            <select id="credit_history">
+                                <option value="">Select</option>
+                                <option value="excellent">Excellent - उत्कृष्ट</option>
+                                <option value="good">Good - राम्रो</option>
+                                <option value="satisfactory">Satisfactory - सन्तोषजनक</option>
+                                <option value="fair">Fair - औसत</option>
+                                <option value="poor">Poor - नराम्रो</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group existing-field hidden">
+                            <label class="bilingual-label">Max DPD (Days) / सबैभन्दा धेरै ढिला भएको दिन</label>
+                            <input type="number" id="max_dpd_days" min="0" placeholder="e.g., 5">
+                            <div class="input-hint">Days Past Due</div>
+                        </div>
+
+                        <div class="form-group existing-field hidden">
+                            <label class="bilingual-label">Restructures (Past 3 yrs) / पछिल्ला ३ वर्षमा ऋण पुनःसंरचना संख्या</label>
+                            <input type="number" id="restructures" min="0" placeholder="e.g., 0">
+                        </div>
+
+                        <div class="form-group" style="grid-column: 1/-1;">
+                            <hr style="border: none; border-top: 1px solid var(--border-light); margin: 8px 0;">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Top 5 Farmer Collection (Liters) / शीर्ष ५ किसानबाट आएको दूध मात्रा</label>
+                            <input type="number" id="farmers_top5" min="0" placeholder="e.g., 120000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Farmer Collection (Liters) / सबै किसानबाट आएको कुल दूध</label>
+                            <input type="number" id="farmers_total_collection" min="0" placeholder="e.g., 4000000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Highest Farmer Quantity (Liters) / एक जना किसानले बेचेको सबैभन्दा धेरै</label>
+                            <input type="number" id="farmer_highest" min="0" placeholder="e.g., 35000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Lowest Farmer Quantity (Liters) / एक जना किसानले बेचेको सबैभन्दा कम</label>
+                            <input type="number" id="farmer_lowest" min="0" placeholder="e.g., 10000">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Total Number of Farmers / कुल किसान संख्या</label>
+                            <input type="number" id="farmers_count" min="1" placeholder="e.g., 50">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Days with Milk Collection &gt; 0 / दूध सङ्कलन भएको दिनको संख्या</label>
+                            <input type="number" id="days_collection" min="0" max="365" placeholder="e.g., 330">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 8 — Risk Factor Declarations
+                 ========================================= -->
+            <div class="form-section" id="section_8">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="shield-check"></i> Risk Factor Declarations
+                            <span class="section-badge">Section 8</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Insurance Coverage / बीमा भएको छ</label>
+                            <select id="insurance">
+                                <option value="yes">Yes / छ</option>
+                                <option value="no">No / छैन</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Digital MIS / POS / QR Adoption / डिजिटल रजिष्टर / POS / QR</label>
+                            <select id="digital_mis">
+                                <option value="yes">Full / पूर्ण</option>
+                                <option value="partial">Partial / आंशिक</option>
+                                <option value="no">No / छैन</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Regulatory Compliance / दर्ता, कर, NRB रिपोर्टिङ</label>
+                            <select id="regulatory">
+                                <option value="full">Full Compliance / पूर्ण पालना</option>
+                                <option value="partial">Partial / आंशिक</option>
+                                <option value="none">Non-compliant / अनुपालन छैन</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Climatic / Input Risk / जलवायु / इनपुट जोखिम</label>
+                            <select id="climate_risk">
+                                <option value="low">Low - कम</option>
+                                <option value="medium">Medium - मध्यम</option>
+                                <option value="high">High - उच्च</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 SECTION 9 — Banking Performance (Existing only)
+                 ========================================= -->
+            <div class="form-section existing-field hidden" id="section_9">
+                <div class="section-card">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="landmark"></i> Banking Performance (Existing Borrower)
+                            <span class="section-badge">Section 9</span>
+                        </div>
+                        <span style="color: var(--success); font-size: 0.82em; font-weight: 600;">Existing Customers Only</span>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="bilingual-label">Credit History (BFI Records) / ऋण इतिहास</label>
+                            <select id="credit_history_bfis">
+                                <option value="">Select</option>
+                                <option value="pass">Pass - पास</option>
+                                <option value="Watch List">Watch List - मानक</option>
+                                <option value="substandard">Substandard - अपर्याप्त</option>
+                                <option value="doubtful">Doubtful - शंकास्पद</option>
+                                <option value="loss">Loss - नोक्सान</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="bilingual-label">Max DPD (BFI) / सबैभन्दा धेरै ढिला भएको दिन (बैंक अनुसार)</label>
+                            <select id="max_dpd_bfi">
+                                <option value="">Select</option>
+                                <option value="timely">Timely - समयमै</option>
+                                <option value="delay_30">1-30 days</option>
+                                <option value="delay_60">31-60 days</option>
+                                <option value="delay_90">60+ days</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 RESULT SECTION
+                 ========================================= -->
+            <div class="result-section" id="section_result">
+
+                <!-- Score Hero Banner -->
+                <div class="score-hero">
+                    <div class="score-hero-inner">
+                        <div class="score-label">Credit Assessment Score</div>
+                        <div class="score-number" id="result_score_number">—</div>
+                        <div class="score-out-of">out of 100</div>
+                        <div id="result_risk_badge" class="risk-badge pending">
+                            <div class="risk-dot"></div>
+                            <span id="result_risk_label">NOT SCORED</span>
+                        </div>
+                        <div class="score-meta">
+                            <div class="score-meta-item">
+                                <span>Model</span>
+                                <strong id="result_coop_type">—</strong>
+                            </div>
+                            <div class="score-meta-item">
+                                <span>Customer</span>
+                                <strong id="result_cust_type">—</strong>
+                            </div>
+                            <div class="score-meta-item">
+                                <span>Cooperative</span>
+                                <strong id="result_coop_name">—</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Header Bar -->
+                <div class="result-header-bar">
+                    <h2><i data-lucide="file-text"></i> Credit Assessment Report</h2>
+                    <button class="print-btn" onclick="window.print()"><i data-lucide="printer"></i> Print Report</button>
+                </div>
+
+                <!-- Result Tab Navigation -->
+                <div class="result-tabs">
+                    <button class="result-tab-btn active" onclick="showResultTab('summary', this)"><i data-lucide="layout-dashboard"></i> Executive Summary</button>
+                    <button class="result-tab-btn" onclick="showResultTab('charts', this)"><i data-lucide="trending-up"></i> Visual Analytics</button>
+                    <button class="result-tab-btn" onclick="showResultTab('detailed', this)"><i data-lucide="zoom-in"></i> Detailed Metrics</button>
+                    <button class="result-tab-btn" onclick="showResultTab('breakdown', this)"><i data-lucide="calculator"></i> Calculation Breakdown</button>
+                </div>
+
+                <!-- === TAB: Executive Summary === -->
+                <div class="result-tab-content active" id="tab_summary">
+
+                    <!-- Benchmark Bar -->
+                    <div class="benchmark-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <strong style="color:var(--primary); font-size:0.92em;">Your Score vs Industry Benchmark</strong>
+                            <span id="benchmark_text" style="font-weight:700; font-size:0.88em; color:var(--success);">Above Average</span>
+                        </div>
+                        <div class="benchmark-bar">
+                            <div class="benchmark-fill" id="benchmark_fill" style="width:0%; background:var(--success);">0%</div>
+                        </div>
+                        <div class="benchmark-labels">
+                            <span>Poor (0–45)</span>
+                            <span>Moderate (45–60)</span>
+                            <span>Good (60–75)</span>
+                            <span>Excellent (75+)</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Analysis Cards -->
+                    <div class="analysis-grid" id="category_analysis"></div>
+
+                    <!-- Decision Matrix -->
+                    <div class="decision-matrix">
+                        <div class="decision-title"><i data-lucide="clipboard-list"></i> Risk Assessment Summary / जोखिम मूल्याङ्कन सारांश</div>
+                        <div class="decision-grid" id="decision_grid"></div>
+                    </div>
+
+                    <!-- Strengths & Weaknesses -->
+                    <div class="strength-weakness">
+                        <div class="sw-box strengths">
+                            <div class="sw-title"><i data-lucide="check-circle"></i><span>Key Strengths / मुख्य बलियो पक्ष</span></div>
+                            <ul class="sw-list" id="strengths_list"></ul>
+                        </div>
+                        <div class="sw-box weaknesses">
+                            <div class="sw-title"><i data-lucide="alert-circle"></i><span>Risk Factors / जोखिम कारक</span></div>
+                            <ul class="sw-list" id="weaknesses_list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Final Recommendation -->
+                    <div class="recommendation-card">
+                        <h3>Assessment Summary / मूल्याङ्कन सारांश</h3>
+                        <div id="final_recommendation" style="font-size:1em; line-height:1.8; color:var(--text-secondary);"></div>
+                    </div>
+                </div>
+
+                <!-- === TAB: Visual Analytics (Charts) === -->
+                <div class="result-tab-content" id="tab_charts">
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-card-title"><i data-lucide="pie-chart"></i> Score Distribution by Category</div>
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-card-title"><i data-lucide="bar-chart"></i> Section-wise Performance (%)</div>
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Radar style overview using bar -->
+                    <div class="chart-card" style="margin-bottom: 20px;">
+                        <div class="chart-card-title"><i data-lucide="activity"></i> Category Heatmap</div>
+                        <canvas id="radarChart" height="120"></canvas>
+                    </div>
+                </div>
+
+                <!-- === TAB: Detailed Metrics === -->
+                <div class="result-tab-content" id="tab_detailed">
+                    <div id="detailed_metrics_container"></div>
+                </div>
+
+                <!-- === TAB: Calculation Breakdown === -->
+                <div class="result-tab-content" id="tab_breakdown">
+                    <div class="synopsis-container" style="margin-bottom:20px;">
+                        <h3 style="color:var(--primary); margin-bottom:10px;">Calculation Methodology / गणना विधि</h3>
+                        <p style="color:var(--text-secondary); line-height:1.6; font-size:0.93em;">
+                            Scores are calculated using weighted indicators across 10 risk categories. Each indicator is normalized to a 0–5 scale,
+                            then multiplied by its respective weight. The maximum possible score is 100 points.
+                        </p>
+                    </div>
+                    <div id="methodology_breakdown"></div>
+                </div>
+
+            </div>
+            <!-- end result-section -->
+
+        </div>
+        <!-- end page-content -->
+
+        <!-- ===================== PAGINATION BAR ===================== -->
+        <div class="pagination-bar" id="pagination_bar" style="display:none;">
+            <div class="pagination-info">
+                <span id="pagination_label">Section 1 of 8</span>
+                <div class="section-dots" id="section_dots"></div>
+            </div>
+            <div class="pagination-btns">
+                <button class="btn-prev" id="btn_prev" onclick="navigatePrev()" disabled>← Previous</button>
+                <button class="btn-next" id="btn_next" onclick="navigateNext()">Next →</button>
+                <button class="btn-calculate hidden" id="btn_calculate" onclick="handleCalculate()"><i data-lucide="calculator"></i> Calculate Score</button>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
