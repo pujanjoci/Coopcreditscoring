@@ -1,6 +1,7 @@
 /**
  * Credit Scoring Portal — script.js
  * Routing, state management, scoring engine, and result rendering.
+ * Updated: 121-question, 15-section structure.
  */
 
 // =====================================================
@@ -16,9 +17,21 @@ const state = {
 };
 
 const SECTION_KEYS = [
-    'section_1', 'section_2', 'section_3', 'section_4', 'section_5',
-    'section_6', 'section_7', 'section_8', 'section_9', 'section_10',
-    'section_11', 'section_12', 'section_13'
+    'section_1',  // Identity & Classification
+    'section_2',  // Loan Information
+    'section_3',  // Revenue & Sales
+    'section_4',  // Buyer Analysis
+    'section_5',  // Operating Costs
+    'section_6',  // Financial Performance
+    'section_7',  // Assets
+    'section_8',  // Liabilities
+    'section_9',  // Net Worth
+    'section_10', // Milk Collection & Operations
+    'section_11', // Member Loan Portfolio
+    'section_12', // Compliance & Risk
+    'section_13', // Infrastructure & Operations
+    'section_14', // Governance & Management
+    'section_15'  // Social & Institutional Strength
 ];
 
 const STORAGE_KEY = 'coop_portal_config';
@@ -74,16 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const isRestored = restoreConfig();
 
     if (isRestored) {
-        // Restore visual state for config cards
         applyRestoredConfigUI();
         applyFieldVisibility();
         unlockSidebar();
     }
 
-    // Lucide icons
     if (window.lucide) lucide.createIcons();
 
-    // Hash routing
     router();
     window.addEventListener('hashchange', router);
 });
@@ -122,7 +132,6 @@ function router() {
     const validSection = hash === 'config' || hash === 'result' || SECTION_KEYS.includes(hash);
     const target = validSection ? hash : 'config';
 
-    // If no config set yet and trying to access a section, redirect to config
     if (!state.modelType && target !== 'config') {
         navigateTo('config', false);
         return;
@@ -135,7 +144,6 @@ function router() {
 // NAVIGATION CORE
 // =====================================================
 function navigateTo(sectionId, pushHash = true) {
-    // Hide all panels
     document.querySelectorAll('.config-panel, .form-section, .result-section').forEach(el => {
         el.classList.add('hidden');
         el.classList.remove('active');
@@ -208,7 +216,6 @@ function updatePaginationUI() {
     if (nextBtn) nextBtn.classList.toggle('hidden', isLast);
     if (calcBtn) calcBtn.classList.toggle('hidden', !isLast);
 
-    // Section dots
     const dotsContainer = document.getElementById('section_dots');
     if (dotsContainer) {
         dotsContainer.innerHTML = '';
@@ -223,7 +230,6 @@ function updatePaginationUI() {
 }
 
 function navigateNext() {
-    // Validate required fields for current section
     if (!validateCurrentSection()) return;
 
     const idx = SECTION_KEYS.indexOf(state.currentSection);
@@ -257,12 +263,22 @@ function validateCurrentSection() {
     if (state.currentSection === 'section_1') {
         const name = document.getElementById('coop_name');
         if (!name || !name.value.trim()) {
-            name.style.borderColor = 'var(--danger)';
-            name.focus();
+            if (name) name.style.borderColor = 'var(--danger)';
+            if (name) name.focus();
             showToast('Cooperative Name is required.', 'error');
             return false;
         }
-        name.style.borderColor = '';
+        if (name) name.style.borderColor = '';
+    }
+    if (state.currentSection === 'section_2') {
+        const proposed = document.getElementById('proposed_loan');
+        if (!proposed || !proposed.value) {
+            if (proposed) proposed.style.borderColor = 'var(--danger)';
+            if (proposed) proposed.focus();
+            showToast('Proposed Loan Amount is required.', 'error');
+            return false;
+        }
+        if (proposed) proposed.style.borderColor = '';
     }
     return true;
 }
@@ -316,7 +332,6 @@ function checkConfigComplete() {
         applyFieldVisibility();
         unlockSidebar();
         saveConfig();
-        // Only auto-navigate on first-time config setup (not on restore)
         if (state.currentSection === 'config') {
             navigateTo('section_1');
         }
@@ -335,24 +350,38 @@ function applyFieldVisibility() {
 // =====================================================
 // AUTO-CALCULATIONS
 // =====================================================
+
+// Section 2: Loan
 function calculateTotalLoan() {
     sv('total_loan', gv('existing_loan') + gv('proposed_loan'));
 }
 
+// Section 3: Revenue
 function calculateRevenue() {
-    const milk = gv('milk_sales'), other = gv('other_product_sales'),
-          otherInc = gv('other_income'), grant = gv('grant_income');
+    const milk = gv('milk_sales'), other = gv('other_product_sales'), otherInc = gv('other_income'), grant = gv('grant_income');
     sv('total_sales', milk + other + otherInc);
     sv('total_revenue', milk + other + otherInc + grant);
 }
 
-function calculateExpenses() {
-    const ids = ['cogs', 'processing_cost', 'packaging_cost', 'transport_cost', 'other_processing',
-                 'salary_expense', 'admin_expense', 'electricity', 'fuel_expense', 'repair_expense',
-                 'rent_expense', 'other_opex'];
-    sv('total_opex', ids.reduce((sum, id) => sum + gv(id), 0));
+// Section 4: Buyer percentages (auto-calculate % share)
+function calculateBuyerShares() {
+    const totalSales = gv('total_sales') || gv('milk_sales') + gv('other_product_sales') + gv('other_income');
+    if (totalSales > 0) {
+        sv('top5_buyer_pct', ((gv('top5_buyers_sales') / totalSales) * 100).toFixed(1));
+        sv('largest_buyer_pct', ((gv('largest_buyer_sales') / totalSales) * 100).toFixed(1));
+    }
 }
 
+// Section 5: Operating Costs
+function calculateExpenses() {
+    const cogs = gv('raw_milk_cost');
+    const procIds = ['processing_cost', 'packaging_cost', 'transport_cost', 'other_processing_cost'];
+    const opexIds = ['salary_expense', 'admin_expense', 'electricity_expense', 'fuel_expense', 'repair_expense', 'rent_expense', 'other_opex'];
+    const totalOpex = [cogs, ...procIds, ...opexIds].reduce((sum, id) => sum + gv(id), 0);
+    sv('total_opex', totalOpex);
+}
+
+// Section 7: Assets
 function calculateAssets() {
     const cash = gv('cash_hand') + gv('bank_balance');
     sv('total_cash', cash);
@@ -363,6 +392,7 @@ function calculateAssets() {
     sv('total_assets', current + fixed);
 }
 
+// Section 8: Liabilities
 function calculateLiabilities() {
     const current = gv('accounts_payable') + gv('short_term_loan') + gv('accrued_expenses') + gv('current_ltd');
     sv('total_current_liabilities', current);
@@ -371,18 +401,21 @@ function calculateLiabilities() {
     sv('total_liabilities', current + ltl);
 }
 
-function calculateEquity() {
+// Section 9: Net Worth
+function calculateNetWorth() {
     sv('total_net_worth', gv('paid_up_capital') + gv('retained_earnings') + gv('reserve_fund'));
 }
 
-function calculateCollateral() {
-    sv('total_primary_collateral', gv('primary_land') + gv('primary_building') + gv('primary_machinery'));
-}
-
+// Section 10: Milk Metrics
 function calculateMilkMetrics() {
     const collected = gv('total_milk_collected'), loss = gv('milk_loss');
     const pLoss = state.modelType === 'processing' ? gv('processing_loss') : 0;
     sv('total_milk_sold', Math.max(0, collected - loss - pLoss));
+    // Average milk per farmer
+    const farmers = gv('total_farmers');
+    if (farmers > 0 && collected > 0) {
+        sv('avg_milk_per_farmer', (collected / farmers).toFixed(1));
+    }
 }
 
 // =====================================================
@@ -409,22 +442,28 @@ function performScoring(inp) {
         res.indicators.push({ cat, name, score: Math.round(score * 10) / 10, max, formula, val });
     };
 
-    // ── 1. CASH FLOW (180) ────────────────────────────────────────────────
-    const ebitda = inp.total_revenue - inp.total_opex - inp.cogs + inp.depreciation + inp.amortization;
-    const debtSvc = inp.principal_repayment + inp.interest_amount;
+    // ── 1. CASH FLOW (180) ──────────────────────────────────────────────────
+    const ebitda = inp.total_revenue - inp.total_opex + inp.annual_depreciation + inp.amortization_amount;
+    // Derive debt service from interest rate & loan term if not directly available
+    const loanAmt = inp.proposed_loan || 0;
+    const months = inp.loan_tenure || 60;
+    const rate = (inp.interest_rate || 10) / 100;
+    const annualInterest = loanAmt * rate;
+    const annualPrincipal = months > 0 ? (loanAmt / (months / 12)) : 0;
+    const debtSvc = annualPrincipal + annualInterest;
     const dscr = debtSvc > 0 ? ebitda / debtSvc : (ebitda > 0 ? 2.5 : 0);
     add('Cash Flow', 'DSCR (Debt Coverage)', dscr >= 2.0 ? 60 : dscr >= 1.5 ? 45 : dscr >= 1.25 ? 30 : dscr >= 1.0 ? 15 : 0, 60, 'EBITDA / Debt Service', dscr.toFixed(2) + 'x');
 
-    const season = inp.lean_month_expense > 0 && inp.total_cash > 0 ? inp.total_cash / inp.lean_month_expense : 0;
+    const season = inp.lowest_monthly_expense > 0 && inp.total_cash > 0 ? inp.total_cash / inp.lowest_monthly_expense : 0;
     add('Cash Flow', 'Seasonality Coverage', season >= 12 ? 36 : season >= 6 ? 24 : season >= 3 ? 12 : 6, 36, 'Cash / Lean Month Exp', season.toFixed(1) + ' mo');
 
-    const invDays = inp.cogs > 0 ? (inp.avg_inventory / (inp.cogs / 365)) : 0;
+    const invDays = inp.raw_milk_cost > 0 ? (inp.avg_inventory_value / (inp.raw_milk_cost / 365)) : 0;
     add('Cash Flow', 'Inventory Days', invDays <= 30 ? 30 : invDays <= 60 ? 20 : invDays <= 90 ? 10 : 5, 30, 'Avg Inv / (COGS/365)', Math.round(invDays) + ' days');
 
     const recDays = inp.total_sales > 0 ? (inp.accounts_receivable / (inp.total_sales / 365)) : 0;
     add('Cash Flow', 'Receivable Days', recDays <= 30 ? 40 : recDays <= 45 ? 30 : recDays <= 60 ? 20 : 10, 40, 'AR / (Sales/365)', Math.round(recDays) + ' days');
 
-    // ── 2. MILK SUPPLY (160) ──────────────────────────────────────────────
+    // ── 2. MILK SUPPLY (160) ────────────────────────────────────────────────
     const milkStab = inp.avg_monthly_milk > 0 ? (inp.lowest_monthly_milk / inp.avg_monthly_milk) * 100 : 0;
     add('Supply', 'Milk Stability', milkStab >= 90 ? 24 : milkStab >= 75 ? 18 : milkStab >= 60 ? 12 : 6, 24, 'Low / Avg Monthly', milkStab.toFixed(1) + '%');
 
@@ -437,13 +476,14 @@ function performScoring(inp) {
     const yLoss = inp.total_milk_collected > 0 ? (inp.processing_loss / inp.total_milk_collected) * 100 : 0;
     add('Supply', 'Yield Loss', yLoss <= 2 ? 15 : yLoss <= 5 ? 10 : yLoss <= 8 ? 5 : 2, 15, 'Proc. Loss / Total', yLoss.toFixed(2) + '%');
 
-    const fConc = inp.total_milk_collected > 0 ? (inp.top5_farmers / inp.total_milk_collected) * 100 : 0;
+    const fConc = inp.total_milk_collected > 0 ? (inp.top5_farmers_milk / inp.total_milk_collected) * 100 : 0;
     add('Supply', 'Farmer Concentration', fConc <= 20 ? 15 : fConc <= 35 ? 10 : fConc <= 50 ? 5 : 2, 15, 'Top 5 Farmers Share', fConc.toFixed(1) + '%');
 
-    const logiScore = (inp.vehicle_avail === 'Yes' ? 7.5 : 0) + (inp.storage_avail === 'Yes' ? 7.5 : 0);
-    add('Supply', 'Logistics', logiScore, 15, 'Vehicle + Cold Chain', logiScore === 15 ? 'Full' : logiScore > 0 ? 'Partial' : 'None');
+    const logiScore = (inp.vehicle_avail_pct >= 80 ? 7.5 : inp.vehicle_avail_pct >= 50 ? 4 : 0) +
+                      (inp.storage_cold_facility === 'Yes' ? 7.5 : 0);
+    add('Supply', 'Logistics', logiScore, 15, 'Vehicle+Cold Chain', logiScore === 15 ? 'Full' : logiScore > 0 ? 'Partial' : 'None');
 
-    // ── 3. FINANCIAL STRENGTH (150) ───────────────────────────────────────
+    // ── 3. FINANCIAL STRENGTH (150) ─────────────────────────────────────────
     const nw = inp.total_net_worth;
     add('Financials', 'Net Worth', nw >= 20000000 ? 35 : nw >= 10000000 ? 25 : nw >= 5000000 ? 15 : 8, 35, 'Total Equity', 'NPR ' + (nw / 1e6).toFixed(1) + 'M');
 
@@ -458,53 +498,61 @@ function performScoring(inp) {
 
     add('Financials', 'Cash Trend', inp.cash_last_year > inp.cash_prev_year ? 25 : inp.cash_last_year === inp.cash_prev_year ? 18 : 8, 25, 'YoY Cash', inp.cash_last_year > inp.cash_prev_year ? 'Improving' : 'Declining');
 
-    // ── 4. GOVERNANCE (45) ────────────────────────────────────────────────
+    // ── 4. BUYER QUALITY (45) ───────────────────────────────────────────────
     const bSales = inp.total_sales > 0 ? (inp.bank_sales / inp.total_sales) * 100 : 0;
-    add('Governance', 'Bank Sales %', bSales >= 80 ? 25 : bSales >= 50 ? 18 : bSales >= 30 ? 12 : 6, 25, 'Via Bank / Total Sales', bSales.toFixed(1) + '%');
+    add('Buyer Quality', 'Bank Sales %', bSales >= 80 ? 25 : bSales >= 50 ? 18 : bSales >= 30 ? 12 : 6, 25, 'Via Bank / Total Sales', bSales.toFixed(1) + '%');
 
-    const misScore = inp.digital_mis === 'Yes' ? 20 : inp.digital_mis === 'Partial' ? 10 : 0;
-    add('Governance', 'Digital MIS', misScore, 20, 'MIS/POS Adoption', inp.digital_mis || 'N/A');
+    const top5Pct = inp.total_sales > 0 ? (inp.top5_buyers_sales / inp.total_sales) * 100 : 0;
+    add('Buyer Quality', 'Top 5 Buyer Concentration', top5Pct <= 30 ? 20 : top5Pct <= 50 ? 14 : 8, 20, 'Top5 / Total Sales', top5Pct.toFixed(1) + '%');
 
-    // ── 5. LOAN RECOVERY (100) ────────────────────────────────────────────
-    const gnpa = inp.total_member_loans > 0 ? (inp.npa_loans / inp.total_member_loans) * 100 : 0;
+    // ── 5. LOAN RECOVERY (100) ──────────────────────────────────────────────
+    const gnpa = inp.total_member_loans > 0 ? (inp.npa_member_loans / inp.total_member_loans) * 100 : 0;
     add('Recovery', 'Member GNPA', gnpa <= 2 ? 45 : gnpa <= 5 ? 35 : gnpa <= 10 ? 25 : 10, 45, 'NPA / Total Loans', gnpa.toFixed(1) + '%');
 
     add('Recovery', 'Max DPD Members', inp.max_dpd_members <= 30 ? 35 : inp.max_dpd_members <= 60 ? 25 : 15, 35, 'Days Past Due', inp.max_dpd_members + ' days');
 
-    const rsScore = inp.restructured_loans === 'None' ? 20 : inp.restructured_loans === 'Few Times' ? 12 : 5;
-    add('Recovery', 'Loan Restructuring', rsScore, 20, 'Past 3 Years', inp.restructured_loans || 'N/A');
+    const rsScore = inp.restructured_loans_3yr === 'None' ? 20 : inp.restructured_loans_3yr === 'Few Times' ? 12 : 5;
+    add('Recovery', 'Loan Restructuring', rsScore, 20, 'Past 3 Years', inp.restructured_loans_3yr || 'N/A');
 
-    // ── 6. SECURITY (60) ─────────────────────────────────────────────────
-    const priColl = inp.proposed_loan > 0 ? (inp.total_primary_collateral / inp.proposed_loan) : 0;
-    add('Security', 'Primary Collateral', Math.min(priColl * 40, 40), 40, 'Coll. / Loan Amt', priColl.toFixed(2) + 'x');
+    // ── 6. SECURITY / COLLATERAL (40) ───────────────────────────────────────
+    const priColl = inp.proposed_loan > 0 ? (inp.primary_land_value / inp.proposed_loan) : 0;
+    add('Security', 'Primary Collateral Coverage', Math.min(priColl * 40, 40), 40, 'Land Value / Loan', priColl.toFixed(2) + 'x');
 
-    const secColl = inp.proposed_loan > 0 ? (inp.secondary_collateral / inp.proposed_loan) : 0;
-    add('Security', 'Secondary Collateral', Math.min(secColl * 20, 20), 20, '2nd Coll. / Loan', secColl.toFixed(2) + 'x');
+    // ── 7. GOVERNANCE (80) ──────────────────────────────────────────────────
+    add('Governance', 'Mgmt Experience', inp.mgmt_experience >= 10 ? 20 : inp.mgmt_experience >= 5 ? 12 : 6, 20, 'Years', inp.mgmt_experience + ' yrs');
+    const icScore = inp.internal_control_score >= 80 ? 20 : inp.internal_control_score >= 60 ? 14 : inp.internal_control_score >= 40 ? 8 : 4;
+    add('Governance', 'Internal Controls', icScore, 20, 'Score', inp.internal_control_score);
+    const auditScore = inp.audit_observations === 0 ? 20 : inp.audit_observations <= 3 ? 14 : inp.audit_observations <= 6 ? 8 : 4;
+    add('Governance', 'Audit Observations', auditScore, 20, 'Count', inp.audit_observations);
+    add('Governance', 'Loan Policy', inp.loan_policy_compliance === 'Yes' ? 20 : 0, 20, 'Compliance', inp.loan_policy_compliance || 'N/A');
 
-    // ── 7. GOVERNANCE QUALITY (80) ────────────────────────────────────────
-    [
-        { id: 'mgmt_experience', cat: 'Governance', name: 'Mgmt Experience', max: 20, score: inp.mgmt_experience >= 10 ? 20 : 10 },
-        { id: 'internal_controls', cat: 'Governance', name: 'Internal Controls', max: 20, score: inp.internal_controls === 'Robust' ? 20 : 10 },
-        { id: 'audit_findings', cat: 'Governance', name: 'Audit Findings', max: 20, score: inp.audit_findings === 'None' ? 20 : 10 },
-        { id: 'loan_policy', cat: 'Governance', name: 'Loan Policy', max: 20, score: inp.loan_policy === 'Yes' ? 20 : 0 },
-    ].forEach(m => add(m.cat, m.name, m.score, m.max, 'Direct', inp[m.id] || 'N/A'));
+    // ── 8. EXTERNAL / RISK (55) ─────────────────────────────────────────────
+    add('External', 'Insurance Coverage', inp.insurance_available === 'Yes' ? 15 : 0, 15, 'Has Insurance', inp.insurance_available || 'N/A');
+    const regScore = inp.regulatory_compliance === 'Yes' ? 20 : inp.regulatory_compliance === 'Partial' ? 10 : 0;
+    add('External', 'Regulatory Compliance', regScore, 20, 'Compliance Level', inp.regulatory_compliance || 'N/A');
+    add('External', 'Climatic Risk', inp.climatic_risk_score <= 3 ? 20 : inp.climatic_risk_score <= 6 ? 12 : 5, 20, 'Risk Score', inp.climatic_risk_score);
 
-    // ── 8. EXTERNAL (40) ─────────────────────────────────────────────────
-    add('External', 'Insurance Coverage', inp.insurance === 'Yes' ? 10 : 0, 10, 'Has Insurance', inp.insurance || 'N/A');
-    add('External', 'Regulatory Compliance', inp.regulatory === 'Full' ? 15 : 7, 15, 'Compliance Level', inp.regulatory || 'N/A');
-    add('External', 'Climatic Risk', inp.climatic_risk === 'Low' ? 15 : 7, 15, 'Risk Level', inp.climatic_risk || 'N/A');
+    // ── 9. CREDIT HISTORY (40) ──────────────────────────────────────────────
+    const bfiMap = { 'Pass': 20, 'Watch List': 14, 'Substandard': 8, 'Doubtful': 4, 'Loss': 0 };
+    add('Credit History', 'BFI Credit History', bfiMap[inp.credit_history_bfi] || 5, 20, 'BFI Record', inp.credit_history_bfi || 'N/A');
+    add('Credit History', 'Max DPD (BFI)', inp.max_dpd_bfi <= 0 ? 20 : inp.max_dpd_bfi <= 5 ? 16 : inp.max_dpd_bfi <= 15 ? 10 : 4, 20, 'Days Past Due', inp.max_dpd_bfi + ' days');
 
-    // ── 9. CREDIT HISTORY (40) ───────────────────────────────────────────
-    add('Credit History', 'BFI Credit History', inp.credit_history_bfi === 'Pass' ? 20 : 5, 20, 'BFI Record', inp.credit_history_bfi || 'N/A');
-    add('Credit History', 'Max DPD (BFI)', inp.max_dpd_bfi <= 5 ? 20 : 5, 20, 'Days Past Due', inp.max_dpd_bfi + ' days');
+    // ── 10. INFRA & DIGITAL (25) ────────────────────────────────────────────
+    const misScore = inp.digital_mis_pos === 'Yes' ? 15 : inp.digital_mis_pos === 'Partial' ? 8 : 0;
+    add('Infrastructure', 'Digital MIS', misScore, 15, 'MIS/POS Adoption', inp.digital_mis_pos || 'N/A');
+    const sopScore = inp.quality_sop_score >= 80 ? 10 : inp.quality_sop_score >= 60 ? 6 : inp.quality_sop_score >= 40 ? 3 : 0;
+    add('Infrastructure', 'Quality SOP', sopScore, 10, 'SOP Score', inp.quality_sop_score);
 
-    // ── 10. BEHAVIORAL (30) ──────────────────────────────────────────────
-    add('Behavior', 'Committee Meetings', inp.meeting_freq === 'Weekly' ? 10 : inp.meeting_freq === 'Monthly' ? 6 : 2, 10, 'Freq', inp.meeting_freq || 'N/A');
-    add('Behavior', 'Community Support', inp.community_support === 'Frequently' ? 10 : inp.community_support === 'Sometimes' ? 6 : 2, 10, 'Engagement', inp.community_support || 'N/A');
-    add('Behavior', 'Emergency Plan', inp.emergency_prep === 'Proper Plan' ? 10 : inp.emergency_prep === 'Ad-hoc' ? 5 : 0, 10, 'Preparedness', inp.emergency_prep || 'N/A');
+    // ── 11. BEHAVIORAL / SOCIAL (30) ────────────────────────────────────────
+    const meetMap = { 'Weekly': 10, 'Bi-Weekly': 8, 'Monthly': 6, 'Rarely': 2 };
+    add('Behavior', 'Committee Meetings', meetMap[inp.meeting_frequency] || 2, 10, 'Frequency', inp.meeting_frequency || 'N/A');
+    const commMap = { 'Significant': 10, 'Moderate': 6, 'Minimal': 2 };
+    add('Behavior', 'Community Support', commMap[inp.community_support_level] || 2, 10, 'Level', inp.community_support_level || 'N/A');
+    const emgMap = { 'Proper Plan': 10, 'Ad-hoc': 5, 'No Plan': 0 };
+    add('Behavior', 'Emergency Plan', emgMap[inp.emergency_response] || 0, 10, 'Preparedness', inp.emergency_response || 'N/A');
 
-    // ── Years in Operation (base credit) ─────────────────────────────────
-    const yrs = gv('years_operation');
+    // ── Base credit: Years in operation ────────────────────────────────────
+    const yrs = inp.years_operation;
     add('Behavior', 'Years in Operation', yrs >= 10 ? 15 : yrs >= 5 ? 10 : yrs >= 2 ? 5 : 2, 15, 'Years Operating', yrs + ' yrs');
 
     // Strengths / Weaknesses
@@ -524,53 +572,35 @@ function performScoring(inp) {
 function renderResults(res) {
     const scoreVal = res.totalScore;
 
-    // Risk classification
     let riskClass = 'low', riskLabel = 'High Risk', riskColor = '#dc2626', riskBg = '#fee2e2';
     if (scoreVal >= 800) { riskClass = 'excellent'; riskLabel = 'Excellent'; riskColor = '#16a34a'; riskBg = '#dcfce7'; }
     else if (scoreVal >= 650) { riskClass = 'good'; riskLabel = 'Good'; riskColor = '#2563eb'; riskBg = '#dbeafe'; }
     else if (scoreVal >= 500) { riskClass = 'moderate'; riskLabel = 'Moderate Risk'; riskColor = '#d97706'; riskBg = '#fef3c7'; }
     else if (scoreVal >= 350) { riskClass = 'caution'; riskLabel = 'Caution'; riskColor = '#ea580c'; riskBg = '#ffedd5'; }
 
-    // Hero Score
     const scoreNum = document.getElementById('result_score_number');
-    if (scoreNum) {
-        scoreNum.textContent = scoreVal;
-        scoreNum.style.color = riskColor;
-    }
+    if (scoreNum) { scoreNum.textContent = scoreVal; scoreNum.style.color = riskColor; }
 
     const badge = document.getElementById('result_risk_badge');
     const badgeLabel = document.getElementById('result_risk_label');
-    if (badge) {
-        badge.className = 'risk-badge ' + riskClass;
-        badge.style.background = riskBg;
-        badge.style.color = riskColor;
-        badge.style.borderColor = riskColor;
-    }
+    if (badge) { badge.className = 'risk-badge ' + riskClass; badge.style.background = riskBg; badge.style.color = riskColor; badge.style.borderColor = riskColor; }
     if (badgeLabel) badgeLabel.textContent = riskLabel;
 
-    // Cooperative name in result
     const nameEl = document.getElementById('result_coop_name');
     if (nameEl) nameEl.textContent = gs('coop_name') || '—';
-
     const ctEl = document.getElementById('result_coop_type');
     if (ctEl) ctEl.textContent = state.modelType === 'collection' ? 'Collection Only' : 'Collection & Processing';
-
     const custEl = document.getElementById('result_cust_type');
     if (custEl) custEl.textContent = state.customerType === 'new' ? 'New Customer' : 'Existing Customer';
 
-    // Score percentage bar
     const pctBarFill = document.getElementById('score_pct_fill');
     const pctText = document.getElementById('score_pct_text');
     if (pctBarFill) { pctBarFill.style.width = (scoreVal / 10) + '%'; pctBarFill.style.background = riskColor; }
     if (pctText) pctText.textContent = (scoreVal / 10).toFixed(1) + '%';
 
-    // Category cards
     renderCategoryCards(res, riskColor);
-
-    // Calculation log table
     renderCalcTable(res);
 
-    // Strengths & Weaknesses
     const sl = document.getElementById('strengths_list');
     const wl = document.getElementById('weaknesses_list');
     if (sl) sl.innerHTML = res.strengths.slice(0, 6).map(s =>
@@ -580,10 +610,10 @@ function renderResults(res) {
         `<li><span class="sw-name">${w.name}</span> <span class="sw-val">${w.val}</span></li>`
     ).join('') || '<li>No risk factors identified.</li>';
 
-    // Recommendation
     const rec = document.getElementById('final_recommendation');
     if (rec) {
-        const tier = scoreVal >= 800 ? ['Highly Recommended', '#16a34a', 'The cooperative demonstrates exceptional financial health, strong governance, and stable operations. Loan approval is strongly recommended.']
+        const tier = scoreVal >= 800
+            ? ['Highly Recommended', '#16a34a', 'The cooperative demonstrates exceptional financial health, strong governance, and stable operations. Loan approval is strongly recommended.']
             : scoreVal >= 650 ? ['Recommended', '#2563eb', 'The cooperative shows positive indicators across key metrics with manageable risks. Approval recommended with standard monitoring.']
             : scoreVal >= 500 ? ['Conditional Approval', '#d97706', 'The cooperative presents moderate risk. Approval may proceed with enhanced monitoring, additional collateral, or reduced loan amount.']
             : scoreVal >= 350 ? ['High Risk — Further Review', '#ea580c', 'Significant concerns exist. The application requires senior review, stress testing, and possible restructuring before approval.']
@@ -689,7 +719,7 @@ function renderCharts(res) {
                 labels: cats,
                 datasets: [{
                     label: 'Score', data: actuals,
-                    backgroundColor: cats.map((_, i) => `hsl(${220 + i * 15},60%,55%)`),
+                    backgroundColor: cats.map((_, i) => `hsl(${220 + i * 18},60%,55%)`),
                     borderRadius: 4
                 }]
             },
