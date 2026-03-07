@@ -373,7 +373,7 @@ body {
 /* Page Content */
 .page-content {
   flex: 1;
-  padding: 28px 32px 100px;
+  padding: 28px 32px 40px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -724,60 +724,8 @@ select:disabled {
 }
 
 /* =====================================================
-   PAGINATION BAR
+   ACTION BUTTONS
    ===================================================== */
-
-.pagination-bar {
-  position: fixed;
-  bottom: 0;
-  left: var(--sidebar-width);
-  right: 0;
-  background: white;
-  border-top: 1px solid var(--border-light);
-  padding: 14px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 90;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.07);
-}
-
-.pagination-info {
-  font-size: 0.88em;
-  color: var(--text-muted);
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pagination-info .section-dots {
-  display: flex;
-  gap: 5px;
-}
-
-.pagination-info .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: var(--transition);
-}
-
-.pagination-info .dot.active {
-  background: var(--primary);
-  transform: scale(1.3);
-}
-
-.pagination-info .dot.completed {
-  background: var(--success);
-}
-
-.pagination-btns {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
 
 .btn-prev,
 .btn-next,

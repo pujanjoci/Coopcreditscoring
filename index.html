@@ -4,18 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dairy Cooperative Credit Scoring Portal — Nepal</title>
-  <meta name="description" content="Professional credit scoring portal for Dairy Cooperatives in Nepal.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Copy your full style.css content here */
+    body { margin: 0; font-family: 'Inter', sans-serif; background: #f5f7fa; }
+    /* ... rest of your styles ... */
+  </style>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="portal-layout">
-
-  <!-- ===== SIDEBAR ===== -->
+  <!-- Sidebar (unchanged) -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -34,8 +37,10 @@
       <button class="sidebar-nav-item active" data-section="config" onclick="handleSidebarClick('config')">
         <i data-lucide="settings" class="nav-icon"></i><span>Configuration</span><i data-lucide="check" class="nav-check"></i>
       </button>
-      <div class="nav-group-label">Assessment Sections</div>
-      <div id="dynamic_sidebar_container"></div>
+      <div class="nav-group-label">Assessment</div>
+      <button class="sidebar-nav-item disabled" data-section="questions" id="nav_questions" onclick="handleSidebarClick('questions')">
+        <i data-lucide="list" class="nav-icon"></i><span>Questionnaire</span><i data-lucide="check" class="nav-check"></i>
+      </button>
       <div class="nav-group-label">Output</div>
       <button class="sidebar-nav-item disabled" data-section="result" id="nav_result" onclick="handleSidebarClick('result')">
         <i data-lucide="chart-bar" class="nav-icon"></i><span>Credit Score Result</span><i data-lucide="check" class="nav-check"></i>
@@ -45,7 +50,6 @@
 
   <div class="sidebar-toggle-overlay" id="sidebar_overlay" onclick="closeSidebar()"></div>
 
-  <!-- ===== MAIN ===== -->
   <main class="portal-main">
     <header class="portal-header">
       <div class="header-left">
@@ -59,8 +63,7 @@
     <div class="global-progress"><div class="global-progress-fill" id="global_progress_fill"></div></div>
 
     <div class="page-content">
-
-      <!-- ===== CONFIG PANEL ===== -->
+      <!-- Config Panel (unchanged) -->
       <div class="config-panel" id="config">
         <h2><i data-lucide="settings"></i> Application Configuration</h2>
         <div class="config-row">
@@ -96,12 +99,18 @@
         <div id="config_alert" class="alert hidden" style="margin-top:16px">
           <i data-lucide="alert-triangle"></i> Please select both Cooperative Type and Customer Status to begin.
         </div>
+        <button class="btn-next hidden" id="btn_start_questions" onclick="navigateTo('questions')" style="margin-top: 20px; width: 100%; justify-content: center; padding: 14px;">Continue to Questions →</button>
       </div>
 
-      <!-- ===== DYNAMIC SECTIONS CONTAINER ===== -->
-      <div id="dynamic_sections_container"></div>
+      <!-- Questions Panel -->
+      <div id="questions" class="hidden">
+        <div id="questions_container" style="max-width: 800px; margin: 0 auto;"></div>
+        <div class="questions-actions" style="margin-top: 30px; display: flex; justify-content: flex-end;">
+          <button class="btn-calculate" id="btn_calculate_main" onclick="submitAndCalculate()"><i data-lucide="calculator"></i> Calculate Credit Score</button>
+        </div>
+      </div>
 
-      <!-- ===== RESULT SECTION ===== -->
+      <!-- Result Panel -->
       <div class="result-section" id="result">
         <div class="res-hero">
           <div class="res-hero-left">
@@ -120,21 +129,28 @@
               <div class="res-score-bar-label"><span>Score Progress</span><span id="score_pct_text">0%</span></div>
               <div class="res-score-bar-bg"><div class="res-score-bar-fill" id="score_pct_fill"></div></div>
             </div>
-            <div class="res-action-row">
-              <button class="print-btn" onclick="window.print()"><i data-lucide="printer"></i> Print Report</button>
-              <button class="print-btn" style="background:var(--light);color:var(--text)" onclick="navigateTo('section_1')"><i data-lucide="edit"></i> Edit Inputs</button>
-            </div>
           </div>
         </div>
+
         <div class="res-section-title"><i data-lucide="grid"></i> Score Breakdown by Category</div>
         <div class="cat-grid" id="category_analysis"></div>
+
         <div class="res-section-title"><i data-lucide="table"></i> Detailed Calculation Log</div>
         <div class="calc-table-wrap">
           <table class="calc-table">
-            <thead><tr><th>Indicator</th><th>Formula</th><th>Value</th><th>Score</th><th>Max</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Indicator</th>
+                <th>Formula</th>
+                <th>Value</th>
+                <th>Score</th>
+                <th>Max</th>
+              </tr>
+            </thead>
             <tbody id="calculation-log"></tbody>
           </table>
         </div>
+
         <div class="res-sw-grid">
           <div class="res-sw-card strengths">
             <div class="res-sw-title"><i data-lucide="check-circle"></i> Key Strengths</div>
@@ -145,35 +161,373 @@
             <ul class="res-sw-list" id="weaknesses_list"></ul>
           </div>
         </div>
+
         <div class="res-rec-card">
           <div class="res-rec-header"><i data-lucide="clipboard-check"></i><span>Assessment Recommendation</span></div>
           <div id="final_recommendation" class="res-rec-body"></div>
         </div>
+
         <div class="res-section-title"><i data-lucide="bar-chart-2"></i> Visual Analytics</div>
         <div class="res-charts-grid">
-          <div class="res-chart-card"><div class="res-chart-title">Score Profile (Radar)</div><canvas id="radarChart"></canvas></div>
-          <div class="res-chart-card"><div class="res-chart-title">Category Scores (Bar)</div><canvas id="barChart"></canvas></div>
+          <div class="res-chart-card">
+            <div class="res-chart-title">Score Profile (Radar)</div>
+            <canvas id="radarChart"></canvas>
+          </div>
+          <div class="res-chart-card">
+            <div class="res-chart-title">Category Scores (Bar)</div>
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+
+        <div class="res-action-row" style="margin-top: 30px; display: flex; gap: 15px; justify-content: flex-end;">
+          <button class="print-btn" style="background: var(--light); color: var(--text);" onclick="navigateTo('questions')"><i data-lucide="edit"></i> Edit Inputs</button>
+          <button class="print-btn" onclick="window.print()"><i data-lucide="printer"></i> Print Full Report</button>
         </div>
       </div>
-
-    </div><!-- end page-content -->
-
-    <!-- ===== PAGINATION BAR ===== -->
-    <div class="pagination-bar" id="pagination_bar" style="display:none">
-      <div class="pagination-info">
-        <span id="pagination_label">Section 1 of 15</span>
-        <div class="section-dots" id="section_dots"></div>
-      </div>
-      <div class="pagination-btns">
-        <button class="btn-prev" id="btn_prev" onclick="navigatePrev()" disabled>← Previous</button>
-        <button class="btn-next" id="btn_next" onclick="navigateNext()">Next →</button>
-        <button class="btn-calculate hidden" id="btn_calculate" onclick="handleCalculate()"><i data-lucide="calculator"></i> Calculate Score</button>
-      </div>
     </div>
-
   </main>
 </div>
 
-<script src="script.js"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQeybmI7G7jOhkgNh7mTM_uCFFYjnKaevjznQ7tIll5UR1aQvdKXDe3l1THji7tfi7lg/exec';
+
+  let coopType = null;
+  let customerType = null;
+  let questions = [];
+  let answers = {};
+
+  lucide.createIcons();
+
+  window.setCoopType = function(type) {
+    coopType = type;
+    document.querySelectorAll('input[name="coop_type"]').forEach(el => {
+      const isChecked = el.value === type;
+      el.checked = isChecked;
+      const card = el.closest('.radio-card');
+      if (card) {
+        if (isChecked) card.classList.add('selected');
+        else card.classList.remove('selected');
+      }
+    });
+    checkConfigComplete();
+  };
+
+  window.setCustomerType = function(type) {
+    customerType = type;
+    document.querySelectorAll('input[name="customer_type"]').forEach(el => {
+      const isChecked = el.value === type;
+      el.checked = isChecked;
+      const card = el.closest('.radio-card');
+      if (card) {
+        if (isChecked) card.classList.add('selected');
+        else card.classList.remove('selected');
+      }
+    });
+    checkConfigComplete();
+  };
+
+  function checkConfigComplete() {
+    const coopSelected = coopType !== null;
+    const custSelected = customerType !== null;
+    const alertDiv = document.getElementById('config_alert');
+    const startBtn = document.getElementById('btn_start_questions');
+    if (coopSelected && custSelected) {
+      alertDiv.classList.add('hidden');
+      startBtn.classList.remove('hidden');
+      document.getElementById('sidebar_progress_text').innerText = 'Ready to start';
+      document.getElementById('sidebar_progress_fill').style.width = '33%';
+    } else {
+      alertDiv.classList.remove('hidden');
+      startBtn.classList.add('hidden');
+    }
+  }
+
+  window.handleSidebarClick = function(section) {
+    navigateTo(section);
+  };
+
+  window.navigateTo = function(section) {
+    document.querySelectorAll('.page-content > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById(section).classList.remove('hidden');
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`.sidebar-nav-item[data-section="${section}"]`).classList.add('active');
+    const stepMap = { config: 'Configure to start', questions: 'Answer all questions', result: 'Final score' };
+    document.getElementById('header_step').innerHTML = `<span>${stepMap[section]}</span>`;
+
+    if (section === 'questions' && questions.length === 0) {
+      loadQuestions();
+    }
+  };
+
+  async function loadQuestions() {
+    try {
+      const url = SCRIPT_URL + '?action=fetchQuestions';
+      let response;
+      try {
+        response = await fetch(url);
+      } catch (e) {
+        throw new Error("Network error or CORS issue.");
+      }
+      
+      const text = await response.text();
+      
+      if (text.trim().startsWith('<')) {
+        if (text.includes("index")) {
+          alert('Backend Error: Script issue detected.');
+        } else {
+          alert('Backend Error: Service issue detected.');
+        }
+        return;
+      }
+
+      const data = JSON.parse(text);
+
+      if (data.error) {
+        alert('Error: ' + data.error);
+        return;
+      }
+      renderQuestions(data);
+    } catch (err) {
+      alert('Failed to load questions.');
+    }
+  }
+
+  function renderQuestions(fetched) {
+    questions = fetched;
+    const container = document.getElementById('questions_container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    questions.forEach((q) => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'section-card form-group';
+      qDiv.style.padding = '24px';
+      qDiv.style.marginBottom = '20px';
+      qDiv.dataset.id = q.id;
+
+      const label = document.createElement('label');
+      label.className = 'bilingual-label';
+      label.style.marginBottom = '12px';
+      // Only render the primary question text. Removed the secondary nepali-text span which was acting as a technical comment.
+      label.innerHTML = `<span style="font-weight:700; color:var(--primary); font-size:1.05em">${q.english}</span>`;
+      if (q.required) label.innerHTML += ' <span class="required-tag" style="margin-left:8px">Required</span>';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = q.placeholder || "Your answer...";
+      if (q.required) input.required = true;
+
+      qDiv.appendChild(label);
+      qDiv.appendChild(input);
+      container.appendChild(qDiv);
+
+      if (answers && q.id && answers[q.id]) {
+        input.value = answers[q.id];
+      }
+
+      input.addEventListener('input', (e) => {
+        answers[q.id] = e.target.value;
+      });
+    });
+    lucide.createIcons();
+  }
+
+  // ========== SUBMIT ANSWERS & CALCULATE ==========
+  window.submitAndCalculate = async function() {
+    // Validate required
+    for (let q of questions) {
+      if (q.required && !answers[q.id]) {
+        alert(`Please answer: ${q.english}`);
+        return;
+      }
+    }
+
+    try {
+      // Step 1: Submit answers directly to Script URL
+      const submitUrl = SCRIPT_URL;
+      const submitResponse = await fetch(submitUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // text/plain prevents CORS preflight errors in GAS
+        body: JSON.stringify({ action: 'submitAnswers', answers: answers })
+      });
+      const submitText = await submitResponse.text();
+      
+      if (submitText.trim().startsWith('<')) {
+         alert('Backend Error: Google Apps Script returned HTML instead of JSON on POST.');
+         return;
+      }
+
+      const submitData = JSON.parse(submitText);
+      if (submitData.error) {
+        alert('Error saving answers: ' + submitData.error);
+        return;
+      }
+
+      // Step 2: Fetch results
+      const calcUrl = SCRIPT_URL + '?action=calculateResults';
+      const calcResponse = await fetch(calcUrl);
+      const calcText = await calcResponse.text();
+
+      if (calcText.trim().startsWith('<')) {
+         alert('Backend Error: Google Apps Script returned HTML instead of JSON on GET results.');
+         return;
+      }
+
+      const calcData = JSON.parse(calcText);
+      if (calcData.error) {
+        alert('Error calculating: ' + calcData.error);
+        return;
+      }
+      displayResults(calcData);
+    } catch (err) {
+      console.error(err);
+      alert('Submission failed. Check console.');
+    }
+  };
+
+  // Charts instances
+  let charts = {};
+
+  function displayResults(result) {
+    if (!result) return;
+    
+    // Core Score Info
+    document.getElementById('result_score_number').innerText = result.totalScore || '—';
+    const risk = result.riskCategory || 'NOT SCORED';
+    document.getElementById('result_risk_label').innerText = risk;
+    
+    const riskClass = risk.toLowerCase().replace(' ', '-');
+    const riskBadge = document.getElementById('result_risk_badge');
+    riskBadge.className = `risk-badge ${riskClass}`;
+
+    document.getElementById('result_coop_type').innerText = coopType === 'collection' ? 'Collection Only' : 'Collection & Processing';
+    document.getElementById('result_cust_type').innerText = customerType === 'new' ? 'New Customer' : 'Existing Customer';
+
+    // Progress bar
+    const scoreVal = parseFloat(result.totalScore) || 0;
+    const pct = Math.min(100, (scoreVal / 1000) * 100);
+    document.getElementById('score_pct_text').innerText = pct.toFixed(1) + '%';
+    document.getElementById('score_pct_fill').style.width = pct + '%';
+
+    // Calculation Log Table
+    const logBody = document.getElementById('calculation-log');
+    if (logBody && result.logs) {
+      logBody.innerHTML = result.logs.map(log => `
+        <tr>
+          <td style="font-weight:600">${log.name}</td>
+          <td style="color:var(--text-muted); font-size:0.85em">${log.formula || '-'}</td>
+          <td>${log.value || '0'}</td>
+          <td style="font-weight:700; color:var(--primary)">${log.score}</td>
+          <td style="color:var(--text-muted)">${log.max}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Category Highlights
+    const catGrid = document.getElementById('category_analysis');
+    if (catGrid && result.categories) {
+      catGrid.innerHTML = result.categories.map(cat => {
+        const catPct = Math.round((cat.score / cat.max) * 100) || 0;
+        return `
+          <div class="cat-card">
+            <div class="cat-header">
+              <span class="cat-name">${cat.name}</span>
+              <span class="cat-val">${cat.score}/${cat.max}</span>
+            </div>
+            <div class="cat-bar"><div class="cat-fill" style="width:${catPct}%"></div></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Strengths & Weaknesses
+    const sl = document.getElementById('strengths_list');
+    const wl = document.getElementById('weaknesses_list');
+    if (sl && result.strengths) sl.innerHTML = result.strengths.slice(0, 5).map(s => `<li>${s}</li>`).join('');
+    if (wl && result.weaknesses) wl.innerHTML = result.weaknesses.slice(0, 5).map(w => `<li>${w}</li>`).join('');
+
+    // Recommendation
+    const rec = document.getElementById('final_recommendation');
+    if (rec) rec.innerText = result.recommendation || "Maintain current financial discipline and improve operational documentation.";
+
+    // Charts
+    initCharts(result);
+
+    // Sidebar Update
+    document.getElementById('sidebar_progress_fill').style.width = '100%';
+    document.getElementById('sidebar_progress_text').innerText = 'Completed';
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+      if (item.dataset.section === 'result') item.classList.remove('disabled');
+    });
+
+    navigateTo('result');
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function initCharts(result) {
+    if (!window.Chart || !result.categories) return;
+
+    // Destroy existing if any
+    if (charts.radar) charts.radar.destroy();
+    if (charts.bar) charts.bar.destroy();
+
+    const labels = result.categories.map(c => c.name);
+    const data = result.categories.map(c => Math.round((c.score / c.max) * 100));
+
+    // Radar Chart
+    const radarCtx = document.getElementById('radarChart')?.getContext('2d');
+    if (radarCtx) {
+      charts.radar = new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Score %',
+            data: data,
+            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+            borderColor: 'rgba(37, 99, 235, 1)',
+            pointBackgroundColor: 'rgba(37, 99, 235, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          scales: { r: { beginAtZero: true, max: 100, ticks: { display: false } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // Bar Chart
+    const barCtx = document.getElementById('barChart')?.getContext('2d');
+    if (barCtx) {
+      charts.bar = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Weighted Score',
+            data: result.categories.map(c => c.score),
+            backgroundColor: 'rgba(37, 99, 235, 0.7)',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  }
+
+  // ========== SIDEBAR TOGGLE ==========
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar_overlay').classList.toggle('active');
+  };
+  window.closeSidebar = function() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar_overlay').classList.remove('active');
+  };
+</script>
 </body>
 </html>

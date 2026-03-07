@@ -18,9 +18,7 @@ const state = {
     isLoading: true
 };
 
-let SECTION_KEYS = []; // Will be populated dynamically
-const CONFIG_KEYS = ['config'];
-const RESULT_KEYS = ['result'];
+const VALID_ROUTES = ['config', 'questions', 'result'];
 
 const STORAGE_KEY = 'coop_portal_config';
 const GOOGLE_WEB_APP_URL = ''; // REPLACE WITH YOUR GOOGLE WEB APP URL
@@ -114,8 +112,6 @@ async function loadQuestions() {
         }
     }
 
-    // Populate SECTION_KEYS from data
-    SECTION_KEYS = state.questionnaire.sections.map(s => s.id);
     renderQuestionnaire();
 }
 
@@ -157,31 +153,27 @@ function showError(msg) {
 }
 
 function renderQuestionnaire() {
-    const sidebarContainer = document.getElementById('dynamic_sidebar_container');
-    const sectionsContainer = document.getElementById('dynamic_sections_container');
+    const sectionsContainer = document.getElementById('questions_container');
 
-    if (!sidebarContainer || !sectionsContainer) return;
+    if (!sectionsContainer) return;
 
-    sidebarContainer.innerHTML = '';
     sectionsContainer.innerHTML = '';
 
-    state.questionnaire.sections.forEach((section, idx) => {
-        // Render Sidebar Item
-        const btn = document.createElement('button');
-        btn.className = 'sidebar-nav-item disabled';
-        btn.setAttribute('data-section', section.id);
-        btn.onclick = () => handleSidebarClick(section.id);
-        btn.innerHTML = `
-            <i data-lucide="${section.icon || 'info'}" class="nav-icon"></i>
-            <span>${idx + 1}. ${section.title}</span>
-            <i data-lucide="check" class="nav-check"></i>
-        `;
-        sidebarContainer.appendChild(btn);
+    console.log('--- Debugging Questionnaire Fetching ---');
+    console.log('Total sections received:', state.questionnaire.sections.length);
+    let totalQuestionsExpected = 0;
+    
+    state.questionnaire.sections.forEach(s => {
+        totalQuestionsExpected += (s.questions ? s.questions.length : 0);
+    });
+    console.log('Total questions expected from payload:', totalQuestionsExpected);
 
-        // Render Section Page
+    let renderedQuestionsCount = 0;
+
+    state.questionnaire.sections.forEach((section, idx) => {
         const sectionDiv = document.createElement('div');
-        sectionDiv.className = 'form-section';
-        sectionDiv.id = section.id;
+        sectionDiv.className = 'section-card';
+        sectionDiv.style.marginBottom = '24px';
 
         let questionsHtml = '';
         section.questions.forEach(q => {
@@ -216,21 +208,23 @@ function renderQuestionnaire() {
                     ${q.hint ? `<div class="input-hint">${q.hint}</div>` : ''}
                 </div>
             `;
+            renderedQuestionsCount++;
         });
 
         sectionDiv.innerHTML = `
-            <div class="section-card">
-                <div class="section-header">
-                    <div class="section-title"><i data-lucide="${section.icon || 'info'}"></i> ${section.title} <span class="section-badge">Section ${idx + 1}</span></div>
-                    <span style="font-size:0.82em;color:var(--text-secondary)">${section.subtitle || ''}</span>
-                </div>
-                <div class="form-grid">
-                    ${questionsHtml}
-                </div>
+            <div class="section-header">
+                <div class="section-title"><i data-lucide="${section.icon || 'info'}"></i> ${section.title} <span class="section-badge">Section ${idx + 1}</span></div>
+                <span style="font-size:0.82em;color:var(--text-secondary)">${section.subtitle || ''}</span>
+            </div>
+            <div class="form-grid">
+                ${questionsHtml}
             </div>
         `;
         sectionsContainer.appendChild(sectionDiv);
     });
+
+    console.log('Total questions successfully rendered to DOM:', renderedQuestionsCount);
+    console.log('--- End Debugging ---');
 
     if (window.lucide) lucide.createIcons();
 }
@@ -266,7 +260,7 @@ function unlockSidebar() {
 // =====================================================
 function router() {
     const hash = window.location.hash.replace('#', '') || 'config';
-    const validSection = hash === 'config' || hash === 'result' || SECTION_KEYS.includes(hash);
+    const validSection = VALID_ROUTES.includes(hash);
     const target = validSection ? hash : 'config';
 
     if (!state.modelType && target !== 'config') {
@@ -296,7 +290,6 @@ function navigateTo(sectionId, pushHash = true) {
 
     state.currentSection = sectionId;
     updateSidebar(sectionId);
-    updatePaginationUI();
 
     if (pushHash) {
         history.pushState({ section: sectionId }, '', '#' + sectionId);
@@ -315,71 +308,17 @@ function updateSidebar(activeId) {
     if (headerLabel) {
         if (activeId === 'config') headerLabel.innerHTML = '<span>Configuration</span>';
         else if (activeId === 'result') headerLabel.innerHTML = '<span>Results Dashboard</span>';
-        else {
-            const idx = SECTION_KEYS.indexOf(activeId);
-            headerLabel.innerHTML = `<span class="step-pill">Section ${idx + 1} / ${SECTION_KEYS.length}</span>`;
-        }
+        else if (activeId === 'questions') headerLabel.innerHTML = '<span>Questionnaire</span>';
     }
 
-    const sidebarPct = state.completedSections.size / SECTION_KEYS.length * 100;
+    const totalSteps = 2; // config + questions
+    const sidebarPct = (state.completedSections.size / totalSteps) * 100;
     const fill = document.getElementById('sidebar_progress_fill');
     const text = document.getElementById('sidebar_progress_text');
     if (fill) fill.style.width = sidebarPct + '%';
     if (text) text.textContent = state.completedSections.size === 0
         ? 'Configure to begin'
-        : `${state.completedSections.size} / ${SECTION_KEYS.length} sections done`;
-}
-
-function updatePaginationUI() {
-    const bar = document.getElementById('pagination_bar');
-    if (state.currentSection === 'config' || state.currentSection === 'result' || !state.modelType) {
-        if (bar) bar.style.display = 'none';
-        return;
-    }
-
-    if (bar) bar.style.display = 'flex';
-
-    const idx = SECTION_KEYS.indexOf(state.currentSection);
-    const label = document.getElementById('pagination_label');
-    if (label) label.textContent = `Section ${idx + 1} of ${SECTION_KEYS.length}`;
-
-    const prevBtn = document.getElementById('btn_prev');
-    const nextBtn = document.getElementById('btn_next');
-    const calcBtn = document.getElementById('btn_calculate');
-
-    if (prevBtn) prevBtn.disabled = idx === 0;
-
-    const isLast = idx === SECTION_KEYS.length - 1;
-    if (nextBtn) nextBtn.classList.toggle('hidden', isLast);
-    if (calcBtn) calcBtn.classList.toggle('hidden', !isLast);
-
-    const dotsContainer = document.getElementById('section_dots');
-    if (dotsContainer) {
-        dotsContainer.innerHTML = '';
-        SECTION_KEYS.forEach((key, i) => {
-            const dot = document.createElement('div');
-            dot.className = 'dot' +
-                (i === idx ? ' active' : '') +
-                (state.completedSections.has(key) ? ' completed' : '');
-            dotsContainer.appendChild(dot);
-        });
-    }
-}
-
-function navigateNext() {
-    if (!validateCurrentSection()) return;
-
-    const idx = SECTION_KEYS.indexOf(state.currentSection);
-    if (idx < SECTION_KEYS.length - 1) {
-        state.completedSections.add(state.currentSection);
-        saveConfig();
-        navigateTo(SECTION_KEYS[idx + 1]);
-    }
-}
-
-function navigatePrev() {
-    const idx = SECTION_KEYS.indexOf(state.currentSection);
-    if (idx > 0) navigateTo(SECTION_KEYS[idx - 1]);
+        : 'Setup Complete';
 }
 
 function handleSidebarClick(sid) {
@@ -396,23 +335,21 @@ function handleSidebarClick(sid) {
 // =====================================================
 // VALIDATION
 // =====================================================
-function validateCurrentSection() {
+function validateQuestions() {
     if (!state.questionnaire) return true;
 
-    const currentIdx = SECTION_KEYS.indexOf(state.currentSection);
-    if (currentIdx === -1) return true;
-
-    const section = state.questionnaire.sections[currentIdx];
-    for (const q of section.questions) {
-        if (q.required && !q.isModelB) {
-            const el = document.getElementById(q.id);
-            if (el && !el.value.trim()) {
-                el.style.borderColor = 'var(--danger)';
-                el.focus();
-                showToast(`${q.labelEng} is required.`, 'error');
-                return false;
+    for (const section of state.questionnaire.sections) {
+        for (const q of section.questions) {
+            if (q.required && !q.isModelB) {
+                const el = document.getElementById(q.id);
+                if (el && !el.value.trim()) {
+                    el.style.borderColor = 'var(--danger)';
+                    el.focus();
+                    showToast(`${q.labelEng} is required.`, 'error');
+                    return false;
+                }
+                if (el) el.style.borderColor = '';
             }
-            if (el) el.style.borderColor = '';
         }
     }
     return true;
@@ -462,16 +399,18 @@ function setCustomerType(type) {
 
 function checkConfigComplete() {
     const alertBox = document.getElementById('config_alert');
+    const btnNext = document.getElementById('btn_start_questions');
     if (state.modelType && state.customerType) {
         if (alertBox) alertBox.classList.add('hidden');
+        if (btnNext) btnNext.classList.remove('hidden');
+        state.completedSections.add('config');
         applyFieldVisibility();
         unlockSidebar();
         saveConfig();
-        if (state.currentSection === 'config') {
-            navigateTo('section_1');
-        }
     } else {
         if (alertBox) alertBox.classList.remove('hidden');
+        if (btnNext) btnNext.classList.add('hidden');
+        state.completedSections.delete('config');
     }
 }
 
@@ -557,6 +496,10 @@ function calculateMilkMetrics() {
 // SCORING ENGINE (1000 POINTS)
 // =====================================================
 function handleCalculate() {
+    if (!validateQuestions()) return;
+    state.completedSections.add('questions');
+    saveConfig();
+
     const inputs = {};
     document.querySelectorAll('input, select').forEach(el => {
         if (el.id) inputs[el.id] = el.type === 'number' ? parseFloat(el.value) || 0 : el.value;
