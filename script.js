@@ -13,28 +13,17 @@ const state = {
     currentSection: 'config',
     completedSections: new Set(),
     charts: {},
-    results: {}
+    results: {},
+    questionnaire: null,  // Will store the fetched questionnaire
+    isLoading: true
 };
 
-const SECTION_KEYS = [
-    'section_1',  // Identity & Classification
-    'section_2',  // Loan Information
-    'section_3',  // Revenue & Sales
-    'section_4',  // Buyer Analysis
-    'section_5',  // Operating Costs
-    'section_6',  // Financial Performance
-    'section_7',  // Assets
-    'section_8',  // Liabilities
-    'section_9',  // Net Worth
-    'section_10', // Milk Collection & Operations
-    'section_11', // Member Loan Portfolio
-    'section_12', // Compliance & Risk
-    'section_13', // Infrastructure & Operations
-    'section_14', // Governance & Management
-    'section_15'  // Social & Institutional Strength
-];
+let SECTION_KEYS = []; // Will be populated dynamically
+const CONFIG_KEYS = ['config'];
+const RESULT_KEYS = ['result'];
 
 const STORAGE_KEY = 'coop_portal_config';
+const GOOGLE_WEB_APP_URL = ''; // REPLACE WITH YOUR GOOGLE WEB APP URL
 
 // =====================================================
 // HELPERS
@@ -83,20 +72,168 @@ function restoreConfig() {
 // =====================================================
 // INITIALIZATION
 // =====================================================
-document.addEventListener('DOMContentLoaded', () => {
-    const isRestored = restoreConfig();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Show loading state
+    showLoading(true);
 
-    if (isRestored) {
-        applyRestoredConfigUI();
-        applyFieldVisibility();
-        unlockSidebar();
+    try {
+        await loadQuestions();
+        const isRestored = restoreConfig();
+
+        if (isRestored) {
+            applyRestoredConfigUI();
+            applyFieldVisibility();
+            unlockSidebar();
+        }
+
+        if (window.lucide) lucide.createIcons();
+
+        router();
+        window.addEventListener('hashchange', router);
+    } catch (error) {
+        console.error('Failed to initialize portal:', error);
+        showError('Fail to load questionnaire. Please check your internet connection and refresh.');
+    } finally {
+        showLoading(false);
+    }
+});
+
+async function loadQuestions() {
+    // Fallback/Mock Data if URL is empty
+    if (!GOOGLE_WEB_APP_URL) {
+        console.warn('GOOGLE_WEB_APP_URL is not set. Using fallback questionnaire.');
+        state.questionnaire = getFallbackQuestionnaire();
+    } else {
+        try {
+            const response = await fetch(GOOGLE_WEB_APP_URL);
+            if (!response.ok) throw new Error('Network response was not ok');
+            state.questionnaire = await response.json();
+        } catch (err) {
+            console.error('API Error:', err);
+            state.questionnaire = getFallbackQuestionnaire();
+        }
     }
 
-    if (window.lucide) lucide.createIcons();
+    // Populate SECTION_KEYS from data
+    SECTION_KEYS = state.questionnaire.sections.map(s => s.id);
+    renderQuestionnaire();
+}
 
-    router();
-    window.addEventListener('hashchange', router);
-});
+function showLoading(show) {
+    state.isLoading = show;
+    let loader = document.getElementById('portal_loader');
+    if (!loader && show) {
+        loader = document.createElement('div');
+        loader.id = 'portal_loader';
+        loader.className = 'loader-overlay';
+        loader.innerHTML = '<div class="loader-spinner"></div><p>Loading Questionnaire...</p>';
+        document.body.appendChild(loader);
+
+        // Add loader styles if not in style.css
+        const style = document.createElement('style');
+        style.textContent = `
+            .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+            .loader-spinner { width: 50px; height: 50px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+            @keyframes spin { to { transform: rotate(360deg); } }
+        `;
+        document.head.appendChild(style);
+    }
+    if (loader) loader.style.display = show ? 'flex' : 'none';
+}
+
+function showError(msg) {
+    const container = document.getElementById('dynamic_sections_container');
+    if (container) {
+        container.innerHTML = `
+            <div class="alert" style="margin: 40px; text-align: center;">
+                <i data-lucide="alert-circle" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                <h3>Error Loading Questionnaire</h3>
+                <p>${msg}</p>
+                <button onclick="location.reload()" class="btn-calculate" style="margin-top: 20px;">Retry</button>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+function renderQuestionnaire() {
+    const sidebarContainer = document.getElementById('dynamic_sidebar_container');
+    const sectionsContainer = document.getElementById('dynamic_sections_container');
+
+    if (!sidebarContainer || !sectionsContainer) return;
+
+    sidebarContainer.innerHTML = '';
+    sectionsContainer.innerHTML = '';
+
+    state.questionnaire.sections.forEach((section, idx) => {
+        // Render Sidebar Item
+        const btn = document.createElement('button');
+        btn.className = 'sidebar-nav-item disabled';
+        btn.setAttribute('data-section', section.id);
+        btn.onclick = () => handleSidebarClick(section.id);
+        btn.innerHTML = `
+            <i data-lucide="${section.icon || 'info'}" class="nav-icon"></i>
+            <span>${idx + 1}. ${section.title}</span>
+            <i data-lucide="check" class="nav-check"></i>
+        `;
+        sidebarContainer.appendChild(btn);
+
+        // Render Section Page
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'form-section';
+        sectionDiv.id = section.id;
+
+        let questionsHtml = '';
+        section.questions.forEach(q => {
+            const isModelB = q.isModelB ? ' model-b-field hidden' : '';
+            const requiredStar = q.required ? '<span style="color:var(--danger)">*</span>' : '';
+            const requiredTag = q.required ? '<span class="required-tag">Required</span>' : '';
+
+            let inputHtml = '';
+            if (q.type === 'select') {
+                inputHtml = `
+                    <select id="${q.id}" ${q.disabled ? 'disabled' : ''} ${q.onchange ? `onchange="${q.onchange}"` : ''}>
+                        ${(q.options || []).map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+                    </select>
+                `;
+            } else if (q.type === 'textarea') {
+                inputHtml = `<textarea id="${q.id}" placeholder="${q.placeholder || ''}" ${q.oninput ? `oninput="${q.oninput}"` : ''}></textarea>`;
+            } else {
+                inputHtml = `<input type="${q.type || 'text'}" id="${q.id}" placeholder="${q.placeholder || ''}" 
+                    ${q.min !== undefined ? `min="${q.min}"` : ''} 
+                    ${q.max !== undefined ? `max="${q.max}"` : ''}
+                    ${q.step !== undefined ? `step="${q.step}"` : ''}
+                    ${q.readonly ? 'readonly' : ''}
+                    ${q.oninput ? `oninput="${q.oninput}"` : ''}>`;
+            }
+
+            questionsHtml += `
+                <div class="form-group${isModelB}">
+                    <label class="bilingual-label" for="${q.id}">
+                        ${q.labelNep || ''} (${q.labelEng || ''}) ${requiredStar}
+                    </label>
+                    ${inputHtml}
+                    ${q.hint ? `<div class="input-hint">${q.hint}</div>` : ''}
+                </div>
+            `;
+        });
+
+        sectionDiv.innerHTML = `
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title"><i data-lucide="${section.icon || 'info'}"></i> ${section.title} <span class="section-badge">Section ${idx + 1}</span></div>
+                    <span style="font-size:0.82em;color:var(--text-secondary)">${section.subtitle || ''}</span>
+                </div>
+                <div class="form-grid">
+                    ${questionsHtml}
+                </div>
+            </div>
+        `;
+        sectionsContainer.appendChild(sectionDiv);
+    });
+
+    if (window.lucide) lucide.createIcons();
+}
 
 function applyRestoredConfigUI() {
     if (state.modelType) {
@@ -260,25 +397,23 @@ function handleSidebarClick(sid) {
 // VALIDATION
 // =====================================================
 function validateCurrentSection() {
-    if (state.currentSection === 'section_1') {
-        const name = document.getElementById('coop_name');
-        if (!name || !name.value.trim()) {
-            if (name) name.style.borderColor = 'var(--danger)';
-            if (name) name.focus();
-            showToast('Cooperative Name is required.', 'error');
-            return false;
+    if (!state.questionnaire) return true;
+
+    const currentIdx = SECTION_KEYS.indexOf(state.currentSection);
+    if (currentIdx === -1) return true;
+
+    const section = state.questionnaire.sections[currentIdx];
+    for (const q of section.questions) {
+        if (q.required && !q.isModelB) {
+            const el = document.getElementById(q.id);
+            if (el && !el.value.trim()) {
+                el.style.borderColor = 'var(--danger)';
+                el.focus();
+                showToast(`${q.labelEng} is required.`, 'error');
+                return false;
+            }
+            if (el) el.style.borderColor = '';
         }
-        if (name) name.style.borderColor = '';
-    }
-    if (state.currentSection === 'section_2') {
-        const proposed = document.getElementById('proposed_loan');
-        if (!proposed || !proposed.value) {
-            if (proposed) proposed.style.borderColor = 'var(--danger)';
-            if (proposed) proposed.focus();
-            showToast('Proposed Loan Amount is required.', 'error');
-            return false;
-        }
-        if (proposed) proposed.style.borderColor = '';
     }
     return true;
 }
@@ -757,4 +892,106 @@ function closeSidebar() {
     if (sidebar) sidebar.classList.remove('open');
     if (overlay) overlay.classList.remove('show');
     document.body.style.overflow = '';
+}
+
+function getFallbackQuestionnaire() {
+    return {
+        sections: [
+            {
+                id: 'section_1',
+                title: 'Identity & Classification',
+                icon: 'info',
+                subtitle: 'Q1–Q5 | Basic Identity',
+                questions: [
+                    { id: 'coop_name', type: 'text', labelEng: 'Cooperative Name', labelNep: 'सहकारीको नाम', required: true, placeholder: 'e.g., ABC Dairy Cooperative' },
+                    { id: 'model_type', type: 'select', labelEng: 'Model A / B', labelNep: 'सहकारी मोडल', disabled: true, hint: 'Auto-filled from configuration', options: [{ value: '', label: '-- Select Above --' }, { value: 'Milk Collection Only (Model A)', label: 'Milk Collection Only (Model A)' }, { value: 'Collection & Processing (Model B)', label: 'Collection & Processing (Model B)' }] },
+                    { id: 'loan_type', type: 'select', labelEng: 'Loan New or Existing?', labelNep: 'ऋण नयाँ हो कि पहिलेबाट?', hint: 'Auto-filled from configuration', options: [{ value: 'New Loan', label: 'New Loan (नयाँ)' }, { value: 'Existing Loan', label: 'Existing Loan (पहिलेबाट)' }] },
+                    { id: 'years_operation', type: 'number', labelEng: 'Years in Operation', labelNep: 'सञ्चालनमा कति वर्ष?', min: 0, placeholder: 'e.g., 10' },
+                    { id: 'office_location', type: 'text', labelEng: 'Office Location', labelNep: 'कार्यालय कहाँ छ?', placeholder: 'e.g., Kathmandu' }
+                ]
+            },
+            {
+                id: 'section_2',
+                title: 'Loan Information',
+                icon: 'landmark',
+                subtitle: 'Q6–Q11, Q98 | Critical for DSCR & Collateral',
+                questions: [
+                    { id: 'existing_loan', type: 'number', labelEng: 'Existing Loan Outstanding, NPR', labelNep: 'हाल चालु ऋणको बाँकी रकम', min: 0, placeholder: 'e.g., 1500000', oninput: 'calculateTotalLoan()' },
+                    { id: 'proposed_loan', type: 'number', labelEng: 'Proposed New Loan, NPR', labelNep: 'नयाँ प्रस्तावित ऋण रकम', required: true, min: 0, placeholder: 'e.g., 2000000', oninput: 'calculateTotalLoan()' },
+                    { id: 'total_loan', type: 'number', labelEng: 'Total Loan, Auto', labelNep: 'जम्मा ऋण', readonly: true },
+                    { id: 'interest_rate', type: 'number', labelEng: 'Interest Rate % p.a.', labelNep: 'ऋणको ब्याजदर %', step: 0.01, min: 0, max: 100, placeholder: 'e.g., 10' },
+                    { id: 'loan_tenure', type: 'number', labelEng: 'Loan Tenure, Months', labelNep: 'ऋण तिर्ने अवधि महिना', min: 1, placeholder: 'e.g., 60' },
+                    { id: 'installment_freq', type: 'select', labelEng: 'Installment Frequency', labelNep: 'किस्ताको भुक्तानी आवृत्ति', options: [{ value: 'Monthly', label: 'Monthly' }, { value: 'Quarterly', label: 'Quarterly' }, { value: 'Semi-Annual', label: 'Semi-Annual' }, { value: 'Annual', label: 'Annual' }] },
+                    { id: 'primary_land_value', type: 'number', labelEng: 'Primary Land Collateral Value, NPR', labelNep: 'प्राथमिक धितोमा जग्गाको मूल्य', min: 0, placeholder: 'e.g., 5000000' }
+                ]
+            },
+            {
+                id: 'section_3',
+                title: 'Revenue & Sales',
+                icon: 'trending-up',
+                subtitle: 'Q12–Q18 | Cash Flow Weight: 180 pts',
+                questions: [
+                    { id: 'milk_sales', type: 'number', labelEng: 'Income from Milk Sales, NPR', labelNep: 'दूध बिक्रीबाट आम्दानी', min: 0, placeholder: 'e.g., 28000000', oninput: 'calculateRevenue()' },
+                    { id: 'other_product_sales', type: 'number', labelEng: 'Other Product Sales, NPR', labelNep: 'अन्य उत्पादन बिक्री', min: 0, placeholder: 'e.g., 1800000', oninput: 'calculateRevenue()' },
+                    { id: 'other_income', type: 'number', labelEng: 'Other Income, NPR', labelNep: 'अन्य आम्दानी', min: 0, placeholder: 'e.g., 200000', oninput: 'calculateRevenue()' },
+                    { id: 'total_sales', type: 'number', labelEng: 'Total Sales, Auto', labelNep: 'कुल बिक्री', readonly: true },
+                    { id: 'grant_income', type: 'number', labelEng: 'Grant / Subsidy Income, NPR', labelNep: 'अनुदानबाट आम्दानी', min: 0, placeholder: 'e.g., 500000', oninput: 'calculateRevenue()' },
+                    { id: 'total_revenue', type: 'number', labelEng: 'Total Revenue / कुल आम्दानी (Auto)', labelNep: 'कुल आम्दानी', readonly: true },
+                    { id: 'bank_sales', type: 'number', labelEng: 'Sales via Bank, NPR', labelNep: 'बैंक मार्फत भएको बिक्री', min: 0, placeholder: 'e.g., 15000000' }
+                ]
+            },
+            {
+                id: 'section_4',
+                title: 'Buyer Analysis',
+                icon: 'users',
+                subtitle: 'Buyer Concentration Risk',
+                questions: [
+                    { id: 'total_buyers', type: 'number', labelEng: 'Total Number of Buyers', labelNep: 'जम्मा खरिदकर्ता संख्या', min: 1, placeholder: 'e.g., 300' },
+                    { id: 'top5_buyers_sales', type: 'number', labelEng: 'Sales from Top 5 Buyers, NPR', labelNep: 'शीर्ष ५ खरिदकर्ताबाट बिक्री', min: 0, placeholder: 'e.g., 8000000', oninput: 'calculateBuyerShares()' },
+                    { id: 'largest_buyer_sales', type: 'number', labelEng: 'Largest Single Buyer, NPR', labelNep: 'सबैभन्दा ठूलो एक खरिदकर्ताबाट बिक्री', min: 0, placeholder: 'e.g., 2000000', oninput: 'calculateBuyerShares()' },
+                    { id: 'top5_buyer_pct', type: 'number', labelEng: 'Top 5 Buyers Share %, Auto', labelNep: 'शीर्ष ५ खरिदकर्ताको हिस्सा %', readonly: true },
+                    { id: 'largest_buyer_pct', type: 'number', labelEng: 'Largest Buyer Share %, Auto', labelNep: 'ठूलो खरिदकर्ताको हिस्सा %', readonly: true },
+                    { id: 'avg_collection_days', type: 'number', labelEng: 'Avg Collection Period, Days', labelNep: 'भुक्तानी गर्न औसत दिन', min: 0, placeholder: 'e.g., 35' }
+                ]
+            },
+            {
+                id: 'section_5',
+                title: 'Operating Costs',
+                icon: 'receipt',
+                subtitle: 'Q29, Q33–Q47 | For EBITDA Calculation',
+                questions: [
+                    { id: 'raw_milk_cost', type: 'number', labelEng: 'Cost of Raw Milk Purchase, NPR', labelNep: 'कच्चा दूध किन्न खर्च', min: 0, oninput: 'calculateExpenses()' },
+                    { id: 'processing_cost', type: 'number', labelEng: 'Processing Cost, NPR', labelNep: 'प्रशोधन खर्च', isModelB: true, oninput: 'calculateExpenses()' },
+                    { id: 'packaging_cost', type: 'number', labelEng: 'Packaging Cost, NPR', labelNep: 'प्याकेजिङ खर्च', isModelB: true, oninput: 'calculateExpenses()' },
+                    { id: 'transport_cost', type: 'number', labelEng: 'Transportation Cost, NPR', labelNep: 'ढुवानी खर्च', oninput: 'calculateExpenses()' },
+                    { id: 'salary_expense', type: 'number', labelEng: 'Salary Expense, NPR', labelNep: 'तलब खर्च', oninput: 'calculateExpenses()' },
+                    { id: 'total_opex', type: 'number', labelEng: 'Total Operating Expenses, Auto', labelNep: 'कुल सञ्चालन खर्च', readonly: true },
+                    { id: 'annual_depreciation', type: 'number', labelEng: 'Annual Depreciation, NPR', labelNep: 'वार्षिक मूल्यह्रास', min: 0 },
+                    { id: 'amortization_amount', type: 'number', labelEng: 'Amortization Amount, NPR', labelNep: 'अमोर्टाइजेसन', min: 0 }
+                ]
+            },
+            {
+                id: 'section_6',
+                title: 'Financial Performance',
+                icon: 'bar-chart-2',
+                subtitle: 'Cash Trend & Audit',
+                questions: [
+                    { id: 'cash_last_year', type: 'number', labelEng: 'Last Year Cash/Bank Balance, NPR', labelNep: 'गत वर्ष बैंक/नगद मौज्दात', min: 0 },
+                    { id: 'cash_prev_year', type: 'number', labelEng: 'Previous Year Cash/Bank Balance, NPR', labelNep: 'अघिल्लो वर्ष बैंक/नगद मौज्दात', min: 0 },
+                    { id: 'income_expense_checked', type: 'select', labelEng: 'Was audited?', labelNep: 'जाँच भयो?', options: [{ value: '', label: 'Select' }, { value: 'Regularly', label: 'Regularly' }, { value: 'Occasionally', label: 'Occasionally' }, { value: 'Never', label: 'Never' }] }
+                ]
+            },
+            {
+                id: 'section_7',
+                title: 'Assets',
+                icon: 'package',
+                subtitle: 'Q48–Q63 | Financial Strength: 150 pts',
+                questions: [
+                    { id: 'cash_hand', type: 'number', labelEng: 'Cash in Hand, NPR', labelNep: 'हातमा नगद', oninput: 'calculateAssets()' },
+                    { id: 'bank_balance', type: 'number', labelEng: 'Bank Balance, NPR', labelNep: 'बैंक खातामा रकम', oninput: 'calculateAssets()' },
+                    { id: 'total_assets', type: 'number', labelEng: 'Total Assets, Auto', labelNep: 'कुल सम्पत्ति', readonly: true }
+                ]
+            }
+        ]
+    };
 }
