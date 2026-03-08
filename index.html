@@ -10,15 +10,955 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Copy your full style.css content here */
-    body { margin: 0; font-family: 'Inter', sans-serif; background: #f5f7fa; }
-    /* ... rest of your styles ... */
+    /* === Full CSS (as provided) === */
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;600&display=swap");
+
+    .lucide { width: 18px; height: 18px; stroke-width: 2; vertical-align: middle; flex-shrink: 0; display: inline-block; }
+
+    :root {
+      --primary: #334155;
+      --primary-light: #4f6e96;
+      --primary-dark: #1e293b;
+      --secondary: #4f6e96;
+      --accent: #4f6e96;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #ca8a04;
+      --warning-light: #fef9c3;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --light: #f1f3f7;
+      --border: #d0d5dd;
+      --border-light: #e2e6ed;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --text-secondary: #475569;
+      --nepali-red: #be123c;
+      --bg-page: #f4f6f9;
+      --sidebar-width: 260px;
+      --sidebar-bg: #f1f3f7;
+      --header-h: 60px;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius-sm: 8px;
+      --radius-md: 10px;
+      --radius-lg: 12px;
+      --transition: all 0.2s ease;
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-page);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .portal-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+      border-right: 1px solid var(--border-light);
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.12);
+      border-radius: 2px;
+    }
+
+    .sidebar-header {
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo .logo-icon .lucide {
+      color: #fff;
+    }
+
+    .sidebar-logo .logo-text {
+      font-size: 0.85em;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.72em;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .sidebar-progress {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+
+    .sidebar-progress-label {
+      font-size: 0.72em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-progress-bar {
+      background: var(--border-light);
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .sidebar-progress-fill {
+      height: 100%;
+      background: var(--primary-light);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    .sidebar-progress-text {
+      font-size: 0.72em;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-group-label {
+      font-size: 0.68em;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 10px 8px 4px;
+      margin-top: 4px;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.84em;
+      font-weight: 500;
+      transition: var(--transition);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      position: relative;
+    }
+
+    .sidebar-nav-item:hover {
+      background: #e8ecf2;
+      color: var(--text);
+    }
+
+    .sidebar-nav-item.active {
+      background: #e8ecf2;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .sidebar-nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: var(--primary-light);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .sidebar-nav-item .nav-icon {
+      font-size: 1em;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-nav-item .nav-check {
+      margin-left: auto;
+      font-size: 0.85em;
+      opacity: 0;
+    }
+
+    .sidebar-nav-item.completed .nav-check {
+      opacity: 1;
+      color: var(--success);
+    }
+
+    .sidebar-nav-item.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .portal-main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .portal-header {
+      background: white;
+      border-bottom: 1px solid var(--border-light);
+      padding: 0 32px;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.3em;
+      cursor: pointer;
+      color: var(--text);
+      padding: 4px;
+    }
+
+    .portal-title {
+      font-size: 1.05em;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .portal-title .title-badge {
+      background: var(--light);
+      border: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      font-size: 0.7em;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-step-indicator {
+      font-size: 0.82em;
+      color: var(--text-muted);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .global-progress {
+      height: 2px;
+      background: var(--border-light);
+      position: sticky;
+      top: var(--header-h);
+      z-index: 49;
+    }
+
+    .global-progress-fill {
+      height: 100%;
+      background: var(--primary-light);
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    .page-content {
+      flex: 1;
+      padding: 28px 32px 40px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ===== CONFIGURATION PANEL ===== */
+    .config-panel {
+      background: white;
+      padding: 28px 32px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      margin-bottom: 24px;
+    }
+
+    .config-panel h2 {
+      margin-bottom: 20px;
+      color: var(--primary);
+      font-size: 1.1em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 16px;
+    }
+
+    .config-card-group {
+      background: var(--light);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: var(--transition);
+    }
+
+    .config-card-group .config-validation-msg {
+      display: none;
+      color: var(--danger);
+      font-size: 0.82em;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+
+    .config-card-group.has-error .config-validation-msg {
+      display: block;
+    }
+
+    .required-tag {
+      display: inline-block;
+      background: #fee2e2;
+      color: var(--danger);
+      font-size: 0.7em;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .bilingual-label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.88em;
+      line-height: 1.4;
+    }
+
+    .nepali-text {
+      font-family: "Noto Sans Devanagari", "Kalimati", sans-serif;
+      color: var(--nepali-red);
+      font-size: 0.9em;
+      margin-top: 2px;
+      display: block;
+      font-weight: 400;
+    }
+
+    .toggle-fields {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .radio-card {
+      flex: 1;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      background: white;
+    }
+
+    .radio-card:hover {
+      border-color: var(--primary-light);
+      background: #f8f9fb;
+    }
+
+    .radio-card.selected {
+      border-color: var(--primary-light);
+      background: #f0f3f7;
+      box-shadow: inset 0 0 0 1px var(--primary-light);
+    }
+
+    .radio-card input {
+      display: none;
+    }
+
+    .radio-card strong {
+      font-size: 0.88em;
+      color: var(--text);
+    }
+
+    .radio-card small {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78em;
+      margin-top: 3px;
+    }
+
+    .alert {
+      background: var(--warning-light);
+      border-left: 4px solid var(--warning);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88em;
+      color: #92400e;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .btn-next,
+    .btn-calculate {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: var(--radius-md);
+      font-size: 0.9em;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .btn-next {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-next:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    .btn-calculate {
+      background: var(--success);
+      color: #fff;
+      padding: 10px 28px;
+    }
+
+    .btn-calculate:hover {
+      background: #15803d;
+    }
+
+    /* ===== QUESTIONS PANEL ===== */
+    .section-card {
+      background: white;
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.93em;
+      font-family: inherit;
+      transition: var(--transition);
+      background: white;
+      color: var(--text);
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(79, 110, 150, 0.10);
+    }
+
+    input:disabled,
+    select:disabled {
+      background: var(--light);
+      cursor: not-allowed;
+      color: var(--text-muted);
+    }
+
+    /* ===== RESULT PANEL ===== */
+    .result-section {
+      display: none;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    .result-section.active {
+      display: block;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .res-hero {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 0;
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .res-hero-left {
+      background: linear-gradient(160deg, #1e293b 0%, #334155 100%);
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .res-hero-label {
+      font-size: 0.75em;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .res-hero-score {
+      font-size: 4.5em;
+      font-weight: 900;
+      color: white;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .res-hero-out {
+      font-size: 0.82em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 4px;
+    }
+
+    .risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.82em;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      border: 1.5px solid currentColor;
+    }
+
+    .risk-badge.pending { background: #f1f5f9; color: var(--text-muted); border-color: var(--border); }
+    .risk-badge.excellent { background: #dcfce7; color: #16a34a; border-color: #16a34a; }
+    .risk-badge.good { background: #dbeafe; color: #2563eb; border-color: #2563eb; }
+    .risk-badge.moderate { background: #fef3c7; color: #d97706; border-color: #d97706; }
+    .risk-badge.caution { background: #ffedd5; color: #ea580c; border-color: #ea580c; }
+    .risk-badge.low { background: #fee2e2; color: #dc2626; border-color: #dc2626; }
+
+    .res-hero-right {
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .res-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .res-meta-item {
+      background: var(--light);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+
+    .res-meta-label {
+      display: block;
+      font-size: 0.72em;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .res-meta-val {
+      font-size: 0.92em;
+      color: var(--text);
+      font-weight: 700;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .res-score-bar-wrap { width: 100%; }
+
+    .res-score-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8em;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .res-score-bar-bg {
+      background: var(--border-light);
+      border-radius: 6px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .res-score-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      width: 0;
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+      background: var(--primary-light);
+    }
+
+    .res-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1em;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 28px 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .cat-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cat-name {
+      font-size: 0.83em;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .cat-bar-bg {
+      background: var(--border-light);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+      margin: 8px 0 4px;
+    }
+
+    .cat-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .calc-table-wrap {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+      margin-bottom: 8px;
+    }
+
+    .calc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875em;
+    }
+
+    .calc-table thead tr {
+      background: var(--light);
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .calc-table thead th {
+      padding: 12px 14px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: left;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .calc-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .res-sw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .res-sw-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .res-sw-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: 0.9em;
+    }
+
+    .res-sw-card.strengths .res-sw-title {
+      background: #f0fdf4;
+      color: #15803d;
+      border-bottom: 1px solid #bbf7d0;
+    }
+
+    .res-sw-card.weaknesses .res-sw-title {
+      background: #fff7ed;
+      color: #c2410c;
+      border-bottom: 1px solid #fed7aa;
+    }
+
+    .res-sw-list {
+      list-style: none;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .res-sw-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.87em;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border-light);
+      gap: 8px;
+    }
+
+    .res-sw-list li:last-child { border-bottom: none; }
+
+    .res-rec-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 8px;
+    }
+
+    .res-rec-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 22px;
+      background: var(--light);
+      border-bottom: 1px solid var(--border-light);
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.95em;
+    }
+
+    .res-rec-body {
+      padding: 20px 22px;
+    }
+
+    .res-charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .res-chart-card {
+      background: white;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .res-chart-title {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.9em;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .print-btn {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .print-btn:hover {
+      background: var(--light);
+      border-color: var(--primary-light);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .res-hero { grid-template-columns: 1fr; }
+      .res-meta-grid { grid-template-columns: repeat(2, 1fr); }
+      .res-sw-grid { grid-template-columns: 1fr; }
+      .res-charts-grid { grid-template-columns: 1fr; }
+      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      .res-meta-grid { grid-template-columns: 1fr; }
+      .cat-grid { grid-template-columns: 1fr; }
+    }
+
+    .sidebar-toggle-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      z-index: 90;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar-toggle-overlay.show {
+        display: block;
+      }
+    }
   </style>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="portal-layout">
-  <!-- Sidebar (unchanged) -->
+  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -63,10 +1003,17 @@
     <div class="global-progress"><div class="global-progress-fill" id="global_progress_fill"></div></div>
 
     <div class="page-content">
-      <!-- Config Panel (unchanged) -->
+      <!-- Config Panel -->
       <div class="config-panel" id="config">
         <h2><i data-lucide="settings"></i> Application Configuration</h2>
         <div class="config-row">
+          <!-- Cooperative Name -->
+          <div class="config-card-group" id="config_group_coopname">
+            <label class="bilingual-label">Cooperative Name <span class="required-tag">Required</span><span class="nepali-text">सहकारीको नाम</span></label>
+            <input type="text" id="coop_name_input" placeholder="e.g., Dudh Gaun Sahakari" style="width:100%; padding:12px; border-radius:12px; border:1px solid #ddd;">
+            <div class="config-validation-msg">Please enter cooperative name</div>
+          </div>
+          <!-- Cooperative Type -->
           <div class="config-card-group" id="config_group_coop">
             <label class="bilingual-label">Cooperative Model Type <span class="required-tag">Required</span><span class="nepali-text">सहकारी मोडलको प्रकार</span></label>
             <div class="toggle-fields">
@@ -81,6 +1028,7 @@
             </div>
             <div class="config-validation-msg">Please select a cooperative model type</div>
           </div>
+          <!-- Customer Status -->
           <div class="config-card-group" id="config_group_cust">
             <label class="bilingual-label">Customer Status <span class="required-tag">Required</span><span class="nepali-text">ग्राहक स्थिति</span></label>
             <div class="toggle-fields">
@@ -97,7 +1045,7 @@
           </div>
         </div>
         <div id="config_alert" class="alert hidden" style="margin-top:16px">
-          <i data-lucide="alert-triangle"></i> Please select both Cooperative Type and Customer Status to begin.
+          <i data-lucide="alert-triangle"></i> Please select both Cooperative Type and Customer Status and enter Cooperative Name to begin.
         </div>
         <button class="btn-next hidden" id="btn_start_questions" onclick="navigateTo('questions')" style="margin-top: 20px; width: 100%; justify-content: center; padding: 14px;">Continue to Questions →</button>
       </div>
@@ -110,7 +1058,7 @@
         </div>
       </div>
 
-      <!-- Result Panel -->
+      <!-- Result Panel (with missing coop name added) -->
       <div class="result-section" id="result">
         <div class="res-hero">
           <div class="res-hero-left">
@@ -121,9 +1069,19 @@
           </div>
           <div class="res-hero-right">
             <div class="res-meta-grid">
-              <div class="res-meta-item"><span class="res-meta-label">Cooperative</span><strong class="res-meta-val" id="result_coop_name">—</strong></div>
-              <div class="res-meta-item"><span class="res-meta-label">Model</span><strong class="res-meta-val" id="result_coop_type">—</strong></div>
-              <div class="res-meta-item"><span class="res-meta-label">Customer</span><strong class="res-meta-val" id="result_cust_type">—</strong></div>
+              <!-- Cooperative name (was missing) -->
+              <div class="res-meta-item">
+                <span class="res-meta-label">Cooperative</span>
+                <strong class="res-meta-val" id="result_coop_name">—</strong>
+              </div>
+              <div class="res-meta-item">
+                <span class="res-meta-label">Model</span>
+                <strong class="res-meta-val" id="result_coop_type">—</strong>
+              </div>
+              <div class="res-meta-item">
+                <span class="res-meta-label">Customer</span>
+                <strong class="res-meta-val" id="result_cust_type">—</strong>
+              </div>
             </div>
             <div class="res-score-bar-wrap">
               <div class="res-score-bar-label"><span>Score Progress</span><span id="score_pct_text">0%</span></div>
@@ -189,15 +1147,45 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQeybmI7G7jOhkgNh7mTM_uCFFYjnKaevjznQ7tIll5UR1aQvdKXDe3l1THji7tfi7lg/exec';
+  // === Configuration ===
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyBuzT3d1fcJ-HKccb2gZugMlHiUBauWS7rBt-1cXdO-MbX7pQj2B0qXxn1wJWFh1yREA/exec';
 
   let coopType = null;
   let customerType = null;
+  let coopName = '';
   let questions = [];
   let answers = {};
+  let bifurcationToId = {};
+
+  const computedBifurcations = [
+    'Total Loan',
+    'Total Sales',
+    'Total_Revenue',
+    'Operating Expenses',
+    'Minimum/lean_month_expense',
+    'Total Cash',
+    'current_assets',
+    'Non-Current Assets',
+    'total_assets',
+    'current_liabilities',
+    'non_current_liabilities',
+    'total_liabilities',
+    'Total_networth',
+    'produced_milk_model_b_liters',
+    'avg_monthly_milk_liters',
+    'avg_farmer_quantity_liters',
+    'top5_buyer_share_percent',
+    'largest_buyer_share_percent'
+  ];
+
+  const percentageFields = [
+    'top5_buyer_share_percent',
+    'largest_buyer_share_percent'
+  ];
 
   lucide.createIcons();
 
+  // --- Configuration UI ---
   window.setCoopType = function(type) {
     coopType = type;
     document.querySelectorAll('input[name="coop_type"]').forEach(el => {
@@ -226,31 +1214,46 @@
     checkConfigComplete();
   };
 
+  document.getElementById('coop_name_input').addEventListener('input', function(e) {
+    coopName = e.target.value.trim();
+    checkConfigComplete();
+  });
+
   function checkConfigComplete() {
     const coopSelected = coopType !== null;
     const custSelected = customerType !== null;
+    const coopNameEntered = coopName !== '';
     const alertDiv = document.getElementById('config_alert');
     const startBtn = document.getElementById('btn_start_questions');
-    if (coopSelected && custSelected) {
+    if (coopSelected && custSelected && coopNameEntered) {
       alertDiv.classList.add('hidden');
       startBtn.classList.remove('hidden');
-      document.getElementById('sidebar_progress_text').innerText = 'Ready to start';
       document.getElementById('sidebar_progress_fill').style.width = '33%';
+      document.getElementById('sidebar_progress_text').innerText = 'Ready to start';
     } else {
       alertDiv.classList.remove('hidden');
       startBtn.classList.add('hidden');
     }
   }
 
+  // --- Navigation (fixed) ---
   window.handleSidebarClick = function(section) {
     navigateTo(section);
   };
 
   window.navigateTo = function(section) {
     document.querySelectorAll('.page-content > div').forEach(div => div.classList.add('hidden'));
-    document.getElementById(section).classList.remove('hidden');
+    document.querySelectorAll('.result-section').forEach(div => div.classList.remove('active'));
+
+    const target = document.getElementById(section);
+    target.classList.remove('hidden');
+    if (section === 'result') {
+      target.classList.add('active');
+    }
+
     document.querySelectorAll('.sidebar-nav-item').forEach(item => item.classList.remove('active'));
     document.querySelector(`.sidebar-nav-item[data-section="${section}"]`).classList.add('active');
+
     const stepMap = { config: 'Configure to start', questions: 'Answer all questions', result: 'Final score' };
     document.getElementById('header_step').innerHTML = `<span>${stepMap[section]}</span>`;
 
@@ -259,139 +1262,181 @@
     }
   };
 
+  // --- Load Questions ---
   async function loadQuestions() {
     try {
       const url = SCRIPT_URL + '?action=fetchQuestions';
-      let response;
-      try {
-        response = await fetch(url);
-      } catch (e) {
-        throw new Error("Network error or CORS issue.");
-      }
-      
+      const response = await fetch(url);
       const text = await response.text();
       
       if (text.trim().startsWith('<')) {
-        if (text.includes("index")) {
-          alert('Backend Error: Script issue detected.');
-        } else {
-          alert('Backend Error: Service issue detected.');
-        }
+        alert('Backend Error: Script returned HTML.');
         return;
       }
 
       const data = JSON.parse(text);
-
       if (data.error) {
         alert('Error: ' + data.error);
         return;
       }
       renderQuestions(data);
     } catch (err) {
+      console.error(err);
       alert('Failed to load questions.');
     }
   }
 
   function renderQuestions(fetched) {
     questions = fetched;
+    bifurcationToId = {};
+    questions.forEach(q => {
+      if (q.bifurcation) bifurcationToId[q.bifurcation] = q.id;
+    });
+
     const container = document.getElementById('questions_container');
-    if (!container) return;
     container.innerHTML = '';
-    
+
     questions.forEach((q) => {
       const qDiv = document.createElement('div');
       qDiv.className = 'section-card form-group';
       qDiv.style.padding = '24px';
       qDiv.style.marginBottom = '20px';
       qDiv.dataset.id = q.id;
+      qDiv.dataset.bifurcation = q.bifurcation || '';
 
       const label = document.createElement('label');
       label.className = 'bilingual-label';
-      label.style.marginBottom = '12px';
-      // Only render the primary question text. Removed the secondary nepali-text span which was acting as a technical comment.
-      label.innerHTML = `<span style="font-weight:700; color:var(--primary); font-size:1.05em">${q.english}</span>`;
-      if (q.required) label.innerHTML += ' <span class="required-tag" style="margin-left:8px">Required</span>';
+      label.innerHTML = `<span style="font-weight:700; color:var(--primary);">${q.text}</span>`;
 
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = q.placeholder || "Your answer...";
-      if (q.required) input.required = true;
+      let input;
+      if (q.options && q.options.length > 0) {
+        input = document.createElement('select');
+        const blankOpt = document.createElement('option');
+        blankOpt.value = '';
+        blankOpt.textContent = '-- Select --';
+        input.appendChild(blankOpt);
+        q.options.forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.textContent = opt;
+          input.appendChild(option);
+        });
+      } else {
+        input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = q.placeholder || "Your answer...";
+      }
+
+      if (computedBifurcations.includes(q.bifurcation)) {
+        input.readOnly = true;
+        input.style.backgroundColor = '#f0f0f0';
+      }
 
       qDiv.appendChild(label);
       qDiv.appendChild(input);
       container.appendChild(qDiv);
 
-      if (answers && q.id && answers[q.id]) {
-        input.value = answers[q.id];
-      }
-
-      input.addEventListener('input', (e) => {
+      const eventType = q.options ? 'change' : 'input';
+      input.addEventListener(eventType, (e) => {
         answers[q.id] = e.target.value;
+        updateComputedFields(q.bifurcation);
       });
     });
+
     lucide.createIcons();
   }
 
-  // ========== SUBMIT ANSWERS & CALCULATE ==========
+  // --- Computed Fields ---
+  function getNumericAnswer(bifurcation) {
+    const id = bifurcationToId[bifurcation];
+    if (!id) return 0;
+    const val = answers[id];
+    if (!val) return 0;
+    const cleaned = val.replace(/,/g, '').replace(/%/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+
+  function setComputedField(bifurcation, value) {
+    const id = bifurcationToId[bifurcation];
+    if (!id) return;
+    let formatted = percentageFields.includes(bifurcation) ? value.toFixed(2) + '%' : value.toLocaleString();
+    answers[id] = formatted;
+    const input = document.querySelector(`[data-id="${id}"] input, [data-id="${id}"] select`);
+    if (input) input.value = formatted;
+  }
+
+  function updateComputedFields(changedBifurcation) {
+    const computations = [
+      { target: 'Total Loan', deps: ['existing_loan_amt', 'proposed_loan_amt'], calc: (vals) => vals[0] + vals[1] },
+      { target: 'Total Sales', deps: ['milk_sales', 'product_sales', 'other_sales'], calc: (vals) => vals[0] + vals[1] + vals[2] },
+      { target: 'Total_Revenue', deps: ['Total Sales', 'grant_income'], calc: (vals) => vals[0] + vals[1] },
+      { target: 'Operating Expenses', deps: ['salary_expense', 'admin_expense', 'electricity_expense', 'fuel_expense', 'maintenance_expense', 'rent_expense', 'other_operating_expense'], calc: (vals) => vals.reduce((a,b) => a + b, 0) },
+      { target: 'Minimum/lean_month_expense', deps: ['Operating Expenses'], calc: (vals) => vals[0] / 12 },
+      { target: 'Total Cash', deps: ['cash_on_hand', 'bank_balance'], calc: (vals) => vals[0] + vals[1] },
+      { target: 'current_assets', deps: ['accounts_receivable', 'inventory', 'prepaid_expense', 'other_current_assets'], calc: (vals) => vals.reduce((a,b) => a + b, 0) },
+      { target: 'Non-Current Assets', deps: ['land_value', 'building_value', 'plant_machinery_value', 'vehicle_value', 'furniture_value', 'other_fixed_assets'], calc: (vals) => vals.reduce((a,b) => a + b, 0) },
+      { target: 'total_assets', deps: ['current_assets', 'Non-Current Assets'], calc: (vals) => vals[0] + vals[1] },
+      { target: 'current_liabilities', deps: ['accounts_payable', 'short_term_loan', 'accrued_expense', 'current_portion_long_term_debt'], calc: (vals) => vals.reduce((a,b) => a + b, 0) },
+      { target: 'non_current_liabilities', deps: ['long_term_loan', 'other_long_term_liabilities'], calc: (vals) => vals[0] + vals[1] },
+      { target: 'total_liabilities', deps: ['current_liabilities', 'non_current_liabilities'], calc: (vals) => vals[0] + vals[1] },
+      { target: 'Total_networth', deps: ['paid_up_capital', 'retained_earnings', 'reserves'], calc: (vals) => vals[0] + vals[1] + vals[2] },
+      { target: 'produced_milk_model_b_liters', deps: ['total_milk_collected_liters', 'milk_loss_liters_during_collection', 'loss_during_process'], calc: (vals) => vals[0] - vals[1] - vals[2] },
+      { target: 'avg_monthly_milk_liters', deps: ['total_milk_collected_liters'], calc: (vals) => vals[0] / 12 },
+      { target: 'avg_farmer_quantity_liters', deps: ['total_milk_collected_liters', 'total_number_of_farmers'], calc: (vals) => (vals[1] === 0) ? 0 : vals[0] / vals[1] },
+      { target: 'top5_buyer_share_percent', deps: ['top5_buyer_sales', 'Total_Revenue'], calc: (vals) => (vals[1] === 0) ? 0 : (vals[0] / vals[1]) * 100 },
+      { target: 'largest_buyer_share_percent', deps: ['largest_buyer_sales', 'Total_Revenue'], calc: (vals) => (vals[1] === 0) ? 0 : (vals[0] / vals[1]) * 100 }
+    ];
+
+    computations.forEach(comp => {
+      const depValues = comp.deps.map(dep => getNumericAnswer(dep));
+      const result = comp.calc(depValues);
+      setComputedField(comp.target, result);
+    });
+  }
+
+  // --- Submit and Calculate (fixed) ---
   window.submitAndCalculate = async function() {
-    // Validate required
-    for (let q of questions) {
-      if (q.required && !answers[q.id]) {
-        alert(`Please answer: ${q.english}`);
-        return;
-      }
+    if (Object.keys(answers).length === 0) {
+      alert('Please fill in some answers first.');
+      return;
     }
 
     try {
-      // Step 1: Submit answers directly to Script URL
-      const submitUrl = SCRIPT_URL;
-      const submitResponse = await fetch(submitUrl, {
+      const response = await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // text/plain prevents CORS preflight errors in GAS
-        body: JSON.stringify({ action: 'submitAnswers', answers: answers })
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'finalizeAssessment', 
+          answers: answers,
+          coopName: coopName
+        })
       });
-      const submitText = await submitResponse.text();
-      
-      if (submitText.trim().startsWith('<')) {
-         alert('Backend Error: Google Apps Script returned HTML instead of JSON on POST.');
-         return;
-      }
 
-      const submitData = JSON.parse(submitText);
-      if (submitData.error) {
-        alert('Error saving answers: ' + submitData.error);
+      const text = await response.text();
+      if (text.trim().startsWith('<')) {
+        alert('Backend Error: Google Apps Script returned HTML.');
         return;
       }
 
-      // Step 2: Fetch results
-      const calcUrl = SCRIPT_URL + '?action=calculateResults';
-      const calcResponse = await fetch(calcUrl);
-      const calcText = await calcResponse.text();
-
-      if (calcText.trim().startsWith('<')) {
-         alert('Backend Error: Google Apps Script returned HTML instead of JSON on GET results.');
-         return;
-      }
-
-      const calcData = JSON.parse(calcText);
-      if (calcData.error) {
-        alert('Error calculating: ' + calcData.error);
+      const data = JSON.parse(text);
+      if (data.error) {
+        alert('Error: ' + data.error);
         return;
       }
-      displayResults(calcData);
+      displayResults(data);
     } catch (err) {
       console.error(err);
       alert('Submission failed. Check console.');
     }
   };
 
-  // Charts instances
+  // --- Display Results ---
   let charts = {};
 
   function displayResults(result) {
     if (!result) return;
     
-    // Core Score Info
     document.getElementById('result_score_number').innerText = result.totalScore || '—';
     const risk = result.riskCategory || 'NOT SCORED';
     document.getElementById('result_risk_label').innerText = risk;
@@ -400,22 +1445,21 @@
     const riskBadge = document.getElementById('result_risk_badge');
     riskBadge.className = `risk-badge ${riskClass}`;
 
+    document.getElementById('result_coop_name').innerText = coopName;
     document.getElementById('result_coop_type').innerText = coopType === 'collection' ? 'Collection Only' : 'Collection & Processing';
     document.getElementById('result_cust_type').innerText = customerType === 'new' ? 'New Customer' : 'Existing Customer';
 
-    // Progress bar
     const scoreVal = parseFloat(result.totalScore) || 0;
     const pct = Math.min(100, (scoreVal / 1000) * 100);
     document.getElementById('score_pct_text').innerText = pct.toFixed(1) + '%';
     document.getElementById('score_pct_fill').style.width = pct + '%';
 
-    // Calculation Log Table
     const logBody = document.getElementById('calculation-log');
     if (logBody && result.logs) {
       logBody.innerHTML = result.logs.map(log => `
         <tr>
           <td style="font-weight:600">${log.name}</td>
-          <td style="color:var(--text-muted); font-size:0.85em">${log.formula || '-'}</td>
+          <td style="color:var(--text-muted);">${log.formula || '-'}</td>
           <td>${log.value || '0'}</td>
           <td style="font-weight:700; color:var(--primary)">${log.score}</td>
           <td style="color:var(--text-muted)">${log.max}</td>
@@ -423,7 +1467,6 @@
       `).join('');
     }
 
-    // Category Highlights
     const catGrid = document.getElementById('category_analysis');
     if (catGrid && result.categories) {
       catGrid.innerHTML = result.categories.map(cat => {
@@ -432,28 +1475,25 @@
           <div class="cat-card">
             <div class="cat-header">
               <span class="cat-name">${cat.name}</span>
-              <span class="cat-val">${cat.score}/${cat.max}</span>
+              <span class="cat-score">${cat.score}/${cat.max}</span>
             </div>
-            <div class="cat-bar"><div class="cat-fill" style="width:${catPct}%"></div></div>
+            <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${catPct}%"></div></div>
+            <div class="cat-pct">${catPct}%</div>
           </div>
         `;
       }).join('');
     }
 
-    // Strengths & Weaknesses
     const sl = document.getElementById('strengths_list');
     const wl = document.getElementById('weaknesses_list');
     if (sl && result.strengths) sl.innerHTML = result.strengths.slice(0, 5).map(s => `<li>${s}</li>`).join('');
     if (wl && result.weaknesses) wl.innerHTML = result.weaknesses.slice(0, 5).map(w => `<li>${w}</li>`).join('');
 
-    // Recommendation
     const rec = document.getElementById('final_recommendation');
     if (rec) rec.innerText = result.recommendation || "Maintain current financial discipline and improve operational documentation.";
 
-    // Charts
     initCharts(result);
 
-    // Sidebar Update
     document.getElementById('sidebar_progress_fill').style.width = '100%';
     document.getElementById('sidebar_progress_text').innerText = 'Completed';
     document.querySelectorAll('.sidebar-nav-item').forEach(item => {
@@ -467,14 +1507,12 @@
   function initCharts(result) {
     if (!window.Chart || !result.categories) return;
 
-    // Destroy existing if any
     if (charts.radar) charts.radar.destroy();
     if (charts.bar) charts.bar.destroy();
 
     const labels = result.categories.map(c => c.name);
     const data = result.categories.map(c => Math.round((c.score / c.max) * 100));
 
-    // Radar Chart
     const radarCtx = document.getElementById('radarChart')?.getContext('2d');
     if (radarCtx) {
       charts.radar = new Chart(radarCtx, {
@@ -497,7 +1535,6 @@
       });
     }
 
-    // Bar Chart
     const barCtx = document.getElementById('barChart')?.getContext('2d');
     if (barCtx) {
       charts.bar = new Chart(barCtx, {
@@ -519,7 +1556,7 @@
     }
   }
 
-  // ========== SIDEBAR TOGGLE ==========
+  // Sidebar toggle
   window.toggleSidebar = function() {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebar_overlay').classList.toggle('active');
