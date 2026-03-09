@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cooperative Credit Scoring System</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net;">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" integrity="sha384-PLACEHOLDER-TW" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" integrity="sha384-PLACEHOLDER-CHART" crossorigin="anonymous"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha384-PLACEHOLDER-FA" crossorigin="anonymous">
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* External Google Fonts removed for stricter SRI/CSP handling; using system font stack */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
         }
@@ -907,12 +905,9 @@
 
         <!-- Action Buttons -->
         <div class="flex justify-between items-center py-6">
-            <div>
-                <button onclick="saveDraft()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center">
-                    <i class="fas fa-save mr-2"></i> Save Draft
-                </button>
-                <div class="text-xs text-yellow-700 mt-2">Warning: Drafts are stored encrypted in your browser session and may contain sensitive financial data; they are retained only for this browser session.</div>
-            </div>
+            <button onclick="saveDraft()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center">
+                <i class="fas fa-save mr-2"></i> Save Draft
+            </button>
             <div class="space-x-4">
                 <button onclick="resetForm()" class="px-6 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
                     <i class="fas fa-undo mr-2"></i> Reset
@@ -1566,40 +1561,28 @@ function performCalculations(inputs) {
     const totalRevenue = inputs.total_revenue || 0;
     const totalOpex = inputs.total_opex || 0;
     const cogs = inputs.cogs || 0;
-    const depreciation = inputs.depreciation || 0;
-    const amortization = inputs.amortization || 0;
-    const ebitda = totalRevenue - totalOpex - cogs + depreciation + amortization;
-
+    const ebitda = totalRevenue - totalOpex - cogs;
+    
     const principalRepayment = inputs.principal_repayment || 0;
     const interestAmount = inputs.interest_amount || 0;
     const debtService = principalRepayment + interestAmount;
-
-    // DSCR: handle zero or negative debtService separately
-    let dscrValue = 0;
+    
+    const dscr = debtService > 0 ? ebitda / debtService : 0;
+    
+    // DSCR Scoring (max 60 points)
     let dscrScore = 0;
-    if (debtService <= 0) {
-        if (ebitda > 0) {
-            dscrScore = 60; // positive EBITDA with no debt service -> strong
-            dscrValue = Infinity;
-        } else {
-            dscrScore = 0;
-            dscrValue = 0;
-        }
-    } else {
-        dscrValue = ebitda / debtService;
-        if (dscrValue >= 2.0) dscrScore = 60;
-        else if (dscrValue >= 1.5) dscrScore = 45;
-        else if (dscrValue >= 1.25) dscrScore = 30;
-        else if (dscrValue >= 1.0) dscrScore = 15;
-        else dscrScore = Math.max(0, dscrValue * 15);
-    }
-
-    results.indicators['DSCR'] = {
-        value: dscrValue === Infinity ? 'N/A' : dscrValue.toFixed(2),
-        score: dscrScore,
-        max: 60,
+    if (dscr >= 2.0) dscrScore = 60;
+    else if (dscr >= 1.5) dscrScore = 45;
+    else if (dscr >= 1.25) dscrScore = 30;
+    else if (dscr >= 1.0) dscrScore = 15;
+    else dscrScore = Math.max(0, dscr * 15);
+    
+    results.indicators['DSCR'] = { 
+        value: dscr.toFixed(2), 
+        score: dscrScore, 
+        max: 60, 
         formula: 'EBITDA / (Principal + Interest)',
-        rawValue: dscrValue
+        rawValue: dscr
     };
     
     // Seasonality Coverage (max 36 points)
@@ -2398,37 +2381,21 @@ function displayResults(results) {
         });
     }
     
-    // Populate calculation log (avoid innerHTML to prevent XSS)
+    // Populate calculation log
     const logContainer = document.getElementById('calculation-log');
     if (logContainer) {
         logContainer.innerHTML = '';
         Object.entries(results.indicators).forEach(([name, data]) => {
             if (data.formula) {
-                const tr = document.createElement('tr');
-                tr.className = 'calculation-row';
-
-                const tdName = document.createElement('td');
-                tdName.className = 'px-4 py-2 font-medium text-gray-700';
-                tdName.textContent = name;
-
-                const tdFormula = document.createElement('td');
-                tdFormula.className = 'px-4 py-2 text-gray-500 text-xs';
-                tdFormula.textContent = data.formula;
-
-                const tdValue = document.createElement('td');
-                tdValue.className = 'px-4 py-2 text-right font-mono';
-                tdValue.textContent = data.value;
-
-                const tdScore = document.createElement('td');
                 const scoreClass = data.score >= data.max * 0.6 ? 'text-green-600' : 'text-red-600';
-                tdScore.className = 'px-4 py-2 text-right font-bold ' + scoreClass;
-                tdScore.textContent = Math.round(data.score) + '/' + data.max;
-
-                tr.appendChild(tdName);
-                tr.appendChild(tdFormula);
-                tr.appendChild(tdValue);
-                tr.appendChild(tdScore);
-                logContainer.appendChild(tr);
+                logContainer.innerHTML += `
+                    <tr class="calculation-row">
+                        <td class="px-4 py-2 font-medium text-gray-700">${name}</td>
+                        <td class="px-4 py-2 text-gray-500 text-xs">${data.formula}</td>
+                        <td class="px-4 py-2 text-right font-mono">${data.value}</td>
+                        <td class="px-4 py-2 text-right font-bold ${scoreClass}">${Math.round(data.score)}/${data.max}</td>
+                    </tr>
+                `;
             }
         });
     }
@@ -2780,45 +2747,20 @@ function setDefaultValues() {
     }, 100);
 }
 
-async function _getOrCreateSessionKey() {
-    // Return raw Uint8Array key; store base64 in sessionStorage for this session
-    const existing = sessionStorage.getItem('creditScoreDraft_key');
-    if (existing) {
-        const raw = atob(existing);
-        const arr = new Uint8Array(raw.split('').map(c => c.charCodeAt(0)));
-        return arr;
-    }
-    const key = crypto.getRandomValues(new Uint8Array(32));
-    sessionStorage.setItem('creditScoreDraft_key', btoa(String.fromCharCode(...key)));
-    return key;
-}
-
-async function _encryptPayload(rawKey, obj) {
-    const key = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['encrypt']);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encoded = new TextEncoder().encode(JSON.stringify(obj));
-    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
-    const ivB64 = btoa(String.fromCharCode(...iv));
-    const ctB64 = btoa(String.fromCharCode(...new Uint8Array(ct)));
-    return { iv: ivB64, data: ctB64 };
-}
-
-async function saveDraft() {
+function saveDraft() {
     const data = {};
     document.querySelectorAll('input[id], select[id]').forEach(el => {
         data[el.id] = el.value;
     });
-
-    const payload = { timestamp: new Date().toISOString(), data };
-
+    
     try {
-        const rawKey = await _getOrCreateSessionKey();
-        const encrypted = await _encryptPayload(rawKey, payload);
-        sessionStorage.setItem('creditScoreDraft', JSON.stringify(encrypted));
-        showNotification('Draft encrypted and saved to session storage (session-scoped).', 'success');
+        localStorage.setItem('creditScoreDraft', JSON.stringify({
+            timestamp: new Date().toISOString(),
+            data: data
+        }));
+        showNotification('Draft saved successfully!', 'success');
     } catch (e) {
-        console.error('Error saving encrypted draft', e);
-        showNotification('Failed to save encrypted draft', 'error');
+        showNotification('Failed to save draft', 'error');
     }
 }
 
