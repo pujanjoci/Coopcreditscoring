@@ -679,36 +679,56 @@ body {
 .cat-card {
   background: var(--surface-0);
   border: 1px solid var(--rule-light);
+  border-left: 4px solid var(--cat-color, var(--rule));
   border-radius: var(--r-md);
-  padding: 15px;
+  padding: 16px 15px 14px;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
+  position: relative;
 }
 
 .cat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
+.cat-card.cat-green  { --cat-color: #2d6a2d; }
+.cat-card.cat-amber  { --cat-color: #b48200; }
+.cat-card.cat-red    { --cat-color: #8b1a1a; }
+
 .cat-header {
   display: flex; justify-content: space-between;
-  align-items: flex-start; margin-bottom: 9px; gap: 4px;
+  align-items: flex-start; margin-bottom: 10px; gap: 4px;
 }
 
-.cat-name { font-size: 12px; font-weight: 600; color: var(--ink-2); line-height: 1.3; }
-.cat-score { font-size: 12px; font-weight: 800; color: var(--ink-3); white-space: nowrap; }
+.cat-name { font-size: 12.5px; font-weight: 600; color: var(--ink-2); line-height: 1.35; }
+
+.cat-score-wrap {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0;
+}
+
+.cat-score { font-size: 13px; font-weight: 800; color: var(--ink-2); white-space: nowrap; }
+.cat-score-max { font-size: 10px; color: var(--ink-5); white-space: nowrap; }
 
 .cat-bar-bg {
   background: var(--rule-light);
-  border-radius: 99px; height: 5px;
-  overflow: hidden; margin-bottom: 5px;
+  border-radius: 99px; height: 6px;
+  overflow: hidden; margin-bottom: 6px;
 }
 
 .cat-bar-fill {
   height: 100%;
   border-radius: 99px;
-  transition: width 0.7s ease;
-  background: var(--ink-3);
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
 }
 
-.cat-pct { font-size: 10.5px; font-weight: 700; color: var(--ink-5); text-align: right; }
+.cat-pct-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.cat-pct { font-size: 11px; font-weight: 700; }
+.cat-pct.pct-green { color: #2d6a2d; }
+.cat-pct.pct-amber { color: #b48200; }
+.cat-pct.pct-red   { color: #8b1a1a; }
+
+.cat-pct-label { font-size: 10px; color: var(--ink-6); }
 
 /* Calculation Table */
 .calc-table-wrap {
@@ -1252,6 +1272,36 @@ body {
   color: var(--ink-6);
 }
 
+/* Pending / not-yet-computed KPI values */
+.appr-kpi-pending {
+  color: var(--ink-6) !important;
+  letter-spacing: 2px;
+}
+
+.ins-val {
+  font-size: 12px;
+  color: var(--ink-2);
+  font-weight: 700;
+}
+
+.ins-val.ins-pending {
+  color: var(--ink-6);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.appr-insight-notice {
+  font-size: 10.5px;
+  color: var(--ink-6);
+  font-style: italic;
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: var(--surface-1);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--rule);
+  line-height: 1.5;
+}
+
 .appr-kpi-score .appr-kpi-sub { color: rgba(255,255,255,0.35); }
 
 /* Body grid */
@@ -1558,6 +1608,255 @@ body {
   .appr-submit-btn, .appr-success-banner { display: none !important; }
 }
 
+
+/* =====================================================
+   RISK CATEGORY LEGEND GRID
+   ===================================================== */
+
+.risk-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.rlc {
+  background: var(--surface-0);
+  border: 1px solid var(--rule-light);
+  border-top: 4px solid var(--rlc-color, var(--rule));
+  border-radius: var(--r-md);
+  padding: 16px 14px 13px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  opacity: 0.72;
+}
+
+/* Active card — full opacity and slight lift */
+.rlc.rlc-active {
+  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  border-top-width: 5px;
+  border-left-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+}
+
+/* Color themes */
+.rlc-d  { --rlc-color: #b91c1c; }
+.rlc-c  { --rlc-color: #b45309; }
+.rlc-b  { --rlc-color: #0369a1; }
+.rlc-a  { --rlc-color: #15803d; }
+
+.rlc-d.rlc-active  { background: #fef2f2; border-color: #b91c1c; }
+.rlc-c.rlc-active  { background: #fffbeb; border-color: #b45309; }
+.rlc-b.rlc-active  { background: #eff6ff; border-color: #0369a1; }
+.rlc-a.rlc-active  { background: #f0fdf4; border-color: #15803d; }
+
+.rlc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 7px;
+}
+
+.rlc-grade {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--rlc-color);
+}
+
+.rlc-range {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--ink-5);
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 99px;
+}
+
+.rlc-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-bottom: 4px;
+}
+
+.rlc-desc {
+  font-size: 10.5px;
+  color: var(--ink-5);
+  line-height: 1.45;
+  margin-bottom: 9px;
+}
+
+.rlc-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rlc-color);
+  border-top: 1px solid var(--rule-light);
+  padding-top: 8px;
+  margin-top: auto;   /* push to bottom so cards align */
+}
+
+/* Rec card — narrative only, no conditions grid */
+.rec-body {
+  padding: 20px 22px;
+}
+
+.rec-narrative {
+  font-size: 13.5px;
+  color: var(--ink-3);
+  line-height: 1.75;
+  border-left: 3px solid var(--rule);
+  padding-left: 14px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .risk-legend-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .risk-legend-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .risk-legend-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media print {
+  .risk-legend-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .rlc { opacity: 1 !important; filter: none !important; }
+}
+
+
+/* Approver insights — pending note banner */
+.appr-insights-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--ink-5);
+  background: var(--surface-1);
+  border: 1px solid var(--rule-light);
+  border-radius: var(--r-sm);
+  padding: 8px 11px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+/* KPI card pending state */
+.appr-kpi-card.appr-kpi-pending {
+  opacity: 0.7;
+}
+
+.appr-kpi-value.appr-kpi-na {
+  color: var(--ink-5);
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+
+/* Insight value — dash state */
+.ins-val {
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+
+
+/* Approver KPI — pending/not-available state */
+.appr-kpi-pending {
+  background: var(--surface-1);
+  border-style: dashed;
+}
+
+.appr-kpi-na {
+  font-size: 22px !important;
+  color: var(--ink-6) !important;
+  letter-spacing: 2px;
+}
+
+.appr-kpi-note {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-6) !important;
+  font-style: italic;
+}
+
+/* Insights — not-available row styling */
+.ins-val {
+  color: var(--ink-4);
+}
+
+.ins-val.ins-na {
+  color: var(--ink-6);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 11px;
+}
+
+/* Insights note banner */
+.appr-insights-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--rule-light);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 11.5px;
+  color: var(--ink-5);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+
+/* Insight pending state */
+.ins-pending {
+  color: var(--ink-6) !important;
+  font-weight: 400 !important;
+  font-style: italic;
+  font-size: 11px !important;
+}
+
+
+
+.appr-kpi-pending {
+  color: var(--ink-5) !important;
+  font-style: italic;
+  font-size: 18px !important;
+}
+
+.appr-kpi-note {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  color: var(--ink-5);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.ins-val {
+  font-weight: 700;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.ins-val-pending {
+  color: var(--ink-5) !important;
+  font-style: italic;
+  font-weight: 500 !important;
+}
 @media print {
   .sidebar, .sidebar-toggle-overlay, .portal-header,
   .global-progress, .res-action-row, .mobile-menu-btn { display: none !important; }
