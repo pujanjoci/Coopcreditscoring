@@ -6,7 +6,7 @@
   <title>Dairy Cooperative Credit Scoring Portal — Nepal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="style.css">
@@ -19,18 +19,14 @@
     <div class="sidebar-header">
       <div class="sidebar-logo">
         <div class="logo-icon"><i data-lucide="landmark"></i></div>
-        <div>
-          <div class="logo-text">Coop Credit<br>Scoring Portal</div>
-        </div>
+        <div><div class="logo-text">Coop Credit<br>Scoring Portal</div></div>
       </div>
       <div class="sidebar-subtitle">Nepal Agricultural Finance</div>
     </div>
 
     <div class="sidebar-progress">
       <div class="sidebar-progress-label">Assessment Progress</div>
-      <div class="sidebar-progress-bar">
-        <div class="sidebar-progress-fill" id="sidebar_progress_fill"></div>
-      </div>
+      <div class="sidebar-progress-bar"><div class="sidebar-progress-fill" id="sidebar_progress_fill"></div></div>
       <div class="sidebar-progress-text" id="sidebar_progress_text">Configure to begin</div>
     </div>
 
@@ -51,12 +47,6 @@
       <button class="sidebar-nav-item disabled" data-section="result" id="nav_result" onclick="handleSidebarClick('result')">
         <i data-lucide="bar-chart-2" class="nav-icon"></i>
         <span>Credit Score Result</span>
-        <i data-lucide="check" class="nav-check"></i>
-      </button>
-      <div class="nav-group-label">Review</div>
-      <button class="sidebar-nav-item disabled" data-section="approver" id="nav_approver" onclick="handleSidebarClick('approver')">
-        <i data-lucide="shield-check" class="nav-icon"></i>
-        <span>Credit Approval</span>
         <i data-lucide="check" class="nav-check"></i>
       </button>
     </nav>
@@ -96,19 +86,11 @@
             <div class="toggle-fields">
               <label class="radio-card" onclick="setCoopType('collection')">
                 <input type="radio" name="coop_type" value="collection" id="type_collection">
-                <div>
-                  <i data-lucide="truck"></i>
-                  <strong>Collection Only</strong>
-                  <small>दूध सङ्कलन मात्र</small>
-                </div>
+                <div><i data-lucide="truck"></i><strong>Collection Only</strong><small>दूध सङ्कलन मात्र</small></div>
               </label>
               <label class="radio-card" onclick="setCoopType('processing')">
                 <input type="radio" name="coop_type" value="processing" id="type_processing">
-                <div>
-                  <i data-lucide="cog"></i>
-                  <strong>Collection &amp; Processing</strong>
-                  <small>सङ्कलन र प्रशोधन</small>
-                </div>
+                <div><i data-lucide="cog"></i><strong>Collection &amp; Processing</strong><small>सङ्कलन र प्रशोधन</small></div>
               </label>
             </div>
           </div>
@@ -120,19 +102,11 @@
             <div class="toggle-fields">
               <label class="radio-card" onclick="setCustomerType('new')">
                 <input type="radio" name="customer_type" value="new" id="cust_new">
-                <div>
-                  <i data-lucide="user-plus"></i>
-                  <strong>New Customer</strong>
-                  <small>नयाँ ग्राहक</small>
-                </div>
+                <div><i data-lucide="user-plus"></i><strong>New Customer</strong><small>नयाँ ग्राहक</small></div>
               </label>
               <label class="radio-card" onclick="setCustomerType('existing')">
                 <input type="radio" name="customer_type" value="existing" id="cust_existing">
-                <div>
-                  <i data-lucide="user-check"></i>
-                  <strong>Existing Customer</strong>
-                  <small>पुरानो ग्राहक</small>
-                </div>
+                <div><i data-lucide="user-check"></i><strong>Existing Customer</strong><small>पुरानो ग्राहक</small></div>
               </label>
             </div>
           </div>
@@ -141,9 +115,8 @@
           <i data-lucide="alert-triangle"></i>
           Please select both Cooperative Type and Customer Status to begin.
         </div>
-        <button class="btn-next hidden" id="btn_start_questions"
-          onclick="navigateTo('questions')"
-          style="margin-top:20px; width:100%; justify-content:center; padding:12px 24px;">
+        <button class="btn-next hidden" id="btn_start_questions" onclick="navigateTo('questions')"
+          style="margin-top:20px;width:100%;justify-content:center;padding:12px 24px;">
           <i data-lucide="arrow-right" style="width:15px;height:15px;stroke-width:2.5"></i>
           Continue to Questions
         </button>
@@ -151,8 +124,8 @@
 
       <!-- ===== QUESTIONS PANEL ===== -->
       <div id="questions" class="hidden">
-        <div id="questions_container" style="max-width:800px; margin:0 auto;"></div>
-        <div style="max-width:800px; margin:24px auto 0; display:flex; justify-content:flex-end;">
+        <div id="questions_container" style="max-width:800px;margin:0 auto;"></div>
+        <div style="max-width:800px;margin:24px auto 0;display:flex;justify-content:flex-end;">
           <button class="btn-calculate" id="btn_calculate_main" onclick="handleCalculateClick()">
             <i data-lucide="calculator"></i>
             Calculate Credit Score
@@ -176,38 +149,18 @@
           </div>
           <div class="res-hero-right">
             <div class="res-meta-grid">
-              <div class="res-meta-item">
-                <span class="res-meta-label">Cooperative</span>
-                <strong class="res-meta-val" id="result_coop_name">—</strong>
-              </div>
-              <div class="res-meta-item">
-                <span class="res-meta-label">Model</span>
-                <strong class="res-meta-val" id="result_coop_type">—</strong>
-              </div>
-              <div class="res-meta-item">
-                <span class="res-meta-label">Customer</span>
-                <strong class="res-meta-val" id="result_cust_type">—</strong>
-              </div>
-              <div class="res-meta-item">
-                <span class="res-meta-label">Date</span>
-                <strong class="res-meta-val" id="result_date">—</strong>
-              </div>
+              <div class="res-meta-item"><span class="res-meta-label">Cooperative</span><strong class="res-meta-val" id="result_coop_name">—</strong></div>
+              <div class="res-meta-item"><span class="res-meta-label">Model</span><strong class="res-meta-val" id="result_coop_type">—</strong></div>
+              <div class="res-meta-item"><span class="res-meta-label">Customer</span><strong class="res-meta-val" id="result_cust_type">—</strong></div>
+              <div class="res-meta-item"><span class="res-meta-label">Date</span><strong class="res-meta-val" id="result_date">—</strong></div>
             </div>
             <div class="res-score-bar-wrap">
-              <div class="res-score-bar-label">
-                <span>Score Progress</span>
-                <span id="score_pct_text">0%</span>
-              </div>
-              <div class="res-score-bar-bg">
-                <div class="res-score-bar-fill" id="score_pct_fill"></div>
-              </div>
+              <div class="res-score-bar-label"><span>Score Progress</span><span id="score_pct_text">0%</span></div>
+              <div class="res-score-bar-bg"><div class="res-score-bar-fill" id="score_pct_fill"></div></div>
             </div>
             <div class="res-action-row">
               <button class="print-btn" onclick="navigateTo('questions')">
                 <i data-lucide="edit-3"></i> Edit Inputs
-              </button>
-              <button class="print-btn" onclick="navigateTo('approver')" id="btn_go_approver" style="display:none">
-                <i data-lucide="shield-check"></i> Approver View
               </button>
               <button class="print-btn" onclick="window.print()">
                 <i data-lucide="printer"></i> Print Report
@@ -216,9 +169,9 @@
           </div>
         </div>
 
-        <!-- ── Risk Category Legend (active card highlights) ── -->
+        <!-- ── Risk Category Legend ── -->
         <div class="res-section-title"><i data-lucide="shield"></i> Risk Category Overview</div>
-        <div class="risk-legend-grid" id="risk_legend_grid">
+        <div class="risk-legend-grid">
           <div class="rlc rlc-d" id="rlc_d">
             <div class="rlc-header"><span class="rlc-grade">D</span><span class="rlc-range">0 – 399</span></div>
             <div class="rlc-title">High Risk</div>
@@ -245,7 +198,7 @@
           </div>
         </div>
 
-        <!-- ── Score Breakdown by Category (parameters only) ── -->
+        <!-- ── Score Breakdown by Category ── -->
         <div class="res-section-title" style="margin-top:28px"><i data-lucide="layout-grid"></i> Score Breakdown by Category</div>
         <div class="cat-grid" id="category_analysis"></div>
 
@@ -266,7 +219,7 @@
           </div>
         </div>
 
-        <!-- ── Assessment Recommendation (narrative only) ── -->
+        <!-- ── Recommendation ── -->
         <div class="rec-card">
           <div class="rec-card-header">
             <div class="rec-card-header-left"><i data-lucide="clipboard-check"></i><span>Recommendation</span></div>
@@ -280,6 +233,35 @@
           </div>
         </div>
 
+        <!-- ── Detailed Summary ── -->
+        <div class="res-section-title ds-section-title" style="margin-top:28px">
+          <i data-lucide="table-2"></i>
+          Detailed Summary
+          <span class="ds-badge">Sub-parameter Breakdown</span>
+          <button class="ds-toggle-btn" id="ds_toggle_btn" onclick="toggleDetailedSummary()">
+            <i data-lucide="chevron-down" id="ds_toggle_icon" style="width:13px;height:13px;stroke-width:2"></i>
+            <span id="ds_toggle_label">Show</span>
+          </button>
+        </div>
+
+        <div class="ds-raw-strip hidden" id="ds_raw_strip">
+          <div class="ds-raw-item"><span class="ds-raw-label">Total Score</span><strong class="ds-raw-val" id="ds_total_score">—</strong></div>
+          <div class="ds-raw-divider"></div>
+          <div class="ds-raw-item"><span class="ds-raw-label">Raw Score</span><strong class="ds-raw-val" id="ds_raw_score">—</strong></div>
+          <div class="ds-raw-divider"></div>
+          <div class="ds-raw-item"><span class="ds-raw-label">Raw Max</span><strong class="ds-raw-val" id="ds_raw_max">—</strong></div>
+          <div class="ds-raw-divider"></div>
+          <div class="ds-raw-item"><span class="ds-raw-label">Categories</span><strong class="ds-raw-val" id="ds_cat_count">—</strong></div>
+          <div class="ds-raw-divider"></div>
+          <div class="ds-raw-item"><span class="ds-raw-label">Sub-params</span><strong class="ds-raw-val" id="ds_sub_count">—</strong></div>
+          <div class="ds-raw-divider"></div>
+          <div class="ds-raw-item"><span class="ds-raw-label">Zeros</span><strong class="ds-raw-val ds-raw-val-warn" id="ds_zero_count">—</strong></div>
+          <div class="ds-raw-divider"></div>
+          <div class="ds-raw-item"><span class="ds-raw-label">Full Marks</span><strong class="ds-raw-val ds-raw-val-good" id="ds_full_count">—</strong></div>
+        </div>
+
+        <div id="detailed_summary_container" class="hidden"></div>
+
         <!-- ── Visual Analytics ── -->
         <div class="res-section-title" style="margin-top:28px"><i data-lucide="bar-chart-2"></i> Visual Analytics</div>
         <div class="res-charts-grid">
@@ -289,237 +271,56 @@
 
       </div><!-- /result -->
 
-      <!-- ===== APPROVER PANEL ===== -->
-      <div class="result-section hidden" id="approver">
-
-        <!-- Header -->
-        <div class="appr-page-header">
-          <div class="appr-page-header-left">
-            <div class="appr-page-icon"><i data-lucide="shield-check"></i></div>
-            <div>
-              <div class="appr-page-title">Credit Approval Dashboard</div>
-              <div class="appr-page-sub">Review and decision interface for credit committee</div>
-            </div>
-          </div>
-          <div class="appr-meta-pills">
-            <div class="appr-meta-pill">
-              <i data-lucide="calendar" style="width:12px;height:12px"></i>
-              <span id="appr_date">—</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI Strip -->
-        <div class="appr-kpi-strip">
-          <div class="appr-kpi-card appr-kpi-score">
-            <div class="appr-kpi-value" id="appr_score">0</div>
-            <div class="appr-kpi-label">Total Score</div>
-            <div class="appr-kpi-sub">out of 1000</div>
-          </div>
-          <div class="appr-kpi-card">
-            <div class="appr-kpi-value appr-kpi-risk" id="appr_risk">—</div>
-            <div class="appr-kpi-label">Risk Category</div>
-            <div class="appr-kpi-sub" id="appr_risk_sub">—</div>
-          </div>
-          <div class="appr-kpi-card">
-            <div class="appr-kpi-value appr-kpi-pending" id="appr_dscr">—</div>
-            <div class="appr-kpi-label">DSCR</div>
-            <div class="appr-kpi-sub">Debt Service Coverage<br><span class="appr-kpi-note"><i data-lucide="info" style="width:10px;height:10px"></i> Requires Model sheet formula</span></div>
-          </div>
-          <div class="appr-kpi-card">
-            <div class="appr-kpi-value appr-kpi-pending" id="appr_de">—</div>
-            <div class="appr-kpi-label">Debt / Equity</div>
-            <div class="appr-kpi-sub">Leverage Ratio<br><span class="appr-kpi-note"><i data-lucide="info" style="width:10px;height:10px"></i> Requires Model sheet formula</span></div>
-          </div>
-        </div>
-
-        <!-- Two-column body -->
-        <div class="appr-body-grid">
-
-          <!-- LEFT: Heatmap + Model Insights -->
-          <div class="appr-left-col">
-
-            <!-- Risk Heatmap -->
-            <div class="appr-card">
-              <div class="appr-card-header"><i data-lucide="grid"></i> Risk Parameter Heatmap</div>
-              <div class="appr-heatmap">
-                <div class="appr-heatmap-row">
-                  <span class="appr-heatmap-label">Repayment Capacity</span>
-                  <div class="appr-heatmap-bar-wrap">
-                    <div class="appr-heatmap-bar" id="hm_repayment"></div>
-                  </div>
-                  <span class="appr-heatmap-pct" id="hm_repayment_pct">0%</span>
-                </div>
-                <div class="appr-heatmap-row">
-                  <span class="appr-heatmap-label">Operational Stability</span>
-                  <div class="appr-heatmap-bar-wrap">
-                    <div class="appr-heatmap-bar" id="hm_operational"></div>
-                  </div>
-                  <span class="appr-heatmap-pct" id="hm_operational_pct">0%</span>
-                </div>
-                <div class="appr-heatmap-row">
-                  <span class="appr-heatmap-label">Financial Strength</span>
-                  <div class="appr-heatmap-bar-wrap">
-                    <div class="appr-heatmap-bar" id="hm_financial"></div>
-                  </div>
-                  <span class="appr-heatmap-pct" id="hm_financial_pct">0%</span>
-                </div>
-                <div class="appr-heatmap-row">
-                  <span class="appr-heatmap-label">Governance Quality</span>
-                  <div class="appr-heatmap-bar-wrap">
-                    <div class="appr-heatmap-bar" id="hm_governance"></div>
-                  </div>
-                  <span class="appr-heatmap-pct" id="hm_governance_pct">0%</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Model-Based Insights -->
-            <div class="appr-card" style="margin-top:14px">
-              <div class="appr-card-header"><i data-lucide="cpu"></i> Model-Based Insights</div>
-              <div class="appr-insights-note">
-                <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0"></i>
-                These values populate automatically once the Model sheet scoring formulas reference the Questions sheet answers (col D). Values shown as <em>—</em> indicate the formula is not yet connected.
-              </div>
-              <div class="appr-insights-grid">
-                <div class="appr-insight-group">
-                  <div class="appr-insight-title">Cash Flow Analysis</div>
-                  <div class="appr-insight-row"><span>EBITDA</span><strong id="ins_ebitda" class="ins-val">—</strong></div>
-                  <div class="appr-insight-row"><span>Debt Service</span><strong id="ins_debt_svc" class="ins-val">—</strong></div>
-                  <div class="appr-insight-row"><span>Seasonality Buffer</span><strong id="ins_season" class="ins-val">—</strong></div>
-                </div>
-                <div class="appr-insight-group">
-                  <div class="appr-insight-title">Concentration Risk</div>
-                  <div class="appr-insight-row"><span>Top 5 Buyers</span><strong id="ins_top5" class="ins-val">—</strong></div>
-                  <div class="appr-insight-row"><span>Single Largest</span><strong id="ins_single" class="ins-val">—</strong></div>
-                  <div class="appr-insight-row"><span>Govt + Large Pvt</span><strong id="ins_govt" class="ins-val">—</strong></div>
-                </div>
-              </div>
-            </div>
-
-          </div><!-- /left -->
-
-          <!-- RIGHT: Decision Matrix -->
-          <div class="appr-right-col">
-            <div class="appr-card appr-decision-card">
-              <div class="appr-card-header"><i data-lucide="gavel"></i> Approval Decision</div>
-
-              <div class="appr-decision-options">
-                <label class="appr-decision-radio appr-dec-approve" id="decopt_approve">
-                  <input type="radio" name="appr_decision" value="Recommend Approval" onchange="handleDecisionChange(this)">
-                  <div class="appr-dec-icon"><i data-lucide="check-circle-2"></i></div>
-                  <div class="appr-dec-text">
-                    <strong>Recommend Approval</strong>
-                    <span>Score meets threshold</span>
-                  </div>
-                </label>
-                <label class="appr-decision-radio appr-dec-conditional" id="decopt_conditional">
-                  <input type="radio" name="appr_decision" value="Conditional Approval" onchange="handleDecisionChange(this)">
-                  <div class="appr-dec-icon"><i data-lucide="alert-circle"></i></div>
-                  <div class="appr-dec-text">
-                    <strong>Conditional Approval</strong>
-                    <span>Requires safeguards</span>
-                  </div>
-                </label>
-                <label class="appr-decision-radio appr-dec-reject" id="decopt_reject">
-                  <input type="radio" name="appr_decision" value="Recommend Rejection" onchange="handleDecisionChange(this)">
-                  <div class="appr-dec-icon"><i data-lucide="x-circle"></i></div>
-                  <div class="appr-dec-text">
-                    <strong>Recommend Rejection</strong>
-                    <span>High risk profile</span>
-                  </div>
-                </label>
-              </div>
-
-              <div class="appr-comments-wrap">
-                <label class="appr-comments-label">
-                  <i data-lucide="message-square" style="width:13px;height:13px"></i>
-                  Approver Comments
-                </label>
-                <textarea id="appr_comments" class="appr-comments-textarea"
-                  placeholder="Conditions, caveats, or supporting rationale for this decision…" rows="4"></textarea>
-                <div class="appr-comments-hint">
-                  <i data-lucide="info" style="width:11px;height:11px"></i>
-                  This decision will be logged with timestamp for audit trail
-                </div>
-              </div>
-
-              <div class="appr-approver-row">
-                <div class="appr-approver-field">
-                  <label class="appr-comments-label"><i data-lucide="user" style="width:13px;height:13px"></i> Approver Name</label>
-                  <input type="text" id="appr_name" class="appr-name-input" placeholder="Full name of approver…">
-                </div>
-              </div>
-
-              <div id="appr_submit_alert" class="alert hidden" style="margin:12px 0 0"></div>
-
-              <button class="appr-submit-btn" id="appr_submit_btn" onclick="submitApproverDecision()">
-                <i data-lucide="send"></i>
-                Submit Decision
-              </button>
-
-              <div id="appr_success_banner" class="appr-success-banner hidden">
-                <i data-lucide="check-circle-2"></i>
-                <div>
-                  <strong>Decision logged successfully.</strong>
-                  <span id="appr_success_detail"> Recorded in Decision sheet.</span>
-                </div>
-              </div>
-            </div>
-          </div><!-- /right -->
-
-        </div><!-- /appr-body-grid -->
-
-      </div><!-- /approver -->
-
     </div><!-- /page-content -->
   </main>
 </div>
 
 <script>
 // ============================================================
-// CONFIG
+// API CONFIG
 // ============================================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxz0OtVkuQ50NXvPj_qlX8gM-9j1I0CycGWnbqkeJcPDitva1us69RX-vPzqA-RaR50MQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwITj2L-WDFsa_kiO72QX-Pp4MEyaN8n5xok5yRdI-dV0e83nSwo61K1Dz379IHsiyf5Q/exec';
 
 async function gasGet(params) {
   const url = new URL(SCRIPT_URL);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
-  const r = await fetch(url.toString(), { method:'GET', redirect:'follow' });
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const r = await fetch(url.toString(), { method: 'GET', redirect: 'follow' });
   const t = await r.text();
-  if (t.trim().startsWith('<')) throw new Error('Apps Script returned HTML. Deploy as: Execute as Me / Anyone.');
+  if (t.trim().startsWith('<')) throw new Error('Apps Script returned HTML — check deploy settings.');
   return JSON.parse(t);
 }
 
 async function gasPost(body) {
   const r = await fetch(SCRIPT_URL, {
-    method:'POST',
-    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(body),
-    redirect:'follow'
+    redirect: 'follow'
   });
   const t = await r.text();
-  if (t.trim().startsWith('<')) throw new Error('Apps Script returned HTML. Deploy as: Execute as Me / Anyone.');
+  if (t.trim().startsWith('<')) throw new Error('Apps Script returned HTML — check deploy settings.');
   return JSON.parse(t);
 }
 
 // ============================================================
 // STATE
 // ============================================================
-let coopType=null, customerType=null, coopName='';
-let questions=[], answers={}, bifurcationToId={};
-let lastResult = null; // store for approver panel
+let coopType = null, customerType = null, coopName = '';
+let questions = [], answers = {}, bifurcationToId = {};
+let lastResult = null;
+let charts = {};
 
 const computedBifurcations = [
-  'Total Loan','Total Sales','Total_Revenue','Operating Expenses',
-  'Minimum/lean_month_expense','Total Cash','current_assets',
-  'Non-Current Assets','total_assets','current_liabilities',
-  'non_current_liabilities','total_liabilities','Total_networth',
-  'produced_milk_model_b_liters','avg_monthly_milk_liters',
-  'avg_farmer_quantity_liters','top5_buyer_share_percent',
+  'Total Loan', 'Total Sales', 'Total_Revenue', 'Operating Expenses',
+  'Minimum/lean_month_expense', 'Total Cash', 'current_assets',
+  'Non-Current Assets', 'total_assets', 'current_liabilities',
+  'non_current_liabilities', 'total_liabilities', 'Total_networth',
+  'produced_milk_model_b_liters', 'avg_monthly_milk_liters',
+  'avg_farmer_quantity_liters', 'top5_buyer_share_percent',
   'largest_buyer_share_percent'
 ];
-const percentageFields = ['top5_buyer_share_percent','largest_buyer_share_percent'];
+const percentageFields = ['top5_buyer_share_percent', 'largest_buyer_share_percent'];
+const DUMMY_TRIGGERS = ['dd-test', 'dummy', 'dd-fill', 'test-data'];
 
 lucide.createIcons();
 
@@ -566,43 +367,46 @@ window.handleSidebarClick = function(s) { navigateTo(s); };
 
 window.navigateTo = function(section) {
   document.querySelectorAll('.page-content > div').forEach(d => {
-    d.classList.add('hidden'); d.classList.remove('active');
+    d.classList.add('hidden');
+    d.classList.remove('active');
   });
-  const t = document.getElementById(section);
-  if (t) { t.classList.remove('hidden'); if (section !== 'config' && section !== 'questions') t.classList.add('active'); }
-
+  const target = document.getElementById(section);
+  if (target) {
+    target.classList.remove('hidden');
+    if (section !== 'config' && section !== 'questions') target.classList.add('active');
+  }
   document.querySelectorAll('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
   document.querySelector(`.sidebar-nav-item[data-section="${section}"]`)?.classList.add('active');
-
-  const labels = { config:'Configure to start', questions:'Answer all questions', result:'Final score', approver:'Credit approval review' };
+  const labels = {
+    config:    'Configure to start',
+    questions: 'Answer all questions',
+    result:    'Final score'
+  };
   document.getElementById('header_step').innerText = labels[section] || '';
-
   if (section === 'questions' && questions.length === 0) loadQuestions();
   closeSidebar();
 };
 
 // ============================================================
-// LOAD QUESTIONS
+// LOAD & RENDER QUESTIONS
 // ============================================================
 async function loadQuestions() {
   const container = document.getElementById('questions_container');
   container.innerHTML = `<div class="loading-wrap"><div class="spinner"></div><span>Loading questions…</span></div>`;
   try {
-    const data = await gasGet({ action:'fetchQuestions' });
+    const data = await gasGet({ action: 'fetchQuestions' });
     if (data.error) {
       container.innerHTML = `<div class="alert"><i data-lucide="alert-triangle"></i> Error: ${data.error}</div>`;
-      lucide.createIcons(); return;
+      lucide.createIcons();
+      return;
     }
     renderQuestions(data);
-  } catch(err) {
+  } catch (err) {
     container.innerHTML = `<div class="alert"><i data-lucide="alert-triangle"></i><div><strong>Failed to load questions.</strong><br><small>${err.message}</small></div></div>`;
     lucide.createIcons();
   }
 }
 
-// ============================================================
-// RENDER QUESTIONS
-// ============================================================
 function renderQuestions(fetched) {
   questions = fetched;
   bifurcationToId = {};
@@ -611,9 +415,10 @@ function renderQuestions(fetched) {
   const container = document.getElementById('questions_container');
   container.innerHTML = '';
 
+  // Cooperative name input (always first)
   const coopDiv = document.createElement('div');
   coopDiv.className = 'section-card form-group';
-  coopDiv.style.cssText = 'padding:22px; margin-bottom:16px;';
+  coopDiv.style.cssText = 'padding:22px;margin-bottom:16px;';
   coopDiv.innerHTML = `
     <label class="bilingual-label">
       <span style="font-weight:700">Cooperative Name <span class="required-tag">Required</span></span>
@@ -621,47 +426,52 @@ function renderQuestions(fetched) {
     </label>
     <input type="text" id="coop_name_input_questions" placeholder="e.g., Dudh Gaun Sahakari" value="${coopName}" />`;
   container.appendChild(coopDiv);
-
   document.getElementById('coop_name_input_questions').addEventListener('input', e => {
     coopName = e.target.value.trim();
     answers['1'] = coopName;
   });
 
+  // Remaining questions
   questions.forEach(q => {
     if (q.bifurcation === 'coop_name') return;
     const qDiv = document.createElement('div');
     qDiv.className = 'section-card form-group';
-    qDiv.style.cssText = 'padding:22px; margin-bottom:16px;';
+    qDiv.style.cssText = 'padding:22px;margin-bottom:16px;';
     qDiv.dataset.id = q.id;
     qDiv.dataset.bifurcation = q.bifurcation || '';
 
     const label = document.createElement('label');
     label.className = 'bilingual-label';
-    label.innerHTML = `<span style="font-weight:700">${q.text}</span><span style="color:#ccc; font-size:0.72em; margin-left:4px">#${q.id}</span>`;
+    label.innerHTML = `<span style="font-weight:700">${q.text}</span><span style="color:#ccc;font-size:0.72em;margin-left:4px">#${q.id}</span>`;
 
     let input;
     if (q.options && q.options.length > 0) {
       input = document.createElement('select');
       const blank = document.createElement('option');
-      blank.value=''; blank.textContent='-- Select --';
+      blank.value = '';
+      blank.textContent = '-- Select --';
       input.appendChild(blank);
       q.options.forEach(opt => {
         const o = document.createElement('option');
-        o.value=opt; o.textContent=opt; input.appendChild(o);
+        o.value = opt;   // store full verbatim option string as value
+        o.textContent = opt;
+        input.appendChild(o);
       });
     } else {
       input = document.createElement('input');
       input.type = 'text';
       input.placeholder = q.placeholder || 'Enter value…';
     }
+
     if (computedBifurcations.includes(q.bifurcation)) input.readOnly = true;
 
     qDiv.appendChild(label);
     qDiv.appendChild(input);
     container.appendChild(qDiv);
 
+    // Store the full option value (never strip Nepali on the frontend)
     input.addEventListener(q.options ? 'change' : 'input', e => {
-      answers[q.id] = e.target.value;
+      answers[q.id] = e.target.value;   // full verbatim option string
       updateComputedFields();
     });
   });
@@ -673,169 +483,235 @@ function renderQuestions(fetched) {
 }
 
 // ============================================================
-// COMPUTED FIELDS
+// COMPUTED FIELDS (browser-side calculations)
 // ============================================================
-function getNumericAnswer(bifurcation) {
-  const id = bifurcationToId[bifurcation];
+function getNumericAnswer(bif) {
+  const id = bifurcationToId[bif];
   if (!id) return 0;
   const val = answers[id];
   if (!val) return 0;
-  const n = parseFloat(val.toString().replace(/,/g,'').replace(/%/g,''));
+  const n = parseFloat(val.toString().replace(/,/g, '').replace(/%/g, ''));
   return isNaN(n) ? 0 : n;
 }
 
-function setComputedField(bifurcation, value) {
-  const id = bifurcationToId[bifurcation];
+function setComputedField(bif, value) {
+  const id = bifurcationToId[bif];
   if (!id) return;
-  const fmt = percentageFields.includes(bifurcation) ? value.toFixed(2)+'%' : value.toLocaleString();
+  const fmt = percentageFields.includes(bif) ? value.toFixed(2) + '%' : value.toLocaleString();
   answers[id] = fmt;
   const inp = document.querySelector(`[data-id="${id}"] input, [data-id="${id}"] select`);
   if (inp) inp.value = fmt;
 }
 
 function updateComputedFields() {
-  const c = [
-    {t:'Total Loan',d:['existing_loan_amt','proposed_loan_amt'],f:v=>v[0]+v[1]},
-    {t:'Total Sales',d:['milk_sales','product_sales','other_sales'],f:v=>v[0]+v[1]+v[2]},
-    {t:'Total_Revenue',d:['Total Sales','grant_income'],f:v=>v[0]+v[1]},
-    {t:'Operating Expenses',d:['salary_expense','admin_expense','electricity_expense','fuel_expense','maintenance_expense','rent_expense','other_operating_expense'],f:v=>v.reduce((a,b)=>a+b,0)},
-    {t:'Minimum/lean_month_expense',d:['Operating Expenses'],f:v=>v[0]/12},
-    {t:'Total Cash',d:['cash_on_hand','bank_balance'],f:v=>v[0]+v[1]},
-    {t:'current_assets',d:['accounts_receivable','inventory','prepaid_expense','other_current_assets'],f:v=>v.reduce((a,b)=>a+b,0)},
-    {t:'Non-Current Assets',d:['land_value','building_value','plant_machinery_value','vehicle_value','furniture_value','other_fixed_assets'],f:v=>v.reduce((a,b)=>a+b,0)},
-    {t:'total_assets',d:['current_assets','Non-Current Assets'],f:v=>v[0]+v[1]},
-    {t:'current_liabilities',d:['accounts_payable','short_term_loan','accrued_expense','current_portion_long_term_debt'],f:v=>v.reduce((a,b)=>a+b,0)},
-    {t:'non_current_liabilities',d:['long_term_loan','other_long_term_liabilities'],f:v=>v[0]+v[1]},
-    {t:'total_liabilities',d:['current_liabilities','non_current_liabilities'],f:v=>v[0]+v[1]},
-    {t:'Total_networth',d:['paid_up_capital','retained_earnings','reserves'],f:v=>v[0]+v[1]+v[2]},
-    {t:'produced_milk_model_b_liters',d:['total_milk_collected_liters','milk_loss_liters_during_collection','loss_during_process'],f:v=>v[0]-v[1]-v[2]},
-    {t:'avg_monthly_milk_liters',d:['total_milk_collected_liters'],f:v=>v[0]/12},
-    {t:'avg_farmer_quantity_liters',d:['total_milk_collected_liters','total_number_of_farmers'],f:v=>v[1]===0?0:v[0]/v[1]},
-    {t:'top5_buyer_share_percent',d:['top5_buyers_sales','Total Sales'],f:v=>v[1]===0?0:(v[0]/v[1])*100},
-    {t:'largest_buyer_share_percent',d:['largest_buyer_sales','Total_Revenue'],f:v=>v[1]===0?0:(v[0]/v[1])*100}
+  const calcs = [
+    { t: 'Total Loan',                  d: ['existing_loan_amt','proposed_loan_amt'],                         f: v => v[0] + v[1] },
+    { t: 'Total Sales',                 d: ['milk_sales','product_sales','other_sales'],                      f: v => v[0] + v[1] + v[2] },
+    { t: 'Total_Revenue',               d: ['Total Sales','grant_income'],                                    f: v => v[0] + v[1] },
+    { t: 'Operating Expenses',          d: ['salary_expense','admin_expense','electricity_expense','fuel_expense','maintenance_expense','rent_expense','other_operating_expense'], f: v => v.reduce((a, b) => a + b, 0) },
+    { t: 'Minimum/lean_month_expense',  d: ['Operating Expenses'],                                            f: v => v[0] / 12 },
+    { t: 'Total Cash',                  d: ['cash_on_hand','bank_balance'],                                   f: v => v[0] + v[1] },
+    { t: 'current_assets',              d: ['accounts_receivable','inventory','prepaid_expense','other_current_assets'], f: v => v.reduce((a, b) => a + b, 0) },
+    { t: 'Non-Current Assets',          d: ['land_value','building_value','plant_machinery_value','vehicle_value','furniture_value','other_fixed_assets'], f: v => v.reduce((a, b) => a + b, 0) },
+    { t: 'total_assets',                d: ['current_assets','Non-Current Assets'],                           f: v => v[0] + v[1] },
+    { t: 'current_liabilities',         d: ['accounts_payable','short_term_loan','accrued_expense','current_portion_long_term_debt'], f: v => v.reduce((a, b) => a + b, 0) },
+    { t: 'non_current_liabilities',     d: ['long_term_loan','other_long_term_liabilities'],                  f: v => v[0] + v[1] },
+    { t: 'total_liabilities',           d: ['current_liabilities','non_current_liabilities'],                 f: v => v[0] + v[1] },
+    { t: 'Total_networth',              d: ['paid_up_capital','retained_earnings','reserves'],                 f: v => v[0] + v[1] + v[2] },
+    { t: 'produced_milk_model_b_liters',d: ['total_milk_collected_liters','milk_loss_liters_during_collection','loss_during_process'], f: v => v[0] - v[1] - v[2] },
+    { t: 'avg_monthly_milk_liters',     d: ['total_milk_collected_liters'],                                   f: v => v[0] / 12 },
+    { t: 'avg_farmer_quantity_liters',  d: ['total_milk_collected_liters','total_number_of_farmers'],         f: v => v[1] === 0 ? 0 : v[0] / v[1] },
+    { t: 'top5_buyer_share_percent',    d: ['top5_buyers_sales','Total Sales'],                               f: v => v[1] === 0 ? 0 : (v[0] / v[1]) * 100 },
+    { t: 'largest_buyer_share_percent', d: ['largest_buyer_sales','Total_Revenue'],                           f: v => v[1] === 0 ? 0 : (v[0] / v[1]) * 100 }
   ];
-  c.forEach(comp => setComputedField(comp.t, comp.f(comp.d.map(dep => getNumericAnswer(dep)))));
+  calcs.forEach(c => setComputedField(c.t, c.f(c.d.map(dep => getNumericAnswer(dep)))));
 }
 
 // ============================================================
 // DUMMY DATA AUTO-FILL
+//
+// KEY FIX: fetchDummyData now returns full verbatim option strings.
+// setSelectValue tries exact match first, then English-prefix match.
+// answers[id] is ALWAYS set from el.value (the selected option's value
+// attribute, which is the full verbatim string) — never from the raw
+// server value, which might be a partial string.
 // ============================================================
-
-// Keywords that trigger dummy fill (case-insensitive)
-const DUMMY_TRIGGERS = ['dd-test', 'dummy', 'dd-fill', 'test-data'];
-
 function isDummyTrigger(val) {
-  const v = val.trim().toLowerCase();
-  return DUMMY_TRIGGERS.some(t => v === t);
+  return DUMMY_TRIGGERS.some(t => val.trim().toLowerCase() === t);
 }
 
 window.handleCalculateClick = async function() {
-  // Check if the coop name field contains a dummy trigger keyword
   const nameVal = document.getElementById('coop_name_input_questions')?.value || '';
   if (isDummyTrigger(nameVal)) {
     await runDummyFill();
-    return;
+  } else {
+    await submitAndCalculate();
   }
-  // Normal flow
-  await submitAndCalculate();
 };
 
 async function runDummyFill() {
   const btn = document.getElementById('btn_calculate_main');
   btn.disabled = true;
-  btn.innerHTML = `<div class="spinner" style="width:15px;height:15px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div>Loading dummy data…`;
-
-  // Show a toast-style banner
-  showDummyBanner('Fetching dummy data from Google Sheet…', 'loading');
-
+  btn.innerHTML = `<div class="spinner" style="width:15px;height:15px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div>Loading test data…`;
+  showToast('Fetching dummy data…', 'loading');
   try {
-    const dummyMap = await gasGet({ action: 'fetchDummyData' });
-    if (dummyMap.error) throw new Error(dummyMap.error);
-
-    const count = Object.keys(dummyMap).length;
-    if (count === 0) {
-      showDummyBanner('No dummy data found. Add a "Dummy" column to your Questions sheet.', 'warn');
+    const dm = await gasGet({ action: 'fetchDummyData' });
+    if (dm.error) throw new Error(dm.error);
+    if (Object.keys(dm).length === 0) {
+      showToast('No dummy data found.', 'warn');
       btn.disabled = false;
       btn.innerHTML = '<i data-lucide="calculator"></i> Calculate Credit Score';
       lucide.createIcons();
       return;
     }
 
-    // Fill every question input from the dummy map
     let filled = 0;
-    for (const [id, val] of Object.entries(dummyMap)) {
-      // Set in answers state
-      answers[id] = val;
-
-      // Update the DOM input/select
-      const el = document.querySelector(`[data-id="${id}"] input, [data-id="${id}"] select`);
+    for (const [id, val] of Object.entries(dm)) {
+      const el = document.querySelector(`[data-id="${id}"] select`);
       if (el) {
-        el.value = val;
-        // Trigger change/input events so computed fields recalculate
-        el.dispatchEvent(new Event(el.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+        // Attempt to select the matching option
+        const matched = setSelectValue(el, val);
+        if (!matched) {
+          // setSelectValue left el.value unchanged (empty or prev value).
+          // Force-set if an exact option exists, otherwise store server value
+          // so the server-side resolveWriteValue_ can handle it.
+          answers[id] = el.value || val;
+        } else {
+          // Use whatever the SELECT actually settled on — this is the full
+          // verbatim option string that cell validation accepts.
+          answers[id] = el.value;
+        }
         filled++;
+      } else {
+        const inputEl = document.querySelector(`[data-id="${id}"] input`);
+        if (inputEl) {
+          inputEl.value = val;
+          answers[id] = val;
+          inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+          filled++;
+        } else {
+          // Computed or off-screen field — store directly
+          answers[id] = val;
+        }
       }
     }
 
-    // Set coop name to a sensible test value
-    const testCoopName = 'Dummy Test Cooperative';
-    coopName = testCoopName;
-    answers['1'] = testCoopName;
-    const nameInput = document.getElementById('coop_name_input_questions');
-    if (nameInput) nameInput.value = testCoopName;
+    coopName = 'Dummy Test Cooperative';
+    answers['1'] = coopName;
+    const ni = document.getElementById('coop_name_input_questions');
+    if (ni) ni.value = coopName;
 
-    // Recalculate computed fields after all answers are set
     updateComputedFields();
-
-    showDummyBanner(`✓ Filled ${filled} fields from dummy data — running calculation…`, 'success');
-
-    // Short pause so the user sees the banner, then calculate
+    showToast(`Filled ${filled} fields — calculating…`, 'success');
     await new Promise(r => setTimeout(r, 800));
     await submitAndCalculate();
-
-  } catch(err) {
-    showDummyBanner('Failed to load dummy data: ' + err.message, 'error');
+  } catch (err) {
+    showToast('Failed: ' + err.message, 'error');
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="calculator"></i> Calculate Credit Score';
     lucide.createIcons();
   }
 }
 
-let dummyBannerTimeout = null;
+/**
+ * Set a SELECT element's value robustly, always to a full verbatim option.
+ *
+ * The server's fetchDummyData (v10) already returns full verbatim option
+ * strings, so Pass 1 (exact match) should succeed in almost all cases.
+ * Passes 2–4 are safety nets for edge cases.
+ *
+ * Returns true if a match was found and applied, false otherwise.
+ * When false, el.value is NOT modified.
+ */
+function setSelectValue(selectEl, target) {
+  if (!target) return false;
+  const opts   = Array.from(selectEl.options);
+  const tLower = target.trim().toLowerCase();
 
-function showDummyBanner(msg, type) {
-  let banner = document.getElementById('dummy_fill_banner');
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = 'dummy_fill_banner';
-    banner.style.cssText = [
-      'position:fixed', 'bottom:24px', 'left:50%', 'transform:translateX(-50%)',
-      'z-index:9999', 'padding:11px 20px', 'border-radius:8px',
-      'font-size:13px', 'font-weight:600', 'font-family:DM Sans,sans-serif',
-      'display:flex', 'align-items:center', 'gap:9px',
-      'box-shadow:0 4px 20px rgba(0,0,0,0.18)',
-      'max-width:480px', 'white-space:nowrap', 'transition:opacity 0.3s'
-    ].join(';');
-    document.body.appendChild(banner);
+  // Extract English portion of target (handles " / " separator and
+  // space-separated Devanagari without separator)
+  const tEng = extractEnglishPortion(target).toLowerCase();
+  const tEngNoEnd = tEng.replace(/[.\s]+$/, '');
+
+  // Pass 1: exact verbatim match on option.value
+  for (const opt of opts) {
+    if (opt.value === target) {
+      selectEl.value = target;
+      return true;
+    }
   }
 
-  const styles = {
-    loading: { bg:'#1a1a1a', color:'#fff',     icon:'⏳' },
-    success: { bg:'#1a4a1a', color:'#d4f0d4',  icon:'✓'  },
-    warn:    { bg:'#4a3800', color:'#f0e0a0',  icon:'⚠'  },
-    error:   { bg:'#4a1a1a', color:'#f0d0d0',  icon:'✕'  }
-  };
-  const s = styles[type] || styles.loading;
-  banner.style.background = s.bg;
-  banner.style.color = s.color;
-  banner.style.border = '1px solid ' + s.color + '33';
-  banner.style.opacity = '1';
-  banner.innerHTML = `<span>${s.icon}</span><span>${msg}</span>`;
-
-  if (dummyBannerTimeout) clearTimeout(dummyBannerTimeout);
-  if (type === 'success' || type === 'warn' || type === 'error') {
-    dummyBannerTimeout = setTimeout(() => { banner.style.opacity = '0'; }, 4000);
+  // Pass 2: English-portion exact match (case-insensitive)
+  for (const opt of opts) {
+    const oEng = extractEnglishPortion(opt.value).toLowerCase();
+    const oEngNoEnd = oEng.replace(/[.\s]+$/, '');
+    if (oEng === tLower || oEng === tEng || oEngNoEnd === tEngNoEnd) {
+      selectEl.value = opt.value;
+      return true;
+    }
   }
+
+  // Pass 3: starts-with / contains match
+  if (tEngNoEnd.length > 3) {
+    for (const opt of opts) {
+      const oEng = extractEnglishPortion(opt.value).toLowerCase().replace(/[.\s]+$/, '');
+      if (oEng.startsWith(tEngNoEnd) || tEngNoEnd.startsWith(oEng)) {
+        selectEl.value = opt.value;
+        return true;
+      }
+    }
+    // Pass 4: substring match
+    for (const opt of opts) {
+      const oEng = extractEnglishPortion(opt.value).toLowerCase();
+      if (oEng.includes(tEngNoEnd)) {
+        selectEl.value = opt.value;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Extract the English (non-Devanagari) portion of a bilingual string.
+ * Handles both " / " separator and space-separated Devanagari suffix.
+ */
+function extractEnglishPortion(str) {
+  if (!str) return '';
+  const s = str.trim();
+  // Format 1: " / " separator
+  const slashIdx = s.indexOf(' / ');
+  if (slashIdx !== -1) return s.substring(0, slashIdx).trim();
+  // Format 2: trailing Devanagari block
+  const m = s.match(/^(.*?)\s+[\u0900-\u097F].*$/);
+  if (m) return m[1].trim();
+  return s;
+}
+
+// Toast notification helper
+let _toastTimer = null;
+function showToast(msg, type) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;padding:11px 20px;border-radius:8px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;display:flex;align-items:center;gap:9px;box-shadow:0 4px 20px rgba(0,0,0,.18);max-width:480px;white-space:nowrap;transition:opacity .3s';
+    document.body.appendChild(t);
+  }
+  const s = {
+    loading: { bg: '#1a1a1a', color: '#fff',    icon: '⏳' },
+    success: { bg: '#1a4a1a', color: '#d4f0d4', icon: '✓'  },
+    warn:    { bg: '#4a3800', color: '#f0e0a0', icon: '⚠'  },
+    error:   { bg: '#4a1a1a', color: '#f0d0d0', icon: '✕'  }
+  }[type] || { bg: '#1a1a1a', color: '#fff', icon: '…' };
+  t.style.background = s.bg;
+  t.style.color = s.color;
+  t.style.border = '1px solid ' + s.color + '33';
+  t.style.opacity = '1';
+  t.innerHTML = `<span>${s.icon}</span><span>${msg}</span>`;
+  if (_toastTimer) clearTimeout(_toastTimer);
+  if (type !== 'loading') _toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 4000);
 }
 
 // ============================================================
@@ -855,10 +731,10 @@ window.submitAndCalculate = async function() {
   btn.disabled = true;
   btn.innerHTML = `<div class="spinner" style="width:15px;height:15px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div>Calculating…`;
   try {
-    const data = await gasPost({ action:'finalizeAssessment', answers, coopName });
+    const data = await gasPost({ action: 'finalizeAssessment', answers, coopName });
     if (data.error) { alert('Server error: ' + data.error); return; }
     displayResults(data);
-  } catch(err) {
+  } catch (err) {
     alert('Submission failed: ' + err.message);
   } finally {
     btn.disabled = false;
@@ -870,63 +746,14 @@ window.submitAndCalculate = async function() {
 // ============================================================
 // DISPLAY RESULTS
 // ============================================================
-let charts = {};
-
 const SCORE_TIERS = [
-  { min:0,   max:399,  label:'D Risk', decision:'Decline',                tenor:'N/A',              collateral:'Full cover required',  review:'Immediate re-evaluation' },
-  { min:400, max:549,  label:'C Risk', decision:'Conditional Approval',   tenor:'Up to 12 months',  collateral:'150%+ of loan value',  review:'Quarterly' },
-  { min:550, max:699,  label:'B Risk', decision:'Approve with Conditions', tenor:'Up to 36 months', collateral:'125% of loan value',   review:'Semi-annual' },
-  { min:700, max:1000, label:'A Risk', decision:'Approve',                tenor:'Up to 60 months',  collateral:'Standard (100%)',      review:'Annual' }
+  { min: 0,   max: 399,  label: 'D Risk', decision: 'Decline' },
+  { min: 400, max: 549,  label: 'C Risk', decision: 'Conditional Approval' },
+  { min: 550, max: 699,  label: 'B Risk', decision: 'Approve with Conditions' },
+  { min: 700, max: 1000, label: 'A Risk', decision: 'Approve' }
 ];
-
 function getTier(score) {
   return SCORE_TIERS.find(t => score >= t.min && score <= t.max) || SCORE_TIERS[0];
-}
-
-function generateAnalysis(result) {
-  const cats = result.categories || [], logs = result.logs || [];
-  const strengths = [], concerns = [], focus = [];
-
-  cats.forEach(cat => {
-    const pct = cat.max > 0 ? (cat.score / cat.max) * 100 : 0;
-    if (pct >= 80) strengths.push(`Strong performance in <strong>${cat.name}</strong> (${Math.round(pct)}%)`);
-    else if (pct < 40) {
-      concerns.push(`Low score in <strong>${cat.name}</strong> (${Math.round(pct)}%) requires attention`);
-      focus.push(`Improve <strong>${cat.name}</strong> — currently at ${cat.score}/${cat.max} points`);
-    } else if (pct < 60) {
-      focus.push(`Moderate gap in <strong>${cat.name}</strong> (${Math.round(pct)}%) — review sub-indicators`);
-    }
-  });
-
-  logs.filter(l => l.max > 0 && l.score >= l.max).slice(0,3).forEach(l => {
-    if (!strengths.some(s => s.includes(l.name)))
-      strengths.push(`<strong>${l.name}</strong> achieved full marks (${l.score}/${l.max})`);
-  });
-  logs.filter(l => l.score === 0 && l.max >= 20).slice(0,3).forEach(l => {
-    if (!concerns.some(c => c.includes(l.name)))
-      concerns.push(`<strong>${l.name}</strong> scored 0/${l.max} — threshold not met`);
-  });
-
-  const srvS = (result.strengths||[]).filter(Boolean);
-  const srvW = (result.weaknesses||[]).filter(Boolean);
-  return {
-    strengths: srvS.length ? srvS : strengths,
-    concerns:  srvW.length ? srvW : concerns,
-    focus
-  };
-}
-
-function generateRecommendation(score, tier, cats) {
-  const worstCat = cats && cats.length ? cats.reduce((a,b) => {
-    return (a.max>0?a.score/a.max:1) < (b.max>0?b.score/b.max:1) ? a : b;
-  }) : null;
-  const n = {
-    'D Risk': `This cooperative presents <strong>high credit risk</strong> (score: ${score}/1,000). Lending is not advisable without significant remediation.${worstCat?` Weakest area: <strong>${worstCat.name}</strong>.`:''}`,
-    'C Risk': `A score of ${score}/1,000 places this cooperative in the <strong>C Risk (Elevated)</strong> tier. Conditional credit only, with enhanced monitoring and safeguards required.${worstCat?` Primary concern: <strong>${worstCat.name}</strong>.`:''}`,
-    'B Risk': `Score of ${score}/1,000 qualifies for <strong>approval with conditions</strong>. Operations are sound with minor weaknesses — standard monitoring recommended.${worstCat?` Strengthen <strong>${worstCat.name}</strong>.`:''}`,
-    'A Risk': `Score of ${score}/1,000 indicates <strong>strong creditworthiness</strong>. Loan approval at standard terms is recommended. This cooperative demonstrates excellent financial health and stable operations.`
-  };
-  return n[tier.label] || `Score: ${score}/1,000.`;
 }
 
 function displayResults(result) {
@@ -936,260 +763,226 @@ function displayResults(result) {
   const score = parseFloat(result.totalScore) || 0;
   const tier  = getTier(score);
 
-  // ── Hero
   document.getElementById('result_score_number').innerText = result.totalScore ?? '—';
-
-  // Fix: always derive risk from score — never trust "NOT SCORED" from server
   const riskRaw = (result.riskCategory && result.riskCategory !== 'NOT SCORED')
-    ? result.riskCategory
-    : tier.label.toUpperCase();
-  document.getElementById('result_risk_label').innerText = riskRaw;
-  // Normalise to CSS class: "A RISK" → "a-risk"
-  const riskClass = riskRaw.toLowerCase().replace(/\s+/g,'-');
-  document.getElementById('result_risk_badge').className = `risk-badge ${riskClass}`;
+    ? result.riskCategory : tier.label.toUpperCase();
+  document.getElementById('result_risk_label').innerText   = riskRaw;
+  document.getElementById('result_risk_badge').className   = 'risk-badge ' + riskRaw.toLowerCase().replace(/\s+/g, '-');
+  document.getElementById('result_coop_name').innerText    = coopName || '—';
+  document.getElementById('result_date').innerText         = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('result_coop_type').innerText    = coopType === 'collection' ? 'Collection Only' : 'Collection & Processing';
+  document.getElementById('result_cust_type').innerText    = customerType === 'new' ? 'New Customer' : 'Existing Customer';
 
-  document.getElementById('result_coop_name').innerText = coopName || '—';
-  document.getElementById('result_date').innerText = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('result_coop_type').innerText = coopType === 'collection' ? 'Collection Only' : 'Collection & Processing';
-  document.getElementById('result_cust_type').innerText = customerType === 'new' ? 'New Customer' : 'Existing Customer';
+  const pct = Math.min(100, (score / 1000) * 100);
+  document.getElementById('score_pct_text').innerText = pct.toFixed(1) + '%';
+  setTimeout(() => { document.getElementById('score_pct_fill').style.width = pct + '%'; }, 120);
 
-  const pct = Math.min(100, (score/1000)*100);
-  document.getElementById('score_pct_text').innerText = pct.toFixed(1)+'%';
-  setTimeout(() => { document.getElementById('score_pct_fill').style.width = pct+'%'; }, 120);
+  [['rlc_d', 0, 399], ['rlc_c', 400, 549], ['rlc_b', 550, 699], ['rlc_a', 700, 1000]].forEach(([id, mn, mx]) => {
+    document.getElementById(id)?.classList.toggle('rlc-active', score >= mn && score <= mx);
+  });
 
-  // ── Risk legend cards — highlight active
-  (function() {
-    const tierMap = [
-      { id:'rlc_d', min:0,   max:399  },
-      { id:'rlc_c', min:400, max:549  },
-      { id:'rlc_b', min:550, max:699  },
-      { id:'rlc_a', min:700, max:1000 }
-    ];
-    tierMap.forEach(t => {
-      const el = document.getElementById(t.id);
-      if (el) el.classList.toggle('rlc-active', score >= t.min && score <= t.max);
-    });
-  })();
-
-  // ── Calc log removed — parameters shown in category cards below
-
-  // ── Category cards (traffic-light color)
   const catGrid = document.getElementById('category_analysis');
   if (catGrid && result.categories) {
     catGrid.innerHTML = result.categories.map(cat => {
       const p   = cat.max > 0 ? Math.round((cat.score / cat.max) * 100) : 0;
       const cls = p >= 70 ? 'cat-green' : p >= 40 ? 'cat-amber' : 'cat-red';
-      const bc  = p >= 70 ? '#2d6a2d'  : p >= 40 ? '#b48200'  : '#8b1a1a';
-      const pc  = p >= 70 ? 'pct-green': p >= 40 ? 'pct-amber': 'pct-red';
-      const tier= p >= 70 ? 'Good' : p >= 40 ? 'Moderate' : 'Needs Work';
+      const bc  = p >= 70 ? '#2d6a2d' : p >= 40 ? '#b48200' : '#8b1a1a';
+      const pc  = p >= 70 ? 'pct-green' : p >= 40 ? 'pct-amber' : 'pct-red';
+      const tl  = p >= 70 ? 'Good' : p >= 40 ? 'Moderate' : 'Needs Work';
       return `<div class="cat-card ${cls}">
         <div class="cat-header">
           <span class="cat-name">${cat.name}</span>
-          <div class="cat-score-wrap">
-            <span class="cat-score">${cat.score}</span>
-            <span class="cat-score-max">/ ${cat.max} pts</span>
-          </div>
+          <div class="cat-score-wrap"><span class="cat-score">${cat.score}</span><span class="cat-score-max">/ ${cat.max} pts</span></div>
         </div>
-        <div class="cat-bar-bg">
-          <div class="cat-bar-fill" style="width:${p}%;background:${bc}"></div>
-        </div>
-        <div class="cat-pct-row">
-          <span class="cat-pct ${pc}">${p}%</span>
-          <span class="cat-pct-label">${tier}</span>
-        </div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${p}%;background:${bc}"></div></div>
+        <div class="cat-pct-row"><span class="cat-pct ${pc}">${p}%</span><span class="cat-pct-label">${tl}</span></div>
       </div>`;
     }).join('');
   }
 
-  // ── Analysis
-  const analysis = generateAnalysis(result);
   function renderAFC(id, items) {
     const el = document.getElementById(id);
     if (!el) return;
-    el.innerHTML = (items&&items.length)
-      ? items.map(i=>`<li><span class="afc-dot"></span><span>${i}</span></li>`).join('')
+    el.innerHTML = (items && items.length)
+      ? items.map(i => `<li><span class="afc-dot"></span><span>${i}</span></li>`).join('')
       : '<li><span class="afc-dot"></span><span class="afc-empty">None identified</span></li>';
   }
-  renderAFC('analysis_strengths', analysis.strengths);
-  renderAFC('analysis_concerns',  analysis.concerns);
-  renderAFC('analysis_focus',     analysis.focus);
+  renderAFC('analysis_strengths', (result.strengths  || []).filter(Boolean));
+  renderAFC('analysis_concerns',  (result.weaknesses || []).filter(Boolean));
+  renderAFC('analysis_focus',     (result.focus      || []).filter(Boolean));
 
-  // ── Recommendation
-  const narrative = (result.recommendation && result.recommendation.trim())
-    ? result.recommendation
-    : generateRecommendation(score, tier, result.categories);
-  document.getElementById('rec_narrative').innerHTML = narrative;
+  document.getElementById('rec_narrative').innerHTML    = result.recommendation || `Score: ${score}/1,000.`;
   document.getElementById('rec_verdict_text').innerText = tier.label;
-  // loan decision / tenor / collateral / review elements removed from HTML
 
-  // ── Charts
+  renderDetailedSummary(result);
   initCharts(result);
 
-  // ── Progress & navigation
   setProgress(100, 'Assessment complete');
   document.getElementById('global_progress_fill').style.width = '100%';
   document.querySelector('.sidebar-nav-item[data-section="result"]').classList.remove('disabled');
-  document.querySelector('.sidebar-nav-item[data-section="approver"]').classList.remove('disabled');
-  document.getElementById('btn_go_approver').style.display = '';
-
-  // ── Pre-fill approver panel
-  populateApproverPanel(result, score, tier, riskRaw);
 
   navigateTo('result');
   lucide.createIcons();
 }
 
 // ============================================================
-// APPROVER PANEL
+// DETAILED SUMMARY
 // ============================================================
-function setInsVal(id, val) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const isPending = !val || val === '—' || val === 'NPR —';
-  el.textContent = isPending ? 'Pending formula' : val;
-  el.classList.toggle('ins-pending', isPending);
-}
+function renderDetailedSummary(result) {
+  const container  = document.getElementById('detailed_summary_container');
+  if (!container) return;
 
-function populateApproverPanel(result, score, tier, riskRaw) {
-  const now = new Date();
-  document.getElementById('appr_date').innerText = now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('appr_score').innerText = score;
-  document.getElementById('appr_risk').innerText  = riskRaw;
-  document.getElementById('appr_risk_sub').innerText = tier.decision;
+  const categories = result.categories || [];
+  const logs       = result.logs       || [];
 
-  const m = result.metrics || {};
-  // fmt: show — for null/zero (means formula not yet wired), else formatted value
-  const fmt0   = (v, suffix) => (v != null && v !== 0) ? Number(v).toFixed(2) + (suffix||'') : '—';
-  const fmtNPR = v => (v != null && v !== 0) ? 'NPR ' + fmtNum(v) : '—';
-  // KPI strip — pending class when no data
-  const setKPI = (id, val) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerText = val;
-    el.classList.toggle('appr-kpi-pending', val === '—');
-  };
-  setKPI('appr_dscr', fmt0(m.dscr));
-  setKPI('appr_de',   fmt0(m.debtEquity));
-  // Insight rows
-  setInsVal('ins_ebitda',   fmtNPR(m.ebitda));
-  setInsVal('ins_debt_svc', fmtNPR(m.debtService));
-  setInsVal('ins_season',   fmt0(m.seasonBuffer, ' months'));
-  setInsVal('ins_top5',     fmt0(m.top5Buyers, '%'));
-  setInsVal('ins_single',   fmt0(m.singleBuyer, '%'));
-  setInsVal('ins_govt',     fmt0(m.govtLargePvt, '%'));
+  const zeroCount = logs.filter(l => l.score === 0 && l.max > 0).length;
+  const fullCount  = logs.filter(l => l.max > 0 && l.score >= l.max).length;
+  document.getElementById('ds_total_score').innerText = (result.totalScore ?? 0) + ' / 1000';
+  document.getElementById('ds_raw_score').innerText   = result.rawTotal ?? 0;
+  document.getElementById('ds_raw_max').innerText     = result.rawMax ?? 0;
+  document.getElementById('ds_cat_count').innerText   = categories.length;
+  document.getElementById('ds_sub_count').innerText   = logs.length;
+  document.getElementById('ds_zero_count').innerText  = zeroCount;
+  document.getElementById('ds_full_count').innerText  = fullCount;
 
-  // Heatmap bars
-  const hm = result.heatmap || {};
-  setHeatmapBar('hm_repayment',  hm.repayment   || 0);
-  setHeatmapBar('hm_operational', hm.operational || 0);
-  setHeatmapBar('hm_financial',  hm.financial   || 0);
-  setHeatmapBar('hm_governance', hm.governance  || 0);
+  if (categories.length === 0) {
+    container.innerHTML = `<div class="ds-empty"><i data-lucide="info"></i> No category data returned. Verify Model sheet column layout.</div>`;
+    lucide.createIcons();
+    return;
+  }
 
-  // Auto-select decision radio based on tier
-  const autoDecision = score >= 700 ? 'Recommend Approval' : score >= 400 ? 'Conditional Approval' : 'Recommend Rejection';
-  document.querySelectorAll('input[name="appr_decision"]').forEach(r => {
-    r.checked = r.value === autoDecision;
-  });
-  highlightDecisionOption(autoDecision);
+  let catSubs;
+  if (categories[0]?.logs?.length > 0) {
+    catSubs = categories.map(c => c.logs);
+  } else if (logs.some(l => l.category && l.category.length > 0)) {
+    catSubs = categories.map(c => logs.filter(l => l.category === c.name));
+  } else {
+    catSubs = [];
+    let logIdx = 0;
+    categories.forEach(cat => {
+      let maxSum = 0;
+      const bucket = [];
+      while (logIdx < logs.length && maxSum < cat.max) {
+        maxSum += logs[logIdx].max;
+        bucket.push(logs[logIdx]);
+        logIdx++;
+      }
+      catSubs.push(bucket);
+    });
+    if (logIdx < logs.length && catSubs.length > 0) {
+      catSubs[catSubs.length - 1] = catSubs[catSubs.length - 1].concat(logs.slice(logIdx));
+    }
+  }
 
-  // Reset submission state
-  document.getElementById('appr_submit_btn').disabled = false;
-  document.getElementById('appr_submit_btn').innerHTML = '<i data-lucide="send"></i> Submit Decision';
-  document.getElementById('appr_success_banner').classList.add('hidden');
-  document.getElementById('appr_submit_alert').classList.add('hidden');
+  container.innerHTML = categories.map((cat, ci) => {
+    const subs      = catSubs[ci] || [];
+    const catPct    = cat.max > 0 ? Math.round((cat.score / cat.max) * 100) : 0;
+    const catCls    = catPct >= 70 ? 'ds-acc-green' : catPct >= 40 ? 'ds-acc-amber' : 'ds-acc-red';
+    const catPctCls = catPct >= 70 ? 'ds-cpct-green' : catPct >= 40 ? 'ds-cpct-amber' : 'ds-cpct-red';
+
+    const rowsHtml = subs.length === 0
+      ? `<tr><td colspan="5" class="ds-no-sub">No sub-parameters found for this category.</td></tr>`
+      : subs.map((sub, si) => {
+          const subPct  = sub.max > 0 ? Math.round((sub.score / sub.max) * 100) : (sub.score > 0 ? 100 : 0);
+          const pipCls  = subPct >= 70 ? 'ds-pip-green' : subPct >= 40 ? 'ds-pip-amber' : 'ds-pip-red';
+          const rowCls  = sub.score === 0 && sub.max > 0 ? 'ds-row-zero' : (sub.max > 0 && sub.score >= sub.max ? 'ds-row-full' : '');
+          const chipCls = sub.score === 0 && sub.max > 0 ? 'ds-chip-zero' : (sub.max > 0 && sub.score >= sub.max ? 'ds-chip-full' : '');
+          const valDisplay = sub.value && sub.value !== '0' && sub.value !== '' ? sub.value : (sub.score > 0 ? sub.score.toString() : '—');
+          return `<tr class="${rowCls}">
+            <td class="ds-td-num">${si + 1}</td>
+            <td class="ds-td-name">${sub.name}</td>
+            <td class="ds-td-val">${valDisplay}</td>
+            <td class="ds-td-score">
+              <span class="ds-score-chip ${chipCls}">${sub.score}</span>
+              <span class="ds-score-sep">/</span>
+              <span class="ds-score-max">${sub.max}</span>
+            </td>
+            <td class="ds-td-bar">
+              <div class="ds-mini-bar-bg"><div class="ds-mini-bar-fill ${pipCls}" style="width:${Math.min(subPct, 100)}%"></div></div>
+              <span class="ds-mini-pct">${subPct}%</span>
+            </td>
+          </tr>`;
+        }).join('');
+
+    return `
+      <div class="ds-accordion ${catCls}" id="ds_acc_${ci}">
+        <button class="ds-acc-header" onclick="toggleDsAcc(${ci})">
+          <div class="ds-acc-header-left">
+            <span class="ds-acc-idx">${ci + 1}</span>
+            <span class="ds-acc-name">${cat.name}</span>
+            <span class="ds-acc-sub-count">${subs.length} param${subs.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="ds-acc-header-right">
+            <div class="ds-acc-score-wrap">
+              <span class="ds-acc-score">${cat.score}</span>
+              <span class="ds-acc-score-max"> / ${cat.max}</span>
+            </div>
+            <span class="ds-acc-pct-pill ${catPctCls}">${catPct}%</span>
+            <div class="ds-acc-mini-bar"><div class="ds-acc-mini-fill" style="width:${catPct}%"></div></div>
+            <i data-lucide="chevron-down" class="ds-acc-chevron" id="ds_chev_${ci}"></i>
+          </div>
+        </button>
+        <div class="ds-acc-body hidden" id="ds_body_${ci}">
+          <div class="ds-table-wrap">
+            <table class="ds-table">
+              <thead>
+                <tr>
+                  <th class="ds-th-num">#</th>
+                  <th>Sub-Parameter</th>
+                  <th>Computed Value</th>
+                  <th>Score / Max</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+              <tfoot>
+                <tr class="ds-tfoot-row">
+                  <td colspan="3" class="ds-tfoot-label">
+                    <i data-lucide="sigma" style="width:12px;height:12px;stroke-width:2;vertical-align:middle"></i>
+                    Category Total
+                  </td>
+                  <td class="ds-tfoot-score">${cat.score} / ${cat.max}</td>
+                  <td class="ds-tfoot-pct ${catPctCls}">${catPct}%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
   lucide.createIcons();
 }
 
-function setHeatmapBar(id, pct) {
-  const bar = document.getElementById(id);
-  const pctEl = document.getElementById(id + '_pct');
-  if (bar) {
-    bar.style.width = pct + '%';
-    bar.style.background = pct >= 70 ? '#2d6a2d' : pct >= 40 ? '#3a3a3a' : '#8b1a1a';
-  }
-  if (pctEl) pctEl.innerText = pct + '%';
-}
-
-function fmtNum(n) {
-  if (n >= 10000000) return (n/10000000).toFixed(2) + ' Cr';
-  if (n >= 100000)   return (n/100000).toFixed(2) + ' L';
-  return n.toLocaleString();
-}
-
-window.handleDecisionChange = function(radio) {
-  highlightDecisionOption(radio.value);
+window.toggleDetailedSummary = function() {
+  const container = document.getElementById('detailed_summary_container');
+  const strip     = document.getElementById('ds_raw_strip');
+  const icon      = document.getElementById('ds_toggle_icon');
+  const label     = document.getElementById('ds_toggle_label');
+  const open      = !container.classList.contains('hidden');
+  container.classList.toggle('hidden', open);
+  strip.classList.toggle('hidden', open);
+  if (label) label.innerText = open ? 'Show' : 'Hide';
+  if (icon)  icon.setAttribute('data-lucide', open ? 'chevron-down' : 'chevron-up');
+  lucide.createIcons();
 };
 
-function highlightDecisionOption(val) {
-  document.querySelectorAll('.appr-decision-radio').forEach(el => el.classList.remove('selected'));
-  const map = {
-    'Recommend Approval': 'decopt_approve',
-    'Conditional Approval': 'decopt_conditional',
-    'Recommend Rejection': 'decopt_reject'
-  };
-  const el = document.getElementById(map[val]);
-  if (el) el.classList.add('selected');
-}
-
-window.submitApproverDecision = async function() {
-  const decision = document.querySelector('input[name="appr_decision"]:checked')?.value;
-  const comments = document.getElementById('appr_comments').value.trim();
-  const approverName = document.getElementById('appr_name').value.trim();
-  const alertEl = document.getElementById('appr_submit_alert');
-
-  if (!decision) {
-    alertEl.innerHTML = '<i data-lucide="alert-triangle"></i> Please select a decision option.';
-    alertEl.classList.remove('hidden'); lucide.createIcons(); return;
-  }
-  if (!approverName) {
-    alertEl.innerHTML = '<i data-lucide="alert-triangle"></i> Please enter the approver name.';
-    alertEl.classList.remove('hidden'); lucide.createIcons(); return;
-  }
-  alertEl.classList.add('hidden');
-
-  const btn = document.getElementById('appr_submit_btn');
-  btn.disabled = true;
-  btn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px"></div>Submitting…`;
-
-  try {
-    const score = lastResult ? (parseFloat(lastResult.totalScore) || 0) : 0;
-    const riskRaw = document.getElementById('appr_risk').innerText || '';
-    const payload = {
-      action:          'submitDecision',
-      coopName:        coopName || '—',
-      assessmentDate:  document.getElementById('appr_date').innerText,
-      totalScore:      score,
-      riskCategory:    riskRaw,
-      decision:        decision,
-      comments:        comments,
-      approverName:    approverName,
-      timestamp:       new Date().toISOString()
-    };
-    const res = await gasPost(payload);
-    if (res.error) throw new Error(res.error);
-
-    const banner = document.getElementById('appr_success_banner');
-    document.getElementById('appr_success_detail').innerText = ` Decision #${res.sn} recorded in Decision sheet.`;
-    banner.classList.remove('hidden');
-    btn.innerHTML = '<i data-lucide="check"></i> Decision Submitted';
-    lucide.createIcons();
-  } catch(err) {
-    alertEl.innerHTML = `<i data-lucide="alert-triangle"></i> Submission failed: ${err.message}`;
-    alertEl.classList.remove('hidden');
-    btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="send"></i> Submit Decision';
-    lucide.createIcons();
-  }
+window.toggleDsAcc = function(idx) {
+  const body = document.getElementById('ds_body_' + idx);
+  const chev = document.getElementById('ds_chev_' + idx);
+  const open = !body.classList.contains('hidden');
+  body.classList.toggle('hidden', open);
+  if (chev) chev.setAttribute('data-lucide', open ? 'chevron-down' : 'chevron-up');
+  lucide.createIcons();
 };
 
 // ============================================================
-// CHARTS — traffic-light colors by score %
+// CHARTS
 // ============================================================
-function scoreColor(pct, alpha) {
-  alpha = alpha || 1;
-  if (pct >= 70) return `rgba(45,106,45,${alpha})`;   // green
-  if (pct >= 40) return `rgba(180,130,0,${alpha})`;   // amber
-  return `rgba(139,26,26,${alpha})`;                   // red
+function scoreColor(p, a = 1) {
+  if (p >= 70) return `rgba(45,106,45,${a})`;
+  if (p >= 40) return `rgba(180,130,0,${a})`;
+  return `rgba(139,26,26,${a})`;
 }
 
 function initCharts(result) {
@@ -1198,72 +991,61 @@ function initCharts(result) {
   if (charts.bar)   charts.bar.destroy();
 
   const labels  = result.categories.map(c => c.name);
-  const pctData = result.categories.map(c => c.max>0 ? Math.round((c.score/c.max)*100) : 0);
+  const pctData = result.categories.map(c => c.max > 0 ? Math.round((c.score / c.max) * 100) : 0);
   const GRID    = 'rgba(0,0,0,0.06)';
 
-  // Bar chart — each bar gets its own traffic-light color
-  const barColors = pctData.map(p => scoreColor(p, 0.88));
-
   const rCtx = document.getElementById('radarChart')?.getContext('2d');
-  if (rCtx) charts.radar = new Chart(rCtx, {
-    type:'radar',
-    data:{
-      labels,
-      datasets:[{
-        label:'Score %',
-        data: pctData,
-        backgroundColor: 'rgba(42,42,42,0.07)',
-        borderColor: 'rgba(42,42,42,0.7)',
-        pointBackgroundColor: pctData.map(p => scoreColor(p)),
-        pointBorderColor: '#fff',
-        pointRadius: 5,
-        pointBorderWidth: 1.5,
-        borderWidth: 1.5
-      }]
-    },
-    options:{
-      scales:{ r:{
-        beginAtZero:true, max:100,
-        ticks:{ display:false },
-        grid:{ color:GRID },
-        pointLabels:{ font:{size:10,family:'DM Sans'}, color:'#4a4a4a' }
-      }},
-      plugins:{ legend:{ display:false } }
-    }
-  });
+  if (rCtx) {
+    charts.radar = new Chart(rCtx, {
+      type: 'radar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Score %',
+          data: pctData,
+          backgroundColor: 'rgba(42,42,42,0.07)',
+          borderColor: 'rgba(42,42,42,0.7)',
+          pointBackgroundColor: pctData.map(p => scoreColor(p)),
+          pointBorderColor: '#fff',
+          pointRadius: 5,
+          pointBorderWidth: 1.5,
+          borderWidth: 1.5
+        }]
+      },
+      options: {
+        scales: { r: { beginAtZero: true, max: 100, ticks: { display: false }, grid: { color: GRID }, pointLabels: { font: { size: 10, family: 'DM Sans' }, color: '#4a4a4a' } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
 
   const bCtx = document.getElementById('barChart')?.getContext('2d');
-  if (bCtx) charts.bar = new Chart(bCtx, {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label:'Score %',
-        data: pctData,
-        backgroundColor: barColors,
-        borderRadius: 5,
-        borderSkipped: false
-      }]
-    },
-    options:{
-      plugins:{
-        legend:{ display:false },
-        tooltip:{
-          callbacks:{
-            label: ctx => ` ${ctx.raw}%`
-          }
-        }
+  if (bCtx) {
+    charts.bar = new Chart(bCtx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Score %',
+          data: pctData,
+          backgroundColor: pctData.map(p => scoreColor(p, 0.88)),
+          borderRadius: 5,
+          borderSkipped: false
+        }]
       },
-      scales:{
-        y:{ beginAtZero:true, max:100, grid:{color:GRID}, ticks:{font:{size:11}, callback: v => v+'%'} },
-        x:{ grid:{display:false}, ticks:{font:{size:10}, maxRotation:40} }
+      options: {
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw}%` } } },
+        scales: {
+          y: { beginAtZero: true, max: 100, grid: { color: GRID }, ticks: { font: { size: 11 }, callback: v => v + '%' } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 40 } }
+        }
       }
-    }
-  });
+    });
+  }
 }
 
 // ============================================================
-// SIDEBAR
+// SIDEBAR TOGGLE
 // ============================================================
 window.toggleSidebar = function() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -1271,11 +1053,15 @@ window.toggleSidebar = function() {
   document.getElementById('sidebar_overlay').classList.toggle('show');
 };
 window.closeSidebar = function() {
-  ['open','active','show'].forEach(c => {
+  ['open', 'active', 'show'].forEach(c => {
     document.getElementById('sidebar').classList.remove(c);
     document.getElementById('sidebar_overlay').classList.remove(c);
   });
 };
+
+// Approver stubs retained for compatibility
+window.handleDecisionChange = function() {};
+window.submitApproverDecision = async function() {};
 </script>
 </body>
 </html>
