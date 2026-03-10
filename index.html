@@ -21,7 +21,6 @@
         <div class="logo-icon"><i data-lucide="landmark"></i></div>
         <div><div class="logo-text">Coop Credit<br>Scoring Portal</div></div>
       </div>
-      <div class="sidebar-subtitle">Nepal Agricultural Finance</div>
     </div>
 
     <div class="sidebar-progress">
@@ -511,7 +510,7 @@ function updateComputedFields() {
     { t: 'Operating Expenses',          d: ['salary_expense','admin_expense','electricity_expense','fuel_expense','maintenance_expense','rent_expense','other_operating_expense'], f: v => v.reduce((a, b) => a + b, 0) },
     { t: 'Minimum/lean_month_expense',  d: ['Operating Expenses'],                                            f: v => v[0] / 12 },
     { t: 'Total Cash',                  d: ['cash_on_hand','bank_balance'],                                   f: v => v[0] + v[1] },
-    { t: 'current_assets',              d: ['accounts_receivable','inventory','prepaid_expense','other_current_assets'], f: v => v.reduce((a, b) => a + b, 0) },
+    { t: 'current_assets',              d: ['Total Cash',  'accounts_receivable','inventory','prepaid_expense','other_current_assets'], f: v => v.reduce((a, b) => a + b, 0) },
     { t: 'Non-Current Assets',          d: ['land_value','building_value','plant_machinery_value','vehicle_value','furniture_value','other_fixed_assets'], f: v => v.reduce((a, b) => a + b, 0) },
     { t: 'total_assets',                d: ['current_assets','Non-Current Assets'],                           f: v => v[0] + v[1] },
     { t: 'current_liabilities',         d: ['accounts_payable','short_term_loan','accrued_expense','current_portion_long_term_debt'], f: v => v.reduce((a, b) => a + b, 0) },
@@ -747,10 +746,10 @@ window.submitAndCalculate = async function() {
 // DISPLAY RESULTS
 // ============================================================
 const SCORE_TIERS = [
-  { min: 0,   max: 399,  label: 'D Risk', decision: 'Decline' },
-  { min: 400, max: 549,  label: 'C Risk', decision: 'Conditional Approval' },
-  { min: 550, max: 699,  label: 'B Risk', decision: 'Approve with Conditions' },
-  { min: 700, max: 1000, label: 'A Risk', decision: 'Approve' }
+  { min: 0,   max: 499,  label: 'D Risk', decision: 'Decline' },
+  { min: 500, max: 699,  label: 'C Risk', decision: 'Conditional Approval' },
+  { min: 700, max: 849,  label: 'B Risk', decision: 'Approve with Conditions' },
+  { min: 850, max: 1000, label: 'A Risk', decision: 'Approve' }
 ];
 function getTier(score) {
   return SCORE_TIERS.find(t => score >= t.min && score <= t.max) || SCORE_TIERS[0];
