@@ -67,6 +67,20 @@ body {
   overflow-x: hidden;
 }
 
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 14px 14px 60px;
+  }
+}
+
 /* ── Sidebar ── */
 .admin-sidebar {
   width: var(--admin-sidebar-w);
@@ -289,10 +303,7 @@ body {
 /* ── Page Content ── */
 .admin-content {
   flex: 1;
-  padding: 24px 28px 48px;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
   min-width: 0; /* prevent flex blowout */
   overflow-x: hidden; /* clip any overflowing child content */
   box-sizing: border-box;
@@ -796,6 +807,12 @@ body {
    APPROVER PANEL
    ===================================================== */
 
+#approver_col {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
 .approver-card {
   background: var(--surface-0);
   border: 1px solid var(--rule-light);
@@ -1071,7 +1088,6 @@ body {
   .admin-main { margin-left: 0; }
   .admin-header { padding: 0 14px; }
   .admin-mobile-menu { display: flex; }
-  .admin-content { padding: 14px 14px 60px; }
 
   /* Stat grid: 2 columns */
   .dashboard-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }

@@ -98,6 +98,26 @@
       margin-bottom: 24px;
     }
 
+    /* ─── Session expired banner ─── */
+    .session-expired-banner {
+      display: none;
+      margin-bottom: 20px;
+      padding: 11px 14px;
+      background: #f5f3ff;
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 9px;
+      color: #5b21b6;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      line-height: 1.5;
+      animation: slideUp 0.3s ease;
+    }
+    .session-expired-banner .session-icon {
+      display: inline-block;
+      margin-right: 5px;
+    }
+
     /* ─── Form ─── */
     .input-grp {
       margin-bottom: 18px;
@@ -245,6 +265,12 @@
       <p class="login-subtitle">Sign in to review and approve cooperative credit assessments.</p>
       <hr class="login-divider">
 
+      <!-- Session timeout message (shown when redirected with ?reason=timeout) -->
+      <div class="session-expired-banner" id="session_timeout_banner" role="alert">
+        <span class="session-icon">⏱</span>
+        Your session expired due to inactivity. Please sign in again.
+      </div>
+
       <form id="loginForm" autocomplete="on" novalidate>
 
         <div class="input-grp">
@@ -279,6 +305,18 @@
   </div>
 
   <script src="js/auth.js"></script>
+  <script>
+    // Show session-expired banner if redirected due to inactivity
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('reason') === 'timeout') {
+        const banner = document.getElementById('session_timeout_banner');
+        if (banner) banner.style.display = 'block';
+        // Clean URL without full reload
+        history.replaceState(null, '', window.location.pathname);
+      }
+    })();
+  </script>
   <script>
     lucide.createIcons();
 

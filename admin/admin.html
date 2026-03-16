@@ -78,6 +78,7 @@
     </header>
 
     <div class="admin-content">
+      <div class="main-container">
 
       <!-- ===== DASHBOARD VIEW ===== -->
       <div class="admin-view active" id="view_dashboard">
@@ -319,6 +320,7 @@
 
       </div><!-- /result -->
 
+      </div><!-- /main-container -->
     </div><!-- /admin-content -->
   </main>
 
@@ -333,12 +335,21 @@
 <script src="js/approverPanel.js"></script>
 <script src="js/admin.js"></script>
 <script>
-  // Display logged-in admin email in the header
-  const userEmail = sessionStorage.getItem('adminEmail');
-  if (userEmail) {
-    const badge = document.getElementById('admin_user_badge');
-    if (badge) badge.textContent = userEmail;
-  }
+  // Display logged-in admin email from the session object
+  (function () {
+    const s = (function () {
+      try { return JSON.parse(sessionStorage.getItem('adminSession') || 'null'); } catch { return null; }
+    })();
+    if (s && s.email) {
+      const badge = document.getElementById('admin_user_badge');
+      if (badge) badge.textContent = s.email;
+    }
+  })();
+
+  // Start the inactivity watcher once the DOM is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof startInactivityWatcher === 'function') startInactivityWatcher();
+  });
 </script>
 
 <!-- ===== MOBILE BOTTOM NAV ===== -->
@@ -356,7 +367,6 @@
     Approver
   </button>
 </nav>
-</script>
 
 </body>
 </html>
