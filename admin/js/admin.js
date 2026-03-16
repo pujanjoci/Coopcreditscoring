@@ -1,22 +1,26 @@
 /**
  * admin/js/admin.js
- * Main admin panel orchestrator:
- *   - Sidebar navigation + routing
- *   - Dashboard stats
- *   - Toast utility
- *   - Mobile sidebar toggle
+ * Main admin panel orchestrator.
+ *
+ * Changes:
+ *  - navigateAdmin() now syncs mobile bottom nav active state
+ *  - Navigating to 'result' without a selected submission redirects + shows toast
+ *  - Mobile bottom nav active class is applied correctly on every navigation
+ *  - Removed mobile sidebar toggle (sidebar is hidden via CSS on mobile)
  */
 
-// ── Config ──────────────────────────────────────────────────────────────────
-/** Set this to the deployed GAS URL if needed for approver decision saving */
-const ADMIN_GAS_URL = '';
+// ── Config ────────────────────────────────────────────────────────────────────
+const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbzTwNbbsoXqbnYMvE-JDEt2DJ3RHAdojrxMCyJcNytLInN_rAxJbJNOifrBBhppWGNL-A/exec';
 
-// ── State ────────────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────────
 let _currentAdminView = 'dashboard';
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
     if (window.lucide) lucide.createIcons();
+
+    // Fetch submissions before routing
+    await fetchSubmissions();
 
     // Route from URL hash
     const hash = location.hash.replace('#', '') || 'dashboard';
@@ -26,18 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const h = location.hash.replace('#', '') || 'dashboard';
         navigateAdmin(h, false);
     });
-
-    // Mobile sidebar
-    const menuBtn = document.getElementById('admin_mobile_menu');
-    const overlay = document.getElementById('admin_sidebar_overlay');
-    if (menuBtn) menuBtn.addEventListener('click', toggleAdminSidebar);
-    if (overlay) overlay.addEventListener('click', closeAdminSidebar);
 });
 
-// ── Navigation ───────────────────────────────────────────────────────────────
+// ── Navigation ────────────────────────────────────────────────────────────────
 function navigateAdmin(view, pushHash = true) {
     const validViews = ['dashboard', 'submissions', 'result'];
     if (!validViews.includes(view)) view = 'dashboard';
+
+    // Guard: result view requires a submission to be selected
+    if (view === 'result' && !window._adminCurrentSubmission) {
+        showAdminToast('Select a submission first to open the Approver view.', 'warning');
+        // Bounce to submissions so the user can pick one
+        view = 'submissions';
+    }
 
     _currentAdminView = view;
 
@@ -46,15 +51,14 @@ function navigateAdmin(view, pushHash = true) {
         history.pushState(null, '', '#' + view);
     }
 
-    // Show/hide view panels
+    // Show / hide view panels
     document.querySelectorAll('.admin-view').forEach(el => {
         el.classList.toggle('active', el.id === 'view_' + view);
     });
 
-    // Update sidebar active state
+    // Update sidebar active state (desktop)
     document.querySelectorAll('.admin-nav-item').forEach(btn => {
-        const target = btn.dataset.view;
-        btn.classList.toggle('active', target === view);
+        btn.classList.toggle('active', btn.dataset.view === view);
     });
 
     // Update page title
@@ -66,36 +70,51 @@ function navigateAdmin(view, pushHash = true) {
     const titleEl = document.getElementById('admin_page_title');
     if (titleEl) titleEl.textContent = titles[view] || 'Admin Panel';
 
-    // Initialise view-specific logic
+    // Sync mobile bottom nav active state
+    _syncMobileNav(view);
+
+    // Init view-specific logic
     if (view === 'dashboard')   loadDashboard();
     if (view === 'submissions') initSubmissionsView();
-    if (view === 'result' && !window._adminCurrentSubmission) {
-        // If navigated directly to result with no selection, go to submissions
-        navigateAdmin('submissions');
-    }
 
-    closeAdminSidebar();
+    if (window.lucide) lucide.createIcons();
+}
 
-    // Notify mobile bottom nav to update its active state
-    document.dispatchEvent(new CustomEvent('adminViewChanged', { detail: view }));
+/**
+ * Sync the mobile bottom nav active state to the current view.
+ * The "result" view maps to the mob_nav_result button.
+ */
+function _syncMobileNav(view) {
+    const map = {
+        dashboard:   'mob_nav_dashboard',
+        submissions: 'mob_nav_submissions',
+        result:      'mob_nav_result'
+    };
+
+    Object.keys(map).forEach(v => {
+        const btn = document.getElementById(map[v]);
+        if (btn) btn.classList.toggle('active', v === view);
+    });
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 function loadDashboard() {
     const all = loadSubmissionsData();
 
-    _setDash('dash_total',       all.length);
-    _setDash('dash_pending',     all.filter(s => !s.approverStatus || s.approverStatus === 'pending').length);
-    _setDash('dash_approved',    all.filter(s => s.approverStatus === 'approved').length);
-    _setDash('dash_avg_score',   all.length ? Math.round(all.reduce((a, s) => a + (s.score || 0), 0) / all.length) : '—');
+    _setDash('dash_total',     all.length);
+    _setDash('dash_pending',   all.filter(s => !s.approverStatus || s.approverStatus === 'pending').length);
+    _setDash('dash_approved',  all.filter(s => s.approverStatus === 'approved').length);
+    _setDash('dash_avg_score', all.length
+        ? Math.round(all.reduce((a, s) => a + (s.score || 0), 0) / all.length)
+        : '—');
 
     // Risk breakdown
-    _setDash('dash_a_count', all.filter(s => (s.riskTier || '').startsWith('A')).length);
-    _setDash('dash_b_count', all.filter(s => (s.riskTier || '').startsWith('B')).length);
-    _setDash('dash_c_count', all.filter(s => (s.riskTier || '').startsWith('C')).length);
-    _setDash('dash_d_count', all.filter(s => (s.riskTier || '').startsWith('D')).length);
+    _setDash('dash_a_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('a')).length);
+    _setDash('dash_b_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('b')).length);
+    _setDash('dash_c_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('c')).length);
+    _setDash('dash_d_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('d')).length);
 
-    // Recent submissions preview (last 5)
+    // Recent 5
     renderRecentTable(all.slice().reverse().slice(0, 5));
 }
 
@@ -109,11 +128,14 @@ function renderRecentTable(rows) {
     if (!tbody) return;
 
     if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:24px 0">
-            <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
-            <h3>No submissions yet</h3>
-            <p>Complete the questionnaire in the user portal.</p>
-        </div></td></tr>`;
+        tbody.innerHTML = `
+            <tr><td colspan="5">
+                <div class="empty-state" style="padding:24px 0">
+                    <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
+                    <h3>No submissions yet</h3>
+                    <p>Complete the questionnaire in the user portal.</p>
+                </div>
+            </td></tr>`;
         if (window.lucide) lucide.createIcons();
         return;
     }
@@ -121,29 +143,28 @@ function renderRecentTable(rows) {
     tbody.innerHTML = rows.map(sub => {
         const tier   = getRiskTierClass(sub.riskTier || '');
         const status = sub.approverStatus || 'pending';
-        const date   = sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+        const date   = sub.submittedAt
+            ? new Date(sub.submittedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+            : '—';
         const scoreColor = getScoreColor(sub.score || 0);
         return `
             <tr onclick="openSubmission('${sub.id}')" style="cursor:pointer">
                 <td><span style="font-weight:600;color:var(--ink-2)">${sub.coopName || '—'}</span></td>
                 <td style="font-size:11px;color:var(--ink-5)">${date}</td>
-                <td><span style="font-weight:800;font-size:13px;color:${scoreColor}">${sub.score ?? '—'}</span><span style="font-size:10px;color:var(--ink-5)">/1000</span></td>
+                <td>
+                    <span style="font-weight:800;font-size:13px;color:${scoreColor}">${sub.score ?? '—'}</span>
+                    <span style="font-size:10px;color:var(--ink-5)">/1000</span>
+                </td>
                 <td><span class="risk-pill ${tier}">${sub.riskTier || '—'}</span></td>
-                <td><span class="status-pill ${status}"><span class="status-dot"></span>${_cap(status)}</span></td>
+                <td>
+                    <span class="status-pill ${status}">
+                        <span class="status-dot"></span>${_cap(status)}
+                    </span>
+                </td>
             </tr>`;
     }).join('');
+
     if (window.lucide) lucide.createIcons();
-}
-
-// ── Mobile Sidebar ────────────────────────────────────────────────────────────
-function toggleAdminSidebar() {
-    document.getElementById('admin_sidebar')?.classList.toggle('open');
-    document.getElementById('admin_sidebar_overlay')?.classList.toggle('show');
-}
-
-function closeAdminSidebar() {
-    document.getElementById('admin_sidebar')?.classList.remove('open');
-    document.getElementById('admin_sidebar_overlay')?.classList.remove('show');
 }
 
 // ── Toast Utility ─────────────────────────────────────────────────────────────
@@ -153,7 +174,20 @@ function showAdminToast(message, type = '') {
 
     const toast = document.createElement('div');
     toast.className = `admin-toast ${type}`;
-    toast.textContent = message;
+
+    // Icon per type
+    const icons = {
+        success: '✓',
+        error:   '✕',
+        warning: '⚠',
+        info:    'ℹ'
+    };
+    const icon = icons[type] || '';
+
+    toast.innerHTML = icon
+        ? `<span style="font-size:14px;flex-shrink:0">${icon}</span><span>${message}</span>`
+        : `<span>${message}</span>`;
+
     area.appendChild(toast);
 
     setTimeout(() => {
@@ -161,5 +195,10 @@ function showAdminToast(message, type = '') {
         toast.style.transform = 'translateX(20px)';
         toast.style.transition = 'all 0.3s ease';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 3500);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function _cap(s) {
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 }

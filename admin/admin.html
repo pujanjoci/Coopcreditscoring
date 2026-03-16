@@ -18,7 +18,7 @@
 
 <div class="admin-layout">
 
-  <!-- ===== SIDEBAR ===== -->
+  <!-- ===== SIDEBAR (desktop only — hidden on mobile via CSS) ===== -->
   <aside class="admin-sidebar" id="admin_sidebar">
     <div class="admin-sidebar-header">
       <div class="admin-brand">
@@ -57,22 +57,17 @@
     </div>
   </aside>
 
-  <!-- Mobile overlay -->
-  <div class="admin-sidebar-overlay" id="admin_sidebar_overlay"></div>
-
   <!-- ===== MAIN ===== -->
   <main class="admin-main">
     <header class="admin-header">
       <div class="admin-header-left">
-        <button class="admin-mobile-menu" id="admin_mobile_menu" aria-label="Menu">
-          <i data-lucide="menu" style="width:20px;height:20px;stroke-width:2"></i>
-        </button>
         <div class="admin-page-title" id="admin_page_title">Dashboard</div>
       </div>
       <div class="admin-header-right">
         <span class="admin-badge" id="admin_user_badge">Admin</span>
-        <button onclick="logout()" style="margin-left: 16px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-light); background: transparent; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; color: var(--ink-2); transition: all 0.2s;">
-          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
+        <button onclick="logout()" class="btn-logout">
+          <i data-lucide="log-out" style="width:14px;height:14px;"></i>
+          <span class="btn-logout-label">Logout</span>
         </button>
       </div>
     </header>
@@ -275,7 +270,6 @@
           <!-- RIGHT: Approver Panel -->
           <div id="approver_col">
 
-            <!-- Score Summary -->
             <div class="approver-card">
               <div class="approver-card-header"><i data-lucide="clipboard-check"></i> Approver Review</div>
               <div class="approver-card-body">
@@ -335,7 +329,6 @@
 <script src="js/approverPanel.js"></script>
 <script src="js/admin.js"></script>
 <script>
-  // Display logged-in admin email from the session object
   (function () {
     const s = (function () {
       try { return JSON.parse(sessionStorage.getItem('adminSession') || 'null'); } catch { return null; }
@@ -346,7 +339,6 @@
     }
   })();
 
-  // Start the inactivity watcher once the DOM is ready
   document.addEventListener('DOMContentLoaded', function () {
     if (typeof startInactivityWatcher === 'function') startInactivityWatcher();
   });
@@ -354,19 +346,30 @@
 
 <!-- ===== MOBILE BOTTOM NAV ===== -->
 <nav class="mobile-bottom-nav" id="mobile_bottom_nav" aria-label="Mobile Navigation">
-  <button class="mob-nav-item active" id="mob_nav_dashboard" onclick="navigateAdmin('dashboard')" aria-label="Dashboard">
-    <i data-lucide="layout-dashboard"></i>
-    Dashboard
+  <button class="mob-nav-item" id="mob_nav_dashboard" onclick="navigateAdmin('dashboard')" aria-label="Dashboard">
+    <span class="mob-nav-icon"><i data-lucide="layout-dashboard"></i></span>
+    <span class="mob-nav-label">Dashboard</span>
   </button>
   <button class="mob-nav-item" id="mob_nav_submissions" onclick="navigateAdmin('submissions')" aria-label="Submissions">
-    <i data-lucide="inbox"></i>
-    Submissions
+    <span class="mob-nav-icon"><i data-lucide="inbox"></i></span>
+    <span class="mob-nav-label">Submissions</span>
   </button>
-  <button class="mob-nav-item" id="mob_nav_result" onclick="navigateAdmin('result')" aria-label="Approver">
-    <i data-lucide="clipboard-check"></i>
-    Approver
+  <button class="mob-nav-item" id="mob_nav_result" onclick="navigateMobileApprover()" aria-label="Approver">
+    <span class="mob-nav-icon"><i data-lucide="clipboard-check"></i></span>
+    <span class="mob-nav-label">Approver</span>
   </button>
 </nav>
+
+<script>
+  /** Mobile: guard approver tab — require a submission to be selected first */
+  function navigateMobileApprover() {
+    if (!window._adminCurrentSubmission) {
+      showAdminToast('Select a submission first to open the Approver view.', 'warning');
+      return;
+    }
+    navigateAdmin('result');
+  }
+</script>
 
 </body>
 </html>

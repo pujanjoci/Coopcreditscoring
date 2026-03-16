@@ -31,7 +31,7 @@ const VALID_ROUTES  = ['config', 'questions'];
 const STORAGE_KEY   = 'coop_portal_config';
 
 /** Replace with your deployed Google Apps Script Web App URL */
-const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwz32R6I3hNTZo3sRYZcKNcxLqtMiEoMoDOUOpnkYNHNYHcMMCmZUsHNh7wo4-AZBv-kQ/exec';
+const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzTwNbbsoXqbnYMvE-JDEt2DJ3RHAdojrxMCyJcNytLInN_rAxJbJNOifrBBhppWGNL-A/exec';
 
 // Score tier definitions (used for display and risk highlighting)
 const SCORE_TIERS = [
