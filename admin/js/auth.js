@@ -26,7 +26,7 @@
  */
 
 // ── GAS Backend URL ──────────────────────────────────────────────────────────
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTwNbbsoXqbnYMvE-JDEt2DJ3RHAdojrxMCyJcNytLInN_rAxJbJNOifrBBhppWGNL-A/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9PodwguDEr4EWEMKlN-Lu566k13970kXXQlMp9rwEsgpni7gQz-dALRlnB9q5Fht22g/exec';
 
 // ── Session Config ────────────────────────────────────────────────────────────
 const SESSION_KEY        = 'adminSession';
@@ -168,6 +168,9 @@ function logout(reason) {
     }
 
     sessionStorage.removeItem(SESSION_KEY);
+
+    // Clear submissions cache so next login always fetches fresh data
+    localStorage.removeItem('admin_submissions_cache');
 
     const dest = reason ? `login.html?reason=${encodeURIComponent(reason)}` : 'login.html';
     window.location.href = dest;

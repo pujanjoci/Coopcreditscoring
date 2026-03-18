@@ -10,7 +10,7 @@
  */
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbzTwNbbsoXqbnYMvE-JDEt2DJ3RHAdojrxMCyJcNytLInN_rAxJbJNOifrBBhppWGNL-A/exec';
+const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbz9PodwguDEr4EWEMKlN-Lu566k13970kXXQlMp9rwEsgpni7gQz-dALRlnB9q5Fht22g/exec';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let _currentAdminView = 'dashboard';
@@ -109,13 +109,26 @@ function loadDashboard() {
         : '—');
 
     // Risk breakdown
-    _setDash('dash_a_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('a')).length);
-    _setDash('dash_b_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('b')).length);
-    _setDash('dash_c_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('c')).length);
-    _setDash('dash_d_count', all.filter(s => (s.riskTier || '').toLowerCase().startsWith('d')).length);
+    const tierCounts = { a: 0, b: 0, c: 0, d: 0 };
+    all.forEach(s => {
+        const t = (s.riskTier || '').toLowerCase();
+        if      (t.startsWith('a')) tierCounts.a++;
+        else if (t.startsWith('b')) tierCounts.b++;
+        else if (t.startsWith('c')) tierCounts.c++;
+        else if (t.startsWith('d')) tierCounts.d++;
+    });
+    _setDash('dash_a_count', tierCounts.a);
+    _setDash('dash_b_count', tierCounts.b);
+    _setDash('dash_c_count', tierCounts.c);
+    _setDash('dash_d_count', tierCounts.d);
 
     // Recent 5
     renderRecentTable(all.slice().reverse().slice(0, 5));
+
+    // Charts — delegated to charts.js
+    if (typeof initDashboardCharts === 'function') {
+        initDashboardCharts({ all, tierCounts });
+    }
 }
 
 function _setDash(id, val) {

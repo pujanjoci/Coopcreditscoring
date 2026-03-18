@@ -1,9 +1,15 @@
 /**
  * Credit Scoring Portal — script.js
- * Slim orchestrator: routing, state management, config, result rendering.
- * All calculations run locally via js/engine/* — no Google Sheets dependency.
  *
- * Load order (enforced by index.html script tags):
+ * CHANGES from previous version:
+ *   - Config is NEVER restored from localStorage on page load
+ *   - localStorage config key is cleared on every fresh load
+ *   - URL hash is cleared on load so #questions can't bypass config
+ *   - hashchange guard prevents navigating to questions without config
+ *   - saveConfig() uses sessionStorage only (survives tab navigation but not reload)
+ *   - applyRestoredConfigUI() is kept as no-op for compatibility
+ *
+ * Load order (enforced by index.html):
  *   1. js/utils.js
  *   2. js/engine/dataTransform.js
  *   3. js/engine/calculations.js
@@ -12,28 +18,24 @@
  *   6. js/questions.js
  *   7. js/ui/loadingModal.js
  *   8. js/ui/formHandler.js
- *   9. script.js  ← this file
+ *   9. script.js
  */
 
-// =====================================================
-// GLOBAL STATE
-// =====================================================
+// ── Global State ──────────────────────────────────────────────────────────────
 const state = {
-    modelType:        null,   // 'collection' | 'processing'
-    customerType:     null,   // 'new' | 'existing'
-    currentSection:   'config',
+    modelType:         null,   // 'collection' | 'processing'
+    customerType:      null,   // 'new' | 'existing'
+    currentSection:    'config',
     completedSections: new Set(),
-    charts:           {},
-    results:          {}
+    charts:            {},
+    results:           {}
 };
 
-const VALID_ROUTES  = ['config', 'questions'];
-const STORAGE_KEY   = 'coop_portal_config';
+const VALID_ROUTES = ['config', 'questions'];
+const STORAGE_KEY  = 'coop_portal_config';
 
-/** Replace with your deployed Google Apps Script Web App URL */
-const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzTwNbbsoXqbnYMvE-JDEt2DJ3RHAdojrxMCyJcNytLInN_rAxJbJNOifrBBhppWGNL-A/exec';
+const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz9PodwguDEr4EWEMKlN-Lu566k13970kXXQlMp9rwEsgpni7gQz-dALRlnB9q5Fht22g/exec';
 
-// Score tier definitions (used for display and risk highlighting)
 const SCORE_TIERS = [
     { min: 0,   max: 499,  label: 'D Risk', riskClass: 'high-risk',  color: '#b91c1c', bg: '#fee2e2' },
     { min: 500, max: 699,  label: 'C Risk', riskClass: 'elevated',   color: '#d97706', bg: '#fef3c7' },
@@ -45,31 +47,43 @@ function getTier(score) {
     return SCORE_TIERS.find(t => score >= t.min && score <= t.max) || SCORE_TIERS[0];
 }
 
-// =====================================================
-// INITIALIZATION
-// =====================================================
+// ── Initialization ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     showLoading('Loading questionnaire…');
 
+    // ── KEY CHANGE: always wipe saved config so page starts fresh ──
+    localStorage.removeItem(STORAGE_KEY);
+
+    // ── KEY CHANGE: strip any hash so #questions can't auto-navigate ──
+    if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname);
+    }
+
     try {
-        // Load the static questionnaire (from js/questions.js — no network)
         const q = (typeof QUESTIONNAIRE !== 'undefined') ? QUESTIONNAIRE : null;
         if (!q) throw new Error('QUESTIONNAIRE not found — check js/questions.js is loaded.');
 
         state.questionnaire = q;
 
-        // Restore saved config from localStorage
-        const isRestored = restoreConfig();
-        if (isRestored) {
-            applyRestoredConfigUI();
-            applyFieldVisibility(state.modelType);
-            unlockSidebar();
-        }
+        // Do NOT restore config — always start clean
+        // applyRestoredConfigUI() is a no-op kept for compat
 
         if (window.lucide) lucide.createIcons();
 
-        router();
-        window.addEventListener('hashchange', router);
+        // Always route to config on fresh load
+        navigateTo('config', false);
+
+        window.addEventListener('hashchange', () => {
+            const h = window.location.hash.replace('#', '') || 'config';
+            // Guard: never jump to questions unless config is complete
+            if (h === 'questions' && !(state.modelType && state.customerType)) {
+                history.replaceState(null, '', window.location.pathname);
+                navigateTo('config', false);
+                return;
+            }
+            if (VALID_ROUTES.includes(h)) navigateTo(h, false);
+        });
+
     } catch (err) {
         console.error('Init error:', err);
         const container = document.getElementById('questions_container');
@@ -88,31 +102,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// =====================================================
-// PERSIST / RESTORE STATE
-// =====================================================
+// ── Persist / Restore ─────────────────────────────────────────────────────────
+
+/**
+ * Save config to sessionStorage only.
+ * sessionStorage survives tab navigation but is wiped on page reload/close —
+ * so config is never remembered across fresh loads.
+ */
 function saveConfig() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        modelType:        state.modelType,
-        customerType:     state.customerType,
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+        modelType:         state.modelType,
+        customerType:      state.customerType,
         completedSections: [...state.completedSections]
     }));
 }
 
+/**
+ * Kept for compatibility — config is never restored on load.
+ * Returns false always so calling code skips restoration.
+ */
 function restoreConfig() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-        if (!saved) return false;
-        if (saved.modelType)         state.modelType    = saved.modelType;
-        if (saved.customerType)      state.customerType = saved.customerType;
-        if (saved.completedSections) state.completedSections = new Set(saved.completedSections);
-        return !!(state.modelType && state.customerType);
-    } catch { return false; }
+    return false;
 }
 
-// =====================================================
-// ROUTING
-// =====================================================
+// ── Routing ───────────────────────────────────────────────────────────────────
 function router() {
     const hash   = window.location.hash.replace('#', '') || 'config';
     const target = VALID_ROUTES.includes(hash) ? hash : 'config';
@@ -123,24 +136,20 @@ function router() {
     navigateTo(target, false);
 }
 
-// =====================================================
-// NAVIGATION
-// =====================================================
+// ── Navigation ────────────────────────────────────────────────────────────────
 function navigateTo(sectionId, pushHash = true) {
     document.querySelectorAll('.config-panel, #questions').forEach(el => {
         el.classList.add('hidden');
         el.classList.remove('active');
     });
-    const target = document.getElementById(sectionId);
-    if (target) {
-        target.classList.remove('hidden');
-    }
 
-    // Render questionnaire lazily on first navigate-to-questions
+    const target = document.getElementById(sectionId);
+    if (target) target.classList.remove('hidden');
+
+    // Lazily render questionnaire on first navigate-to-questions
     if (sectionId === 'questions' && state.questionnaire && !state._questionnaireRendered) {
         renderQuestionnaire(state.questionnaire, state.modelType);
-        // Restore config-driven fields after rendering
-        applyRestoredConfigUI();
+        applyRestoredConfigUI(); // no-op but kept for compat
         state._questionnaireRendered = true;
     }
 
@@ -151,9 +160,7 @@ function navigateTo(sectionId, pushHash = true) {
     if (window.lucide) lucide.createIcons();
 }
 
-// =====================================================
-// CONFIGURATION
-// =====================================================
+// ── Configuration ─────────────────────────────────────────────────────────────
 function setCoopType(type) {
     state.modelType = type;
     document.querySelectorAll('input[name="coop_type"]').forEach(el => {
@@ -166,7 +173,6 @@ function setCoopType(type) {
             ? 'Milk Collection Only (Model A)'
             : 'Collection & Processing (Model B)';
     }
-    // If questions have been rendered, update field visibility live
     if (state._questionnaireRendered) applyFieldVisibility(type);
     checkConfigComplete();
 }
@@ -195,33 +201,14 @@ function checkConfigComplete() {
     }
 }
 
-function applyRestoredConfigUI() {
-    if (state.modelType) {
-        document.querySelectorAll('input[name="coop_type"]').forEach(el => {
-            el.closest('.radio-card').classList.toggle('selected', el.value === state.modelType);
-        });
-        const modelEl = document.getElementById('model_type');
-        if (modelEl) {
-            modelEl.disabled = false;
-            modelEl.value = state.modelType === 'collection'
-                ? 'Milk Collection Only (Model A)'
-                : 'Collection & Processing (Model B)';
-        }
-    }
-    if (state.customerType) {
-        document.querySelectorAll('input[name="customer_type"]').forEach(el => {
-            el.closest('.radio-card').classList.toggle('selected', el.value === state.customerType);
-        });
-        const loanEl = document.getElementById('loan_type');
-        if (loanEl) loanEl.value = state.customerType === 'new' ? 'New Loan' : 'Existing Loan';
-    }
-}
+/**
+ * No-op — config is never restored on page load.
+ * Kept so formHandler.js can call it without errors.
+ */
+function applyRestoredConfigUI() {}
 
-// =====================================================
-// CALCULATE HANDLER
-// =====================================================
+// ── Calculate Handler ─────────────────────────────────────────────────────────
 function handleCalculateClick() {
-    // Validate required fields
     if (!validateForm(state.questionnaire, showToast)) return;
 
     state.completedSections.add('questions');
@@ -229,19 +216,24 @@ function handleCalculateClick() {
 
     showLoading('Calculating credit score…', 'Running 1000-point model…');
 
-    // Use setTimeout to allow the loading overlay to render before blocking JS
     setTimeout(() => {
         try {
-            const inputs  = collectFormInputs();
-            inputs.customer_type = state.customerType || 'new'; // Inject customer type for scoring logic
-            const result  = runScoringEngine(inputs);
+            const inputs = collectFormInputs();
+            inputs.customer_type = state.customerType || 'new';
+            const result = runScoringEngine(inputs);
             state.results = result;
 
-            submitToGAS(inputs, result);
-            saveSubmissionLocally(inputs, result);
+            // Save locally first so admin can see it immediately
+            const localId = saveSubmissionLocally(inputs, result);
 
-            hideLoading();
-            showSuccessScreen(result);
+            // Submit to GAS — returns the server-assigned Submission ID
+            submitToGAS(inputs, result).then(function(gasId) {
+                hideLoading();
+                showSuccessScreen(result, gasId || localId);
+            }).catch(function() {
+                hideLoading();
+                showSuccessScreen(result, localId);
+            });
         } catch (err) {
             hideLoading();
             console.error('Scoring error:', err);
@@ -250,10 +242,8 @@ function handleCalculateClick() {
     }, 50);
 }
 
-// =====================================================
-// SHOW SUCCESS SCREEN
-// =====================================================
-function showSuccessScreen(result) {
+// ── Success Screen ────────────────────────────────────────────────────────────
+function showSuccessScreen(result, submissionId) {
     const container = document.getElementById('questions');
     if (!container) return;
 
@@ -270,7 +260,7 @@ function showSuccessScreen(result) {
             <div style="background: var(--surface-1); border: 1px solid var(--border-light); border-radius: 12px; padding: 24px; max-width: 480px; margin: 0 auto 32px; text-align: left;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                     <span style="color: var(--ink-4); font-size: 13px;">Submission ID:</span>
-                    <strong style="color: var(--ink-2); font-family: monospace;">${Date.now().toString(36).toUpperCase()}</strong>
+                    <strong style="color: var(--ink-2); font-family: monospace;">${submissionId || Date.now().toString(36).toUpperCase()}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span style="color: var(--ink-4); font-size: 13px;">Status:</span>
@@ -285,14 +275,15 @@ function showSuccessScreen(result) {
     if (window.lucide) lucide.createIcons();
 }
 
-// ── Persist submission to localStorage (read by Admin Panel) ──────────────────
+// ── Save Submission Locally ───────────────────────────────────────────────────
 function saveSubmissionLocally(inputs, result) {
     try {
         const KEY  = 'coop_submissions';
         const all  = JSON.parse(localStorage.getItem(KEY) || '[]');
         const coopNameEl = document.getElementById('coop_name');
+        const localId = Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
         const submission = {
-            id:             Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            id:             localId,
             submittedAt:    new Date().toISOString(),
             coopName:       (coopNameEl && coopNameEl.value) || inputs.coop_name || '—',
             modelType:      state.modelType    || 'collection',
@@ -306,24 +297,23 @@ function saveSubmissionLocally(inputs, result) {
             approverDecidedAt: null
         };
         all.push(submission);
-        // Keep last 200 submissions to avoid storage bloat
         if (all.length > 200) all.splice(0, all.length - 200);
         localStorage.setItem(KEY, JSON.stringify(all));
+        return localId;
     } catch (err) {
         console.warn('Could not save submission to localStorage:', err.message);
+        return null;
     }
 }
 
-// =====================================================
-// SUBMISSION TO GOOGLE APPS SCRIPT (fire-and-forget)
-// =====================================================
+// ── Submit to GAS ─────────────────────────────────────────────────────────────
 async function submitToGAS(answers, result) {
     if (!GOOGLE_WEB_APP_URL) {
         console.info('[Submission] GOOGLE_WEB_APP_URL not set — skipping submission.');
-        return;
+        return null;
     }
 
-    showLoading('Submitting data…', 'Saving to Google Sheets…');
+    showLoading('Submitting data…', 'Saving, Please wait...');
     try {
         const payload = {
             action:    'submitAnswers',
@@ -343,6 +333,7 @@ async function submitToGAS(answers, result) {
         const data = JSON.parse(text);
         if (data.success) {
             showToast('Data submitted successfully.', 'success');
+            return data.submissionId || null;
         } else {
             showToast('Submission warning: ' + (data.error || 'unknown'), 'warn');
         }
@@ -354,9 +345,7 @@ async function submitToGAS(answers, result) {
     }
 }
 
-// =====================================================
-// TOAST NOTIFICATIONS
-// =====================================================
+// ── Toast Notifications ───────────────────────────────────────────────────────
 let _toastTimer = null;
 function showToast(msg, type = 'info') {
     let t = document.getElementById('_toast');
@@ -367,20 +356,18 @@ function showToast(msg, type = 'info') {
         document.body.appendChild(t);
     }
     const s = {
-        success: { bg: '#1a4a1a', color: '#d4f0d4', icon: '✓'  },
-        warn:    { bg: '#4a3800', color: '#f0e0a0', icon: '⚠'  },
-        error:   { bg: '#4a1a1a', color: '#f0d0d0', icon: '✕'  }
+        success: { bg: '#1a4a1a', color: '#d4f0d4', icon: '✓' },
+        warn:    { bg: '#4a3800', color: '#f0e0a0', icon: '⚠' },
+        error:   { bg: '#4a1a1a', color: '#f0d0d0', icon: '✕' }
     }[type] || { bg: '#1a1a1a', color: '#fff', icon: 'ℹ' };
     t.style.background = s.bg;
     t.style.color      = s.color;
     t.style.opacity    = '1';
-    t.innerHTML = `<span>${s.icon}</span><span>${msg}</span>`;
+    t.innerHTML        = `<span>${s.icon}</span><span>${msg}</span>`;
     if (_toastTimer) clearTimeout(_toastTimer);
     _toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 4000);
 }
 
-// =====================================================
-// APPROVER STUBS (retained for compatibility)
-// =====================================================
+// ── Compatibility Stubs ───────────────────────────────────────────────────────
 function handleDecisionChange() {}
 async function submitApproverDecision() {}

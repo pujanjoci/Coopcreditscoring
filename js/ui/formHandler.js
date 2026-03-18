@@ -1,252 +1,371 @@
 /**
- * formHandler.js — Questionnaire UI Handler
- * Handles questionnaire rendering, field visibility, auto-calculations,
- * form validation, and the main calculate button flow.
+ * js/ui/formHandler.js
+ *
+ * Handles:
+ *   1. renderQuestionnaire()   — builds section cards from QUESTIONNAIRE definition
+ *   2. applyFieldVisibility()  — shows/hides Model B-only fields
+ *   3. validateForm()          — enforces all visible fields are filled before submit
+ *   4. collectFormInputs()     — reads all field values into a flat object
+ *   5. Auto-calc functions     — calculateTotalLoan, calculateRevenue, etc.
+ *   6. unlockSidebar()         — no-op stub (kept for compat)
+ *
+ * KEY RULES:
+ *   - Fields with readonly:true are rendered as <input type="hidden"> ONLY.
+ *     They never appear visually. Auto-calc functions still write to them.
+ *   - Fields with disabled:true are rendered as hidden inputs (auto-filled by config).
+ *   - All other visible fields are required — validateForm() blocks submission
+ *     if any are empty and highlights them with a red border.
+ *   - Dropdown option labels must NOT contain scoring points (· XX pts).
+ *     Points are stripped at render time so questions.js labels can include them
+ *     as hints for devs without leaking to users.
  */
 
-// ── Questionnaire Rendering ───────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-/**
- * Render the full questionnaire into the questions_container element.
- * @param {Object} questionnaire - Questionnaire object with sections array
- * @param {string} modelType     - 'collection' | 'processing'
- */
+/** Fields that are always hidden — auto-filled by config, not user-entered */
+const ALWAYS_HIDDEN_IDS = new Set([
+    'model_type', 'loan_type'
+]);
+
+/** Fields readonly = auto-calculated — hidden inputs, values set by calc fns */
+// These are determined dynamically from questions.js (readonly: true)
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
 function renderQuestionnaire(questionnaire, modelType) {
     const container = document.getElementById('questions_container');
-    if (!container) return;
+    if (!container || !questionnaire) return;
 
-    container.innerHTML = '';
-    let totalRendered = 0;
+    container.innerHTML = questionnaire.sections
+        .map(section => renderSection(section, modelType))
+        .join('');
 
-    (questionnaire.sections || []).forEach((section, idx) => {
-        const sectionDiv = document.createElement('div');
-        sectionDiv.className = 'section-card';
-        sectionDiv.style.marginBottom = '24px';
-
-        let questionsHtml = '';
-        (section.questions || []).forEach(q => {
-            const isModelBOnly = q.isModelB === true;
-            const modelBClass  = isModelBOnly ? ' model-b-field hidden' : '';
-            const requiredStar = q.required ? ' <span class="field-required-star" aria-label="required">*</span>' : '';
-            const requiredTag  = q.required ? '<span class="required-tag">Required</span>' : '';
-            const readonlyBadge = q.readonly ? '<span class="auto-calc-badge">Auto</span>' : '';
-
-            let inputHtml = '';
-            if (q.type === 'select') {
-                const opts = (q.options || []).map(opt =>
-                    `<option value="${_esc(opt.value)}">${_esc(opt.label)}</option>`
-                ).join('');
-                inputHtml = `<select id="${q.id}"${q.disabled ? ' disabled' : ''}${q.onchange ? ` onchange="${q.onchange}"` : ''}>${opts}</select>`;
-            } else if (q.type === 'textarea') {
-                inputHtml = `<textarea id="${q.id}" placeholder="${_esc(q.placeholder || '')}"${q.oninput ? ` oninput="${q.oninput}"` : ''}></textarea>`;
-            } else {
-                const attrs = [
-                    `type="${q.type || 'text'}"`,
-                    `id="${q.id}"`,
-                    q.placeholder !== undefined ? `placeholder="${_esc(String(q.placeholder))}"` : '',
-                    q.min         !== undefined ? `min="${q.min}"` : '',
-                    q.max         !== undefined ? `max="${q.max}"` : '',
-                    q.step        !== undefined ? `step="${q.step}"` : '',
-                    q.readonly    ? 'readonly' : '',
-                    q.disabled    ? 'disabled' : '',
-                    q.oninput     ? `oninput="${q.oninput}"` : ''
-                ].filter(Boolean).join(' ');
-                inputHtml = `<input ${attrs}>`;
-            }
-
-            const hintHtml = q.hint ? `<div class="input-hint"><i data-lucide="info" class="hint-icon"></i>${_esc(q.hint)}</div>` : '';
-
-            questionsHtml += `
-                <div class="form-group${modelBClass}">
-                    <label class="field-label" for="${q.id}">
-                        <span class="field-label-nep">${_esc(q.labelNep || '')}${requiredStar}${readonlyBadge}</span>
-                        <span class="field-label-eng">${_esc(q.labelEng || '')}${q.required ? '&nbsp;' + requiredTag : ''}</span>
-                    </label>
-                    ${inputHtml}
-                    ${hintHtml}
-                </div>
-            `;
-            totalRendered++;
+    // Wire all oninput/onchange auto-calc attributes
+    container.querySelectorAll('[data-oninput]').forEach(el => {
+        const fn = el.getAttribute('data-oninput');
+        el.addEventListener('input', () => {
+            if (typeof window[fn] === 'function') window[fn]();
         });
-
-        sectionDiv.innerHTML = `
-            <div class="section-header">
-                <div class="section-title-row">
-                    <div class="section-icon-wrap"><i data-lucide="${_esc(section.icon || 'file-text')}"></i></div>
-                    <div class="section-title-text">
-                        <span class="section-title">${_esc(section.title)}</span>
-                        <span class="section-badge">Section ${idx + 1}</span>
-                    </div>
-                </div>
-                ${section.subtitle ? `<div class="section-subtitle">${_esc(section.subtitle)}</div>` : ''}
-            </div>
-            <div class="form-grid">${questionsHtml}</div>
-        `;
-        container.appendChild(sectionDiv);
     });
 
-    // Apply model-B field visibility after rendering
+    // Apply model visibility immediately
     applyFieldVisibility(modelType);
 
+    // Run all calcs once to populate auto fields
+    _runAllCalcs();
+
     if (window.lucide) lucide.createIcons();
-    console.log(`[FormHandler] Rendered ${totalRendered} questions across ${(questionnaire.sections || []).length} sections.`);
 }
 
-/**
- * Escape HTML special characters (prevent XSS in dynamic content).
- * @param {string} str
- * @returns {string}
- */
-function _esc(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+function renderSection(section, modelType) {
+    const visibleQuestions = section.questions.filter(q => !q.readonly && !ALWAYS_HIDDEN_IDS.has(q.id));
+    const hiddenQuestions  = section.questions.filter(q =>  q.readonly ||  ALWAYS_HIDDEN_IDS.has(q.id));
+
+    // Hidden inputs for readonly/auto-calc fields (invisible but readable by engine)
+    const hiddenInputsHTML = hiddenQuestions.map(q =>
+        `<input type="hidden" id="${q.id}" name="${q.id}" value="">`
+    ).join('');
+
+    // Visible question fields
+    const visibleHTML = visibleQuestions.map(q => renderField(q)).join('');
+
+    return `
+        <div class="section-card" id="section_card_${section.id}">
+            <div class="section-header">
+                <div class="section-title-row">
+                    <div class="section-icon-wrap">
+                        <i data-lucide="${section.icon || 'help-circle'}"></i>
+                    </div>
+                    <div class="section-title-text">
+                        <span class="section-title">${section.title}</span>
+                    </div>
+                </div>
+                ${section.subtitle ? `<div class="section-subtitle">${section.subtitle}</div>` : ''}
+            </div>
+            <div class="form-grid">
+                ${hiddenInputsHTML}
+                ${visibleHTML}
+            </div>
+        </div>`;
 }
 
-// ── Field Visibility (Model A vs Model B) ─────────────────────────────────────
+function renderField(q) {
+    const isModelB   = !!q.isModelB;
+    const wrapClass  = [
+        'form-group',
+        isModelB ? 'model-b-field' : ''
+    ].filter(Boolean).join(' ');
 
-/**
- * Show or hide model-B-only fields based on the selected model type.
- * @param {string} modelType - 'collection' | 'processing'
- */
+    const inputHTML = q.type === 'select'
+        ? renderSelect(q)
+        : renderInput(q);
+
+    const hintHTML = q.hint
+        ? `<div class="input-hint"><i data-lucide="info" class="hint-icon"></i>${q.hint}</div>`
+        : '';
+
+    return `
+        <div class="${wrapClass}" id="wrap_${q.id}">
+            <label class="field-label" for="${q.id}">
+                <span class="field-label-nep">
+                    ${q.labelNep || q.labelEng}
+                    ${(!q.readonly && !q.disabled) ? '<span class="field-required-star">*</span>' : ''}
+                </span>
+                <span class="field-label-eng">${q.labelEng}</span>
+            </label>
+            ${inputHTML}
+            ${hintHTML}
+        </div>`;
+}
+
+function renderInput(q) {
+    const attrs = [
+        `id="${q.id}"`,
+        `name="${q.id}"`,
+        `type="${q.type || 'text'}"`,
+        q.placeholder ? `placeholder="${q.placeholder}"` : '',
+        q.min !== undefined ? `min="${q.min}"` : '',
+        q.max !== undefined ? `max="${q.max}"` : '',
+        q.step ? `step="${q.step}"` : '',
+        q.oninput ? `data-oninput="${q.oninput.replace('()', '')}"` : '',
+        // All visible inputs are required
+        'data-required="true"'
+    ].filter(Boolean).join(' ');
+
+    return `<input ${attrs}>`;
+}
+
+function renderSelect(q) {
+    // Strip scoring point hints from option labels (e.g. "· 20 pts", "· 14 pts")
+    // so users never see the scoring weights
+    const cleanLabel = (label) => label.replace(/\s*[·•]\s*\d+\s*pts?/gi, '').trim();
+
+    const optionsHTML = (q.options || []).map(opt =>
+        `<option value="${opt.value}">${cleanLabel(opt.label)}</option>`
+    ).join('');
+
+    const attrs = [
+        `id="${q.id}"`,
+        `name="${q.id}"`,
+        q.oninput ? `data-oninput="${q.oninput.replace('()', '')}"` : '',
+        'data-required="true"'
+    ].filter(Boolean).join(' ');
+
+    return `<select ${attrs}>${optionsHTML}</select>`;
+}
+
+// ── Field Visibility (Model A vs B) ──────────────────────────────────────────
+
 function applyFieldVisibility(modelType) {
-    const isModelB = modelType === 'processing';
+    const isProcessing = modelType === 'processing';
     document.querySelectorAll('.model-b-field').forEach(el => {
-        el.classList.toggle('hidden', !isModelB);
+        el.style.display = isProcessing ? '' : 'none';
     });
 }
 
-// ── Auto-Calculation Functions ────────────────────────────────────────────────
-// These are called via oninput attributes in the rendered HTML.
+// ── Validation ────────────────────────────────────────────────────────────────
 
-/** Section 2: Total Loan */
-function calculateTotalLoan() {
-    const val = safeNum(gv('existing_loan')) + safeNum(gv('proposed_loan'));
-    sv('total_loan', val);
-}
+/**
+ * Validate all visible required fields before submission.
+ * Highlights empty fields with a red border and scrolls to the first error.
+ * @param {Object} questionnaire - QUESTIONNAIRE from questions.js (unused, kept for compat)
+ * @param {Function} toastFn     - showToast(msg, type)
+ * @returns {boolean} true if valid, false if any field is empty
+ */
+function validateForm(questionnaire, toastFn) {
+    // Clear previous error states
+    document.querySelectorAll('.field-error').forEach(el => {
+        el.classList.remove('field-error');
+        el.style.borderColor = '';
+    });
+    document.querySelectorAll('.field-error-msg').forEach(el => el.remove());
 
-/** Section 3: Revenue totals */
-function calculateRevenue() {
-    const milk     = safeNum(gv('milk_sales'));
-    const other    = safeNum(gv('other_product_sales'));
-    const otherInc = safeNum(gv('other_income'));
-    const grant    = safeNum(gv('grant_income'));
-    sv('total_sales',   milk + other + otherInc);
-    sv('total_revenue', milk + other + otherInc + grant);
-}
+    const errors = [];
 
-/** Section 4: Buyer share percentages */
-function calculateBuyerShares() {
-    const totalSales = safeNum(gv('total_sales')) || (safeNum(gv('milk_sales')) + safeNum(gv('other_product_sales')) + safeNum(gv('other_income')));
-    if (totalSales > 0) {
-        sv('top5_buyer_pct',     ((safeNum(gv('top5_buyers_sales')) / totalSales) * 100).toFixed(1));
-        sv('largest_buyer_pct',  ((safeNum(gv('largest_buyer_sales')) / totalSales) * 100).toFixed(1));
+    // Check every visible input/select that has data-required="true"
+    document.querySelectorAll(
+        '#questions_container input[data-required="true"], ' +
+        '#questions_container select[data-required="true"]'
+    ).forEach(el => {
+        // Skip hidden fields and model-b fields that are currently hidden
+        if (el.type === 'hidden') return;
+        const wrap = el.closest('.form-group');
+        if (wrap && wrap.style.display === 'none') return;
+
+        const val = (el.value || '').trim();
+        const isEmpty = val === '' || val === '0' && el.tagName === 'SELECT';
+
+        // For selects, empty means the placeholder option (value="") is selected
+        const isSelectEmpty = el.tagName === 'SELECT' && el.value === '';
+        // For number inputs, allow 0 as a valid value (e.g. existing_loan = 0 is fine)
+        const isInputEmpty  = el.tagName === 'INPUT'  && val === '';
+
+        if (isSelectEmpty || isInputEmpty) {
+            el.classList.add('field-error');
+            el.style.borderColor = '#dc2626';
+            errors.push(el);
+        }
+    });
+
+    if (errors.length > 0) {
+        // Scroll to first error
+        const firstWrap = errors[0].closest('.form-group') || errors[0];
+        firstWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        const count = errors.length;
+        if (typeof toastFn === 'function') {
+            toastFn(
+                `${count} field${count > 1 ? 's are' : ' is'} required. Please fill all fields before submitting.`,
+                'error'
+            );
+        }
+
+        // Remove red border when user starts filling the field
+        errors.forEach(el => {
+            const clear = () => {
+                el.style.borderColor = '';
+                el.classList.remove('field-error');
+            };
+            el.addEventListener('input',  clear, { once: true });
+            el.addEventListener('change', clear, { once: true });
+        });
+
+        return false;
     }
+
+    return true;
 }
 
-/** Section 5: Total operating expenses */
+// ── Collect Inputs ────────────────────────────────────────────────────────────
+
+/**
+ * Read all form inputs into a flat key→value object.
+ * Includes hidden inputs (auto-calc fields) so the engine gets everything.
+ */
+function collectFormInputs() {
+    const inputs = {};
+    document.querySelectorAll(
+        '#questions_container input[id], ' +
+        '#questions_container select[id]'
+    ).forEach(el => {
+        if (!el.id) return;
+        if (el.type === 'number' || el.getAttribute('type') === 'number') {
+            inputs[el.id] = parseFloat(el.value) || 0;
+        } else {
+            inputs[el.id] = el.value || '';
+        }
+    });
+    return inputs;
+}
+
+// ── Auto-Calc Functions ───────────────────────────────────────────────────────
+
+function calculateTotalLoan() {
+    const existing  = safeNum(document.getElementById('existing_loan')?.value);
+    const proposed  = safeNum(document.getElementById('proposed_loan')?.value);
+    _setHidden('total_loan', existing + proposed);
+}
+
+function calculateRevenue() {
+    const milk     = safeNum(document.getElementById('milk_sales')?.value);
+    const other    = safeNum(document.getElementById('other_product_sales')?.value);
+    const otherInc = safeNum(document.getElementById('other_income')?.value);
+    const grant    = safeNum(document.getElementById('grant_income')?.value);
+    const sales    = milk + other + otherInc;
+    const revenue  = sales + grant;
+    _setHidden('total_sales',   sales);
+    _setHidden('total_revenue', revenue);
+}
+
+function calculateBuyerShares() {
+    const totalSalesEl = document.getElementById('total_sales');
+    const totalSales   = safeNum(totalSalesEl?.value) || (() => {
+        // Fallback: recalculate if total_sales hidden field not yet set
+        return safeNum(document.getElementById('milk_sales')?.value)
+             + safeNum(document.getElementById('other_product_sales')?.value)
+             + safeNum(document.getElementById('other_income')?.value);
+    })();
+
+    const top5    = safeNum(document.getElementById('top5_buyers_sales')?.value);
+    const largest = safeNum(document.getElementById('largest_buyer_sales')?.value);
+
+    _setHidden('top5_buyer_pct',    totalSales > 0 ? round2((top5    / totalSales) * 100) : 0);
+    _setHidden('largest_buyer_pct', totalSales > 0 ? round2((largest / totalSales) * 100) : 0);
+}
+
 function calculateExpenses() {
     const ids = [
         'raw_milk_cost', 'processing_cost', 'packaging_cost', 'transport_cost',
         'other_processing_cost', 'salary_expense', 'admin_expense',
-        'electricity_expense', 'fuel_expense', 'repair_expense', 'rent_expense', 'other_opex'
+        'electricity_expense', 'fuel_expense', 'repair_expense',
+        'rent_expense', 'other_opex'
     ];
-    sv('total_opex', ids.reduce((sum, id) => sum + safeNum(gv(id)), 0));
+    const total = ids.reduce((sum, id) => sum + safeNum(document.getElementById(id)?.value), 0);
+    _setHidden('total_opex', total);
 }
 
-/** Section 7: Assets */
 function calculateAssets() {
-    const cash    = safeNum(gv('cash_hand')) + safeNum(gv('bank_balance'));
-    sv('total_cash', cash);
-    const current = cash + safeNum(gv('accounts_receivable')) + safeNum(gv('inventory_value'))
-                  + safeNum(gv('prepaid_expenses')) + safeNum(gv('other_current_assets'));
-    sv('total_current_assets', current);
-    const fixed   = safeNum(gv('land_value')) + safeNum(gv('building_value')) + safeNum(gv('machinery_value'))
-                  + safeNum(gv('vehicle_value')) + safeNum(gv('furniture_value')) + safeNum(gv('other_fixed_assets'));
-    sv('total_fixed_assets', fixed);
-    sv('total_assets', current + fixed);
+    const cashHand  = safeNum(document.getElementById('cash_hand')?.value);
+    const bankBal   = safeNum(document.getElementById('bank_balance')?.value);
+    const totalCash = cashHand + bankBal;
+    _setHidden('total_cash', totalCash);
+
+    const currentIds = ['accounts_receivable', 'inventory_value', 'prepaid_expenses', 'other_current_assets'];
+    const totalCurrent = totalCash + currentIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
+    _setHidden('total_current_assets', totalCurrent);
+
+    const fixedIds = ['land_value', 'building_value', 'machinery_value', 'vehicle_value', 'furniture_value', 'other_fixed_assets'];
+    const totalFixed = fixedIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
+    _setHidden('total_fixed_assets', totalFixed);
+    _setHidden('total_assets', totalCurrent + totalFixed);
 }
 
-/** Section 8: Liabilities */
 function calculateLiabilities() {
-    const current = safeNum(gv('accounts_payable')) + safeNum(gv('short_term_loan'))
-                  + safeNum(gv('accrued_expenses')) + safeNum(gv('current_ltd'));
-    sv('total_current_liabilities', current);
-    const ltl     = safeNum(gv('long_term_loan')) + safeNum(gv('other_ltl'));
-    sv('total_long_term_liabilities', ltl);
-    sv('total_liabilities', current + ltl);
+    const currentIds = ['accounts_payable', 'short_term_loan', 'accrued_expenses', 'current_ltd'];
+    const totalCurrent = currentIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
+    _setHidden('total_current_liabilities', totalCurrent);
+
+    const ltlIds = ['long_term_loan', 'other_ltl'];
+    const totalLTL = ltlIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
+    _setHidden('total_long_term_liabilities', totalLTL);
+    _setHidden('total_liabilities', totalCurrent + totalLTL);
 }
 
-/** Section 9: Net Worth */
 function calculateNetWorth() {
-    sv('total_net_worth',
-        safeNum(gv('paid_up_capital')) + safeNum(gv('retained_earnings')) + safeNum(gv('reserve_fund')));
+    const ids = ['paid_up_capital', 'retained_earnings', 'reserve_fund'];
+    const total = ids.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
+    _setHidden('total_net_worth', total);
 }
 
-/** Section 10: Milk Metrics */
 function calculateMilkMetrics() {
-    const collected = safeNum(gv('total_milk_collected'));
-    const loss      = safeNum(gv('milk_loss'));
-    const pLoss     = safeNum(gv('processing_loss'));
-    sv('total_milk_sold', Math.max(0, collected - loss - pLoss));
-    const farmers = safeNum(gv('total_farmers'));
-    if (farmers > 0 && collected > 0) {
-        sv('avg_milk_per_farmer', (collected / farmers).toFixed(1));
-    }
+    const collected = safeNum(document.getElementById('total_milk_collected')?.value);
+    const milkLoss  = safeNum(document.getElementById('milk_loss')?.value);
+    const procLoss  = safeNum(document.getElementById('processing_loss')?.value);
+    _setHidden('total_milk_sold', Math.max(0, collected - milkLoss - procLoss));
+
+    const farmers = safeNum(document.getElementById('total_farmers')?.value);
+    _setHidden('avg_milk_per_farmer', farmers > 0 ? round2(collected / farmers) : 0);
 }
 
-// ── DOM Helpers ───────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-/**
- * Get the numeric value of an input element by ID.
- */
-function gv(id) {
+/** Write value to a hidden input by id */
+function _setHidden(id, value) {
     const el = document.getElementById(id);
-    if (!el) return 0;
-    const v = parseFloat(el.value);
-    return isNaN(v) ? 0 : v;
+    if (el) el.value = value;
 }
 
-/**
- * Set the value of an input element by ID.
- */
-function sv(id, val) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.value = (typeof val === 'number' && !Number.isInteger(val)) ? val.toFixed(2) : val;
+/** Run all auto-calc functions once (called after render) */
+function _runAllCalcs() {
+    calculateTotalLoan();
+    calculateRevenue();
+    calculateBuyerShares();
+    calculateExpenses();
+    calculateAssets();
+    calculateLiabilities();
+    calculateNetWorth();
+    calculateMilkMetrics();
 }
 
-// ── Form Validation ───────────────────────────────────────────────────────────
-
-/**
- * Validate all required questionnaire fields.
- * Highlights the first invalid field and shows a toast.
- * @param {Object} questionnaire
- * @param {function} showToastFn - showToast(msg, type) function
- * @returns {boolean} - true if valid
- */
-function validateForm(questionnaire, showToastFn) {
-    if (!questionnaire) return true;
-
-    for (const section of (questionnaire.sections || [])) {
-        for (const q of (section.questions || [])) {
-            if (!q.required) continue;
-            if (q.isModelB) continue;  // model-B fields are optional for model A
-            const el = document.getElementById(q.id);
-            if (!el) continue;
-            if (!el.value || !el.value.trim()) {
-                el.style.borderColor = 'var(--danger)';
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.focus();
-                if (showToastFn) showToastFn(`"${q.labelEng}" is required.`, 'error');
-                return false;
-            }
-            el.style.borderColor = '';
-        }
-    }
-    return true;
-}
+/** Stub — kept for script.js compatibility */
+function unlockSidebar() {}

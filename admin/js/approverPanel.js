@@ -205,7 +205,7 @@ async function _postApproverDecisionToGAS(sub) {
         redirect: 'follow',
         body: JSON.stringify({
             action:            'saveApproverDecision',
-            submissionId:      sub.id,
+            submissionId:      sub.submissionId || sub.id,  // prefer sheet's Submission ID
             approverStatus:    sub.approverStatus,
             approverNotes:     sub.approverNotes,
             approverDecidedAt: sub.approverDecidedAt,
