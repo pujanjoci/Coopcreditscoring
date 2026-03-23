@@ -1,11 +1,31 @@
 /**
  * admin/js/engine.js
  * Self-contained scoring engine bundle for the Admin Panel.
- * Copied from js/engine/* — keeps admin panel independent of the user portal.
  *
- * Exposes one function: runScoringEngine(formInputs) → result
- * Called by resultViewer.js when opening a submission to rebuild
- * categories, strengths, weaknesses, focus areas, and metrics.
+ * UPDATED: Dual-read fallbacks for every renamed field so answers saved
+ * with either old IDs (e.g. existing_loan) or new IDs (existing_loan_amt)
+ * both work correctly.
+ *
+ * Model updated to match Credit-Scoring.xlsx (11 categories, 1000 pts):
+ *   1. Cash Flow & Loan Repayment         180 pts
+ *   2. Milk Supply & Operational Stability 150 pts
+ *   3. Financial Strength & Liquidity     180 pts
+ *   4. Financial Transparency              50 pts
+ *   5. Loan Recovery & Member Credit Risk 100 pts
+ *   6. Management & Governance Quality    100 pts
+ *   7. Operational Quality                 40 pts
+ *   8. External & Regulatory Risk          40 pts
+ *   9. Credit History / Banking            40 pts
+ *  10. Buyer Concentration & Market Risk   80 pts
+ *  11. Behavioural & Due Diligence Risk    40 pts
+ *  ─────────────────────────────────────  ────────
+ *  TOTAL                                 1000 pts
+ *
+ * Removed: Security / Collateral (primary_land_value deleted from questionnaire)
+ * Removed: Milk Volume (Annual), Years in Operation, Financial Audit Frequency
+ *          (replaced by Behavioural sub-indicators)
+ *
+ * Exposes: runScoringEngine(formInputs) → result
  */
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -14,23 +34,10 @@ function safeNum(v) {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;
 }
-
-function safeDivide(a, b) {
-    return b !== 0 ? a / b : 0;
-}
-
-function pct(part, total) {
-    return total > 0 ? (part / total) * 100 : 0;
-}
-
-function clamp(v, lo, hi) {
-    return Math.max(lo, Math.min(hi, v));
-}
-
-function fmtNum(n) {
-    return Number(n).toLocaleString('en-IN');
-}
-
+function safeDivide(a, b) { return b !== 0 ? a / b : 0; }
+function pct(part, total) { return total > 0 ? (part / total) * 100 : 0; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function fmtNum(n)         { return Number(n).toLocaleString('en-IN'); }
 function fmtNPR(val) {
     const n = Number(val);
     if (!val || isNaN(n) || n === 0) return '—';
@@ -39,242 +46,352 @@ function fmtNPR(val) {
     return 'NPR ' + n.toLocaleString('en-IN');
 }
 
-// ── Step 1: dataTransform.js ──────────────────────────────────────────────────
+// ── Step 1: Data Transform ────────────────────────────────────────────────────
+// Dual-read: new field ID first, old field ID as fallback.
 
 function transformData(rawInputs) {
-    const inp = {};
-    for (const [key, val] of Object.entries(rawInputs)) { inp[key] = val; }
-    const n = key => safeNum(inp[key]);
+    const inp = rawInputs;
 
-    const existing_loan  = n('existing_loan');
-    const proposed_loan  = n('proposed_loan');
-    const total_loan     = existing_loan + proposed_loan;
-    const interest_rate  = n('interest_rate');
-    const loan_tenure    = n('loan_tenure');
+    // Helper: read a number — tries newId first, falls back to oldId
+    function n2(newId, oldId) {
+        const v = safeNum(inp[newId]);
+        return v !== 0 ? v : safeNum(inp[oldId] || 0);
+    }
+    // Helper: read a string — tries newId first, falls back to oldId
+    function s2(newId, oldId) {
+        const v = String(inp[newId] || '').trim();
+        return v || String(inp[oldId] || '').trim();
+    }
+    const n = id => safeNum(inp[id]);
+    const s = id => String(inp[id] || '').trim();
 
-    const milk_sales          = n('milk_sales');
-    const other_product_sales = n('other_product_sales');
-    const other_income        = n('other_income');
-    const grant_income        = n('grant_income');
-    const total_sales         = milk_sales + other_product_sales + other_income;
-    const total_revenue       = total_sales + grant_income;
-    const bank_sales          = n('bank_sales');
+    // ── Identity ──────────────────────────────────────────────────────────────
+    const coop_name       = s('coop_name');
+    const model_type      = s('model_type');
+    const is_existing     = s2('is_existing', 'loan_type');
+    const years_operation = n('years_operation');
+    const customer_type   = s('customer_type') || (is_existing === 'Existing Loan' ? 'existing' : 'new');
 
-    const top5_buyers_sales   = n('top5_buyers_sales');
-    const largest_buyer_sales = n('largest_buyer_sales');
-    const top5_buyer_pct      = total_sales > 0 ? (top5_buyers_sales / total_sales) * 100 : 0;
-    const largest_buyer_pct   = total_sales > 0 ? (largest_buyer_sales / total_sales) * 100 : 0;
+    // ── Loan ──────────────────────────────────────────────────────────────────
+    const existing_loan_amt  = n2('existing_loan_amt',  'existing_loan');
+    const proposed_loan_amt  = n2('proposed_loan_amt',  'proposed_loan');
+    const total_loan         = existing_loan_amt + proposed_loan_amt;
+    const interest_rate      = n('interest_rate');
+    const loan_tenure_months = n2('loan_tenure_months', 'loan_tenure');
+    const repayment_frequency= s2('repayment_frequency','installment_freq');
 
-    const raw_milk_cost         = n('raw_milk_cost');
-    const processing_cost       = n('processing_cost');
-    const packaging_cost        = n('packaging_cost');
-    const transport_cost        = n('transport_cost');
-    const other_processing_cost = n('other_processing_cost');
-    const salary_expense        = n('salary_expense');
-    const admin_expense         = n('admin_expense');
-    const electricity_expense   = n('electricity_expense');
-    const fuel_expense          = n('fuel_expense');
-    const repair_expense        = n('repair_expense');
-    const rent_expense          = n('rent_expense');
-    const other_opex            = n('other_opex');
-    const annual_depreciation   = n('annual_depreciation');
-    const amortization_amount   = n('amortization_amount');
+    // ── Revenue ───────────────────────────────────────────────────────────────
+    const milk_sales    = n('milk_sales');
+    const product_sales = n2('product_sales', 'other_product_sales');
+    const other_sales   = n2('other_sales',   'other_income');
+    const grant_income  = n('grant_income');
+    const total_sales   = milk_sales + product_sales + other_sales;
+    const total_revenue = total_sales + grant_income;
+    const bank_sales    = n('bank_sales');
 
-    const total_opex = raw_milk_cost + processing_cost + packaging_cost +
-                       transport_cost + other_processing_cost + salary_expense +
-                       admin_expense + electricity_expense + fuel_expense +
-                       repair_expense + rent_expense + other_opex;
+    // ── Buyer Analysis ────────────────────────────────────────────────────────
+    const total_number_of_buyers    = n2('total_number_of_buyers',   'total_buyers');
+    const top5_buyers_sales         = n('top5_buyers_sales');
+    const largest_buyer_sales       = n('largest_buyer_sales');
+    const gov_buyer_sales           = n('gov_buyer_sales');
+    const no_govt_buyers            = n('no_govt_buyers');
+    const large_private_buyer_sales = n('large_private_buyer_sales');
+    const no_private_sector_buyer   = n('no_private_sector_buyer');
+    const small_buyer_sales         = n('small_buyer_sales');
+    const no_small_buyer_sales      = n('no_small_buyer_sales');
+    const avg_payment_days_buyers   = n2('avg_payment_days_buyers',  'avg_collection_days');
+    const contract_coverage         = n('contract_coverage');
 
-    const cash_hand              = n('cash_hand');
-    const bank_balance           = n('bank_balance');
-    const total_cash             = cash_hand + bank_balance;
-    const cash_last_year         = n('cash_last_year');
-    const cash_prev_year         = n('cash_prev_year');
-    const lowest_monthly_expense = n('lowest_monthly_expense');
-    const avg_inventory_value    = n('avg_inventory_value');
-    const audit_observations     = n('audit_observations');
+    const top5_buyer_share_percent    = total_sales > 0 ? (top5_buyers_sales    / total_sales) * 100 : 0;
+    const largest_buyer_share_percent = total_sales > 0 ? (largest_buyer_sales  / total_sales) * 100 : 0;
 
+    // Buyer concentration fractions for model
+    const top5_buyer_conc_pct    = top5_buyer_share_percent;
+    const largest_buyer_conc_pct = largest_buyer_share_percent;
+    const stable_buyer_share_pct = total_number_of_buyers > 0
+        ? ((no_govt_buyers + no_private_sector_buyer) / total_number_of_buyers) * 100 : 0;
+    const contract_score_frac = total_number_of_buyers > 0
+        ? contract_coverage / total_number_of_buyers : 0;
+    const payment_score_frac = Math.max(0, 1 - (avg_payment_days_buyers / 90));
+
+    // ── Operating Costs ───────────────────────────────────────────────────────
+    const raw_milk_purchase_cost  = n2('raw_milk_purchase_cost',  'raw_milk_cost');
+    const processing_cost         = n('processing_cost');
+    const packaging_cost          = n('packaging_cost');
+    const transport_cost          = n('transport_cost');
+    const other_processing_cost   = n('other_processing_cost');
+    const salary_expense          = n('salary_expense');
+    const admin_expense           = n('admin_expense');
+    const electricity_expense     = n('electricity_expense');
+    const fuel_expense            = n('fuel_expense');
+    const maintenance_expense     = n2('maintenance_expense',    'repair_expense');
+    const rent_expense            = n('rent_expense');
+    const other_operating_expense = n2('other_operating_expense','other_opex');
+    const depreciation            = n2('depreciation',           'annual_depreciation');
+    const amortization            = n2('amortization',           'amortization_amount');
+
+    // total_opex = overhead only (sheet SN44 = salary+admin+elec+fuel+maint+rent+other)
+    const total_opex = salary_expense + admin_expense + electricity_expense +
+                       fuel_expense + maintenance_expense + rent_expense +
+                       other_operating_expense;
+
+    // COGS = processing costs (sheet Data!D19 = processing+packaging+transport+other_proc)
+    const cogs = processing_cost + packaging_cost + transport_cost + other_processing_cost;
+
+    // Lean month expense = total_opex / 12
+    const lean_month_expense = total_opex / 12;
+
+    // EBITDA = total_revenue - COGS - total_opex (sheet: D18-SUM(D34:D37)-D45, no depr/amort)
+    const ebitda = total_revenue - cogs - total_opex;
+
+    // ── Assets ────────────────────────────────────────────────────────────────
+    const cash_on_hand         = n2('cash_on_hand',   'cash_hand');
+    const bank_balance         = n('bank_balance');
+    const total_cash           = cash_on_hand + bank_balance;
     const accounts_receivable  = n('accounts_receivable');
-    const inventory_value      = n('inventory_value');
-    const prepaid_expenses     = n('prepaid_expenses');
+    const inventory            = n2('inventory',      'inventory_value');
+    const prepaid_expense      = n2('prepaid_expense','prepaid_expenses');
     const other_current_assets = n('other_current_assets');
-    const total_current_assets = total_cash + accounts_receivable + inventory_value +
-                                 prepaid_expenses + other_current_assets;
+    const current_assets       = total_cash + accounts_receivable + inventory +
+                                 prepaid_expense + other_current_assets;
 
-    const land_value         = n('land_value');
-    const building_value     = n('building_value');
-    const machinery_value    = n('machinery_value');
-    const vehicle_value      = n('vehicle_value');
-    const furniture_value    = n('furniture_value');
-    const other_fixed_assets = n('other_fixed_assets');
-    const total_fixed_assets = land_value + building_value + machinery_value +
-                               vehicle_value + furniture_value + other_fixed_assets;
-    const total_assets       = total_current_assets + total_fixed_assets;
+    const land_value            = n('land_value');
+    const building_value        = n('building_value');
+    const plant_machinery_value = n2('plant_machinery_value','machinery_value');
+    const vehicle_value         = n('vehicle_value');
+    const furniture_value       = n('furniture_value');
+    const other_fixed_assets    = n('other_fixed_assets');
+    const non_current_assets    = land_value + building_value + plant_machinery_value +
+                                  vehicle_value + furniture_value + other_fixed_assets;
+    const total_assets          = current_assets + non_current_assets;
 
-    const accounts_payable  = n('accounts_payable');
-    const short_term_loan   = n('short_term_loan');
-    const accrued_expenses  = n('accrued_expenses');
-    const current_ltd       = n('current_ltd');
-    const long_term_loan    = n('long_term_loan');
-    const other_ltl         = n('other_ltl');
+    // Average inventory for calculations
+    const average_inventory = n2('average_inventory','avg_inventory_value') || inventory;
 
-    const total_current_liabilities  = accounts_payable + short_term_loan + accrued_expenses + current_ltd;
-    const total_long_term_liabilities = long_term_loan + other_ltl;
-    const total_liabilities           = total_current_liabilities + total_long_term_liabilities;
+    // ── Liabilities ───────────────────────────────────────────────────────────
+    const accounts_payable               = n('accounts_payable');
+    const short_term_loan                = n('short_term_loan');
+    const accrued_expense                = n2('accrued_expense',    'accrued_expenses');
+    const current_portion_long_term_debt = n2('current_portion_long_term_debt','current_ltd');
+    const long_term_loan                 = n('long_term_loan');
+    const other_long_term_liabilities    = n2('other_long_term_liabilities','other_ltl');
+    const current_liabilities  = accounts_payable + short_term_loan + accrued_expense + current_portion_long_term_debt;
+    const non_current_liabilities = long_term_loan + other_long_term_liabilities;
+    const total_liabilities    = current_liabilities + non_current_liabilities;
+    const total_debt           = short_term_loan + current_portion_long_term_debt +
+                                 long_term_loan + other_long_term_liabilities;
 
+    // ── Net Worth ─────────────────────────────────────────────────────────────
     const paid_up_capital   = n('paid_up_capital');
     const retained_earnings = n('retained_earnings');
-    const reserve_fund      = n('reserve_fund');
-    const total_net_worth   = paid_up_capital + retained_earnings + reserve_fund;
+    const reserves          = n2('reserves','reserve_fund');
+    const total_networth    = paid_up_capital + retained_earnings + reserves;
 
-    const primary_land_value    = n('primary_land_value');
-    const total_milk_collected  = n('total_milk_collected');
-    const milk_loss             = n('milk_loss');
-    const processing_loss       = n('processing_loss');
-    const total_milk_sold       = Math.max(0, total_milk_collected - milk_loss - processing_loss);
-    const avg_monthly_milk      = n('avg_monthly_milk') || (total_milk_collected / 12);
-    const lowest_monthly_milk   = n('lowest_monthly_milk');
-    const collection_days       = n('collection_days');
-    const total_farmers         = n('total_farmers');
-    const avg_milk_per_farmer   = total_farmers > 0 ? total_milk_collected / total_farmers : 0;
-    const top5_farmers_milk     = n('top5_farmers_milk');
+    // ── Milk ──────────────────────────────────────────────────────────────────
+    const total_milk_collected_liters        = n2('total_milk_collected_liters',       'total_milk_collected');
+    const milk_loss_liters_during_collection = n2('milk_loss_liters_during_collection','milk_loss');
+    const loss_during_process                = n2('loss_during_process',               'processing_loss');
 
-    const vehicle_avail_pct      = n('vehicle_avail_pct');
-    const storage_cold_facility  = inp['storage_cold_facility'] || '';
-    const digital_mis_pos        = inp['digital_mis_pos'] || '';
-    const quality_sop_score      = n('quality_sop_score');
+    // Total milk loss = collection loss + process loss (sheet Data!D24 = D79+D80)
+    const total_milk_loss = milk_loss_liters_during_collection + loss_during_process;
 
-    const total_member_loans      = n('total_member_loans');
-    const npa_member_loans        = n('npa_member_loans');
-    const max_dpd_members         = n('max_dpd_members');
-    const restructured_loans_3yr  = inp['restructured_loans_3yr'] || 'None';
+    // Produced milk = total - collection loss only (sheet Data!D25 = D78-D79)
+    const produced_milk_model_b_liters = Math.max(0,
+        total_milk_collected_liters - milk_loss_liters_during_collection);
 
-    const mgmt_experience         = n('mgmt_experience');
-    const internal_control_score  = n('internal_control_score');
-    const loan_policy_compliance  = inp['loan_policy_compliance'] || '';
-    const meeting_frequency       = inp['meeting_frequency'] || '';
-    const income_expense_checked  = inp['income_expense_checked'] || '';
+    // avg_monthly_milk = total / 12 (always auto-calc, sheet =E81/12)
+    const avg_monthly_milk_liters = total_milk_collected_liters / 12;
 
-    const insurance_available    = inp['insurance_available'] || '';
-    const regulatory_compliance  = inp['regulatory_compliance'] || '';
-    const climatic_risk_score    = n('climatic_risk_score');
+    const lowest_monthly_milk_liters= n2('lowest_monthly_milk_liters','lowest_monthly_milk');
+    const collection_days_positive  = n2('collection_days_positive',  'collection_days');
+    const total_number_of_farmers   = n2('total_number_of_farmers',   'total_farmers');
+    const top5_farmer_collection_liters = n2('top5_farmer_collection_liters','top5_farmers_milk');
 
-    const credit_history_bfi     = inp['credit_history_bfi'] || '';
-    const max_dpd_bfi            = n('max_dpd_bfi');
+    // Collection Days Category (sheet Data!D36: IF(days>325,"High",IF(>300,"Medium","Low")))
+    const collection_days_category = collection_days_positive > 325 ? 'High'
+        : collection_days_positive > 300 ? 'Medium' : 'Low';
 
-    const community_support_level = inp['community_support_level'] || '';
-    const emergency_response      = inp['emergency_response'] || '';
-    const years_operation         = n('years_operation');
+    // ── Loan Recovery ─────────────────────────────────────────────────────────
+    const total_member_loans          = n('total_member_loans');
+    const npa_member_loans            = n('npa_member_loans');
+    const max_dpd_days                = n2('max_dpd_days',         'max_dpd_members');
+    const restructured_loans_past3yrs = s2('restructured_loans_past3yrs','restructured_loans_3yr');
+
+    // ── Financial Performance ─────────────────────────────────────────────────
+    const cash_bank_balance_last_year     = n2('cash_bank_balance_last_year',    'cash_last_year');
+    const cash_bank_balance_previous_year = n2('cash_bank_balance_previous_year','cash_prev_year');
+    const cash_trend = cash_bank_balance_last_year > cash_bank_balance_previous_year ? 'UP'
+        : cash_bank_balance_last_year < cash_bank_balance_previous_year ? 'DOWN' : 'STABLE';
+
+    // ── Governance ────────────────────────────────────────────────────────────
+    const key_mgmt_avg_experience_years = n2('key_mgmt_avg_experience_years','mgmt_experience');
+    // internal_control_score: new=string ('Robust'/'Adequate'/'Weak'), old=number
+    const internal_control_score_raw   = inp['internal_control_score'];
+    const internal_control_str = String(internal_control_score_raw || '').trim();
+    // audit_findings_count: new=string dropdown ('0','1','3','6'), old=number
+    const audit_findings_raw   = inp['audit_findings_count'] || inp['audit_observations'];
+    const audit_findings_str   = String(audit_findings_raw || '').trim();
+    const lending_policy_compliance_flag = s2('lending_policy_compliance_flag','loan_policy_compliance');
+    const fleet_availability_percent     = s2('fleet_availability_percent',    'vehicle_avail_pct');
+
+    // ── Logistics ─────────────────────────────────────────────────────────────
+    const storage_availability_flag  = s2('storage_availability_flag', 'storage_cold_facility');
+    const quality_sop_score_model_b  = s2('quality_sop_score_model_b', 'quality_sop_score');
+    const insurance_coverage_flag    = s2('insurance_coverage_flag',   'insurance_available');
+    const digital_mis_flag           = s2('digital_mis_flag',          'digital_mis_pos');
+    const regulatory_compliance_flag = s2('regulatory_compliance_flag','regulatory_compliance');
+    // climatic_risk_score: new=string ('Low'/'Medium'/'High'), old=number (2/5/8)
+    const climatic_risk_raw = inp['climatic_risk_score'];
+    const climatic_risk_str = String(climatic_risk_raw || '').trim();
+
+    // Pass raw dropdown string — runModel() uses .includes() string matching.
+    // Never convert to numeric; that turns the string into 9/6/1.5 which breaks matching.
+    const quality_sop_numeric = quality_sop_score_model_b;
+
+    // ── Credit History ────────────────────────────────────────────────────────
+    const credit_history_banks = s2('credit_history_banks','credit_history_bfi');
+    const dpd_days_banks       = n2('dpd_days_banks',       'max_dpd_bfi');
+
+    // ── Behavioral ────────────────────────────────────────────────────────────
+    const meeting_frequency        = s('meeting_frequency');
+    const member_info_transparency = s('member_info_transparency');
+    const fund_usage               = s('fund_usage');
+    const kyc_aml                  = s('kyc_aml');
+    const income_expense_checked   = s('income_expense_checked');
+    const right_to_information     = s('right_to_information');
+    const community_support_level  = s('community_support_level');
+    const emergency_response       = s('emergency_response');
+
+    // Loan repayment (sheet: Principal=current_portion_ltd, Interest=rate*tenure)
+    const annual_principal = current_portion_long_term_debt;
+    const annual_interest  = interest_rate * loan_tenure_months;
 
     return {
-        coop_name: inp['coop_name'] || '', model_type: inp['model_type'] || '',
-        loan_type: inp['loan_type'] || '', customer_type: inp['customer_type'] || '',
-        years_operation,
-        existing_loan, proposed_loan, total_loan, interest_rate, loan_tenure, primary_land_value,
-        milk_sales, other_product_sales, other_income, grant_income,
-        total_sales, total_revenue, bank_sales,
-        top5_buyers_sales, largest_buyer_sales, top5_buyer_pct, largest_buyer_pct,
-        raw_milk_cost, processing_cost, packaging_cost, transport_cost,
-        other_processing_cost, salary_expense, admin_expense,
-        electricity_expense, fuel_expense, repair_expense, rent_expense,
-        other_opex, total_opex, annual_depreciation, amortization_amount,
-        cash_hand, bank_balance, total_cash, cash_last_year, cash_prev_year,
-        lowest_monthly_expense, avg_inventory_value, audit_observations,
-        accounts_receivable, inventory_value, prepaid_expenses, other_current_assets,
-        total_current_assets,
-        land_value, building_value, machinery_value, vehicle_value, furniture_value, other_fixed_assets,
-        total_fixed_assets, total_assets,
-        accounts_payable, short_term_loan, accrued_expenses, current_ltd, total_current_liabilities,
-        long_term_loan, other_ltl, total_long_term_liabilities, total_liabilities,
-        paid_up_capital, retained_earnings, reserve_fund, total_net_worth,
-        total_milk_collected, milk_loss, processing_loss, total_milk_sold,
-        avg_monthly_milk, lowest_monthly_milk, collection_days,
-        total_farmers, avg_milk_per_farmer, top5_farmers_milk,
-        vehicle_avail_pct, storage_cold_facility, digital_mis_pos, quality_sop_score,
-        total_member_loans, npa_member_loans, max_dpd_members, restructured_loans_3yr,
-        mgmt_experience, internal_control_score, loan_policy_compliance,
-        meeting_frequency, income_expense_checked,
-        insurance_available, regulatory_compliance, climatic_risk_score,
-        credit_history_bfi, max_dpd_bfi,
+        coop_name, model_type, is_existing, customer_type, years_operation,
+        existing_loan_amt, proposed_loan_amt, total_loan,
+        interest_rate, loan_tenure_months, repayment_frequency,
+        annual_principal, annual_interest, ebitda,
+        milk_sales, product_sales, other_sales, total_sales,
+        grant_income, total_revenue, bank_sales,
+        total_number_of_buyers, top5_buyers_sales, largest_buyer_sales,
+        gov_buyer_sales, no_govt_buyers, large_private_buyer_sales, no_private_sector_buyer,
+        small_buyer_sales, no_small_buyer_sales, avg_payment_days_buyers, contract_coverage,
+        top5_buyer_share_percent, largest_buyer_share_percent,
+        top5_buyer_conc_pct, largest_buyer_conc_pct,
+        stable_buyer_share_pct, contract_score_frac, payment_score_frac,
+        raw_milk_purchase_cost, processing_cost, packaging_cost, transport_cost,
+        other_processing_cost, salary_expense, admin_expense, electricity_expense,
+        fuel_expense, maintenance_expense, rent_expense, other_operating_expense,
+        total_opex, cogs, lean_month_expense, depreciation, amortization, ebitda,
+        cash_on_hand, bank_balance, total_cash,
+        accounts_receivable, inventory, prepaid_expense, other_current_assets,
+        current_assets, average_inventory,
+        land_value, building_value, plant_machinery_value, vehicle_value,
+        furniture_value, other_fixed_assets, non_current_assets, total_assets,
+        accounts_payable, short_term_loan, accrued_expense, current_portion_long_term_debt,
+        current_liabilities,
+        long_term_loan, other_long_term_liabilities, non_current_liabilities,
+        total_liabilities, total_debt,
+        paid_up_capital, retained_earnings, reserves, total_networth,
+        total_milk_collected_liters, milk_loss_liters_during_collection, loss_during_process,
+        total_milk_loss, produced_milk_model_b_liters,
+        avg_monthly_milk_liters, lowest_monthly_milk_liters, collection_days_positive,
+        collection_days_category,
+        total_number_of_farmers, top5_farmer_collection_liters,
+        total_member_loans, npa_member_loans, max_dpd_days, restructured_loans_past3yrs,
+        cash_bank_balance_last_year, cash_bank_balance_previous_year, cash_trend,
+        key_mgmt_avg_experience_years, internal_control_str, audit_findings_str,
+        lending_policy_compliance_flag, fleet_availability_percent,
+        storage_availability_flag, quality_sop_numeric,
+        insurance_coverage_flag, digital_mis_flag,
+        regulatory_compliance_flag, climatic_risk_str,
+        credit_history_banks, dpd_days_banks,
+        meeting_frequency, member_info_transparency, fund_usage,
+        kyc_aml, income_expense_checked, right_to_information,
         community_support_level, emergency_response
     };
 }
 
-// ── Step 2: calculations.js ───────────────────────────────────────────────────
+// ── Step 2: Calculations ──────────────────────────────────────────────────────
 
 function runCalculations(data) {
-    const ebitda = data.total_revenue - data.total_opex +
-                   data.annual_depreciation + data.amortization_amount;
-
-    const annualInterest  = data.proposed_loan * (data.interest_rate / 100);
-    const annualPrincipal = data.loan_tenure > 0
-        ? data.proposed_loan / (data.loan_tenure / 12) : 0;
-    const debtService = annualPrincipal + annualInterest;
-
+    // DSCR
+    const debtService = data.annual_principal + data.annual_interest;
     const dscr = debtService > 0
-        ? safeDivide(ebitda, debtService)
-        : (ebitda > 0 ? 2.5 : 0);
+        ? safeDivide(data.ebitda, debtService)
+        : (data.ebitda > 0 ? 2.5 : 0);
 
-    const leanMonthExp = data.lowest_monthly_expense > 0
-        ? data.lowest_monthly_expense : (data.total_opex / 12);
-    const seasonalityCoverage = leanMonthExp > 0
-        ? safeDivide(data.total_cash, leanMonthExp) : 0;
+    // Seasonality Coverage — last year cash / lean month expense
+    const seasonality_coverage = data.lean_month_expense > 0
+        ? safeDivide(data.cash_bank_balance_last_year, data.lean_month_expense) : 0;
 
-    const receivableDays = data.total_sales > 0
-        ? (data.accounts_receivable / (data.total_sales / 365)) : 0;
+    // Inventory Days (sheet C4: avg_inventory / COGS × 365; COGS = proc+pkg+transport+other_proc)
+    const inventory_days = data.cogs > 0
+        ? (data.average_inventory / data.cogs) * 365 : 0;
 
-    const invVal = data.avg_inventory_value > 0
-        ? data.avg_inventory_value : data.inventory_value;
-    const inventoryDays = data.raw_milk_cost > 0
-        ? (invVal / (data.raw_milk_cost / 365)) : 0;
+    // Receivable Days
+    const receivable_days = data.total_revenue > 0
+        ? (data.accounts_receivable / data.total_revenue) * 365 : 0;
 
-    const milkStability    = data.avg_monthly_milk > 0
-        ? pct(data.lowest_monthly_milk, data.avg_monthly_milk) : 0;
-    const collectionDayPct = (data.collection_days / 365) * 100;
-    const milkLossRate     = data.total_milk_collected > 0
-        ? pct(data.milk_loss, data.total_milk_collected) : 0;
-    const yieldLossRate    = data.total_milk_collected > 0
-        ? pct(data.processing_loss, data.total_milk_collected) : 0;
-    const farmerConcentration = data.total_milk_collected > 0
-        ? pct(data.top5_farmers_milk, data.total_milk_collected) : 0;
+    // Milk Supply
+    const milk_stability_pct = data.avg_monthly_milk_liters > 0
+        ? (data.lowest_monthly_milk_liters / data.avg_monthly_milk_liters) * 100 : 0;
+    const days_stability_pct = (data.collection_days_positive / 365) * 100;
 
-    const currentRatio = data.total_current_liabilities > 0
-        ? safeDivide(data.total_current_assets, data.total_current_liabilities)
-        : (data.total_current_assets > 0 ? 5.0 : 0);
+    // Milk Loss % (sheet C8: total_milk_loss / total_collected; total_milk_loss = coll+proc loss)
+    const milk_loss_pct = data.total_milk_collected_liters > 0
+        ? (data.total_milk_loss / data.total_milk_collected_liters) * 100 : 0;
 
-    const debtEquityRatio = data.total_net_worth > 0
-        ? safeDivide(data.total_liabilities, data.total_net_worth)
-        : (data.total_liabilities > 0 ? 5.0 : 0);
+    // Yield Loss % (sheet C9: total_milk_loss / produced_milk)
+    const yield_loss_pct = data.produced_milk_model_b_liters > 0
+        ? (data.total_milk_loss / data.produced_milk_model_b_liters) * 100 : 0;
 
-    const grantDependencyPct = data.total_revenue > 0
-        ? pct(data.grant_income, data.total_revenue) : 0;
-    const bankSalesPct = data.total_sales > 0
-        ? pct(data.bank_sales, data.total_sales) : 0;
+    const farmer_concentration_pct = data.total_milk_collected_liters > 0
+        ? (data.top5_farmer_collection_liters / data.total_milk_collected_liters) * 100 : 0;
+    const collection_stability = data.total_member_loans > 0
+        ? safeDivide(data.total_milk_collected_liters, data.total_member_loans) : 0;
+    const payment_fairness = Math.max(0, 1 - (data.max_dpd_days / 30));
 
-    const primaryCollateralCoverage = data.proposed_loan > 0
-        ? safeDivide(data.primary_land_value, data.proposed_loan)
-        : (data.primary_land_value > 0 ? 2.0 : 0);
+    // Logistics Reliability (sheet C13: fleet_availability_percent, not storage)
+    const logistics_reliability = data.fleet_availability_percent || data.storage_availability_flag;
 
-    const gNPA = data.total_member_loans > 0
-        ? pct(data.npa_member_loans, data.total_member_loans) : 0;
+    // Financial
+    const net_worth = data.total_assets - data.total_liabilities;
+    const debt_equity = data.total_networth > 0
+        ? safeDivide(data.total_debt, data.total_networth)
+        : (data.total_debt > 0 ? 5.0 : 0);
+    const current_ratio = data.current_liabilities > 0
+        ? safeDivide(data.current_assets, data.current_liabilities)
+        : (data.current_assets > 0 ? 5.0 : 0);
+    const grant_pct = data.total_revenue > 0
+        ? safeDivide(data.grant_income, data.total_revenue) : 0;
+
+    // Bank sales % (sheet C27: bank_sales / total_revenue, not total_sales)
+    const bank_sales_pct = data.total_revenue > 0
+        ? (data.bank_sales / data.total_revenue) * 100 : 0;
+
+    // GNPA (fraction)
+    const member_gnpa_pct = data.total_member_loans > 0
+        ? safeDivide(data.npa_member_loans, data.total_member_loans) : 0;
 
     return {
-        ebitda, debtService, dscr, seasonalityCoverage,
-        receivableDays, inventoryDays,
-        milkStability, collectionDayPct, milkLossRate, yieldLossRate,
-        farmerConcentration, currentRatio, debtEquityRatio,
-        grantDependencyPct, bankSalesPct, primaryCollateralCoverage, gNPA,
-        // Expose raw computed values for the approver metrics panel
-        dscr_raw: dscr,
-        current_ratio: currentRatio,
-        debt_equity: debtEquityRatio,
-        gnpa_pct: gNPA,
-        milk_loss_pct: milkLossRate,
-        collateral_cover: primaryCollateralCoverage
+        dscr, seasonality_coverage, inventory_days, receivable_days,
+        milk_stability_pct, days_stability_pct, milk_loss_pct, yield_loss_pct,
+        farmer_concentration_pct, collection_stability, payment_fairness,
+        logistics_reliability,
+        net_worth, debt_equity, current_ratio, grant_pct,
+        bank_sales_pct, member_gnpa_pct,
+        // approver panel metrics
+        current_ratio_raw: current_ratio,
+        debt_equity_raw:   debt_equity,
+        gnpa_pct_raw:      member_gnpa_pct * 100,
+        milk_loss_pct_raw: milk_loss_pct,
+        bank_sales_pct_raw: bank_sales_pct,
+        seasonality_raw:   seasonality_coverage
     };
 }
 
-// ── Step 3: model.js ──────────────────────────────────────────────────────────
+// ── Step 3: Model ─────────────────────────────────────────────────────────────
 
 function runModel(calc, data) {
     const indicators = [];
@@ -288,273 +405,344 @@ function runModel(calc, data) {
         indicators.push({ cat, name, score: Math.round(safeScore * 10) / 10, max, formula, value, category: cat });
     }
 
-    // 1. Cash Flow (180 pts)
+    // ── 1. Cash Flow & Loan Repayment (180 pts) ───────────────────────────────
+    const CAT1 = 'Cash Flow & Loan Repayment';
     const dscr = calc.dscr;
-    add('Cash Flow','DSCR (Debt Coverage)',
-        dscr>=2.0?60:dscr>=1.5?45:dscr>=1.25?30:dscr>=1.0?15:0,
-        60,'EBITDA / Annual Debt Service',dscr.toFixed(2)+'x');
-    const sc = calc.seasonalityCoverage;
-    add('Cash Flow','Seasonality Coverage',
-        sc>=12?36:sc>=6?24:sc>=3?12:6,
-        36,'Cash / Lean Month Expense',sc.toFixed(1)+' mo');
-    const invD = calc.inventoryDays;
-    add('Cash Flow','Inventory Days',
-        invD<=30?30:invD<=60?20:invD<=90?10:5,
-        30,'Avg Inventory / (COGS/365)',Math.round(invD)+' days');
-    const recD = calc.receivableDays;
-    add('Cash Flow','Receivable Days',
-        recD<=30?40:recD<=45?30:recD<=60?20:10,
-        40,'AR / (Sales/365)',Math.round(recD)+' days');
+    add(CAT1, 'DSCR',
+        dscr >= 1.5 ? 60 : dscr >= 1.25 ? 48 : dscr >= 1 ? 36 : dscr >= 0.8 ? 20 : 0,
+        60, 'EBITDA / (Annual Principal + Interest)', dscr.toFixed(2) + 'x');
+    const sc = calc.seasonality_coverage;
+    add(CAT1, 'Seasonality Coverage',
+        sc >= 20 ? 50 : sc >= 15 ? 40 : sc >= 10 ? 30 : sc >= 5 ? 20 : 0,
+        50, 'Last Year Cash / Lean Month Expense', sc.toFixed(1) + ' months');
+    const invD = calc.inventory_days;
+    add(CAT1, 'Inventory Days',
+        invD >= 180 ? 0 : invD >= 120 ? 10 : invD >= 90 ? 18 : invD >= 60 ? 24 : 30,
+        30, '(Avg Inventory / COGS) × 365', Math.round(invD) + ' days');
+    // Receivable Days: lower = better (faster buyer payment)
+    // Sheet: IF(>=90,0, IF(>=60,12, IF(>=45,24, IF(>=30,32, 40))))
+    const recD = calc.receivable_days;
+    add(CAT1, 'Receivable Days',
+        recD >= 90 ? 0 : recD >= 60 ? 12 : recD >= 45 ? 24 : recD >= 30 ? 15 : 40,
+        40, '(Accounts Receivable / Total Revenue) × 365', Math.round(recD) + ' days');
 
-    // 2. Milk Supply (160 pts)
-    const milkStab = calc.milkStability;
-    add('Milk Supply','Milk Stability',
-        milkStab>=90?24:milkStab>=75?18:milkStab>=60?12:6,
-        24,'Low Month / Avg Monthly',milkStab.toFixed(1)+'%');
-    const dayPct = calc.collectionDayPct;
-    add('Milk Supply','Collection Days',
-        dayPct>=95?20:dayPct>=85?15:dayPct>=75?10:5,
-        20,'Days / 365',dayPct.toFixed(1)+'%');
-    const mLoss = calc.milkLossRate;
-    add('Milk Supply','Milk Loss Rate',
-        mLoss<=2?20:mLoss<=5?15:mLoss<=10?10:5,
-        20,'Milk Loss / Total Collected',mLoss.toFixed(2)+'%');
-    const yLoss = calc.yieldLossRate;
-    add('Milk Supply','Processing Yield Loss',
-        yLoss<=2?15:yLoss<=5?10:yLoss<=8?5:2,
-        15,'Processing Loss / Total',yLoss.toFixed(2)+'%');
-    const fConc = calc.farmerConcentration;
-    add('Milk Supply','Farmer Concentration',
-        fConc<=20?15:fConc<=35?10:fConc<=50?5:2,
-        15,'Top 5 Farmers Share',fConc.toFixed(1)+'%');
-    const vk = safeNum(data.vehicle_avail_pct);
-    const coldChain = data.storage_cold_facility === 'Yes';
-    const logiScore = (vk>=80?7.5:vk>=50?4:0)+(coldChain?7.5:0);
-    add('Milk Supply','Logistics & Cold Chain',
-        logiScore,15,'Vehicle Avail. + Cold Chain',
-        logiScore===15?'Full Coverage':logiScore>0?'Partial':'None');
-    const milkVol = data.total_milk_collected;
-    const milkVolScore = milkVol>=5000000?51:milkVol>=2000000?38:milkVol>=500000?25:10;
-    add('Milk Supply','Milk Volume (Annual)',
-        milkVolScore,51,'Total Annual Litres',fmtNum(Math.round(milkVol))+' L');
+    // ── 2. Milk Supply & Operational Stability (150 pts) ──────────────────────
+    const CAT2 = 'Milk Supply & Operational Stability';
+    const milkStab = calc.milk_stability_pct;
+    add(CAT2, 'Milk Stability %',
+        milkStab >= 90 ? 30 : milkStab >= 80 ? 24 : milkStab >= 70 ? 18 : milkStab >= 60 ? 10 : 0,
+        30, '(Lowest Monthly / Avg Monthly) × 100', milkStab.toFixed(1) + '%');
+    const dayStab = calc.days_stability_pct;
+    add(CAT2, 'Days Stability %',
+        dayStab >= 95 ? 20 : dayStab >= 85 ? 15 : dayStab >= 75 ? 10 : dayStab >= 65 ? 5 : 0,
+        20, '(Collection Days / 365) × 100', dayStab.toFixed(1) + '%');
+    const mLoss = calc.milk_loss_pct;
+    add(CAT2, 'Milk Loss %',
+        mLoss <= 2 ? 20 : mLoss <= 5 ? 16 : mLoss <= 8 ? 10 : mLoss <= 12 ? 5 : 0,
+        20, '(Total Milk Loss / Total Collected) × 100', mLoss.toFixed(2) + '%');
+    const yLoss = calc.yield_loss_pct;
+    add(CAT2, 'Yield Loss %',
+        yLoss <= 2 ? 20 : yLoss <= 5 ? 15 : yLoss <= 8 ? 10 : yLoss <= 12 ? 5 : 0,
+        20, '(Total Milk Loss / Produced Milk) × 100', yLoss.toFixed(2) + '%');
+    const fConc = calc.farmer_concentration_pct;
+    add(CAT2, 'Farmer Concentration %',
+        fConc <= 20 ? 15 : fConc <= 35 ? 12 : fConc <= 50 ? 8 : fConc <= 70 ? 4 : 0,
+        15, '(Top 5 Farmer Collection / Total Milk) × 100', fConc.toFixed(1) + '%');
+    const colStab = calc.collection_stability;
+    add(CAT2, 'Collection Stability',
+        colStab >= 0.15 ? 15 : colStab >= 0.10 ? 12 : colStab >= 0.05 ? 8 : colStab >= 0.01 ? 4 : 0,
+        15, 'Total Milk Collected / Total Member Loans', colStab.toFixed(4));
+    const payFair = calc.payment_fairness;
+    add(CAT2, 'Payment Fairness',
+        payFair >= 0.85 ? 15 : payFair >= 0.70 ? 12 : payFair >= 0.55 ? 8 : payFair >= 0.40 ? 4 : 0,
+        15, '1 − (Max DPD / 30)', (payFair * 100).toFixed(1) + '%');
+    // Logistics: sheet C13 = Data!D38 = fleet_availability_percent
+    add(CAT2, 'Logistics Reliability',
+        calc.logistics_reliability === 'Yes' ? 15 : 0,
+        15, 'Fleet / Vehicle Availability', calc.logistics_reliability || 'No');
 
-    // 3. Financial Strength (150 pts)
-    const nw = data.total_net_worth;
-    add('Financial Strength','Net Worth',
-        nw>=20000000?35:nw>=10000000?25:nw>=5000000?15:8,
-        35,'Total Equity (NPR)',fmtNPR(nw));
-    const de = calc.debtEquityRatio;
-    add('Financial Strength','Debt / Equity Ratio',
-        de<=0.5?32:de<=1.0?24:de<=1.5?16:8,
-        32,'Total Liabilities / Net Worth',de.toFixed(2)+'x');
-    const cr = calc.currentRatio;
-    add('Financial Strength','Current Ratio',
-        cr>=2.0?30:cr>=1.5?22:cr>=1.0?15:7,
-        30,'Current Assets / Current Liab.',cr.toFixed(2)+'x');
-    const gd = calc.grantDependencyPct;
-    add('Financial Strength','Grant Dependency',
-        gd<=5?20:gd<=15?15:gd<=25?10:5,
-        20,'Grant Income / Total Revenue',gd.toFixed(1)+'%');
-    const cashImproving = data.cash_last_year > data.cash_prev_year;
-    const cashFlat      = data.cash_last_year === data.cash_prev_year;
-    add('Financial Strength','Cash Trend (YoY)',
-        cashImproving?25:cashFlat?18:8,
-        25,'Last Year vs. Previous Year',
-        cashImproving?'Improving ↑':cashFlat?'Stable →':'Declining ↓');
-    const auditObs = data.audit_observations;
-    add('Financial Strength','Audit Observations',
-        auditObs===0?8:auditObs<=3?6:auditObs<=6?3:1,
-        8,'Number of Issues',auditObs+' issues');
+    // ── 3. Financial Strength & Liquidity (180 pts) ───────────────────────────
+    const CAT3 = 'Financial Strength & Liquidity';
+    // Net Worth: sheet IF(nw > total_loan*2, 40, IF(nw > total_loan, 30, IF(nw>0, 15, 0)))
+    const nw = calc.net_worth;
+    add(CAT3, 'Net Worth',
+        nw > data.total_loan * 2 ? 40 : nw > data.total_loan ? 30 : nw > 0 ? 15 : 0,
+        40, 'Total Assets − Total Liabilities vs Total Loan', fmtNPR(nw));
+    const de = calc.debt_equity;
+    add(CAT3, 'Debt / Equity',
+        de <= 0.5 ? 40 : de <= 1 ? 32 : de <= 2 ? 20 : de <= 3 ? 10 : 0,
+        40, 'Total Debt / Net Worth', de.toFixed(2) + 'x');
+    const cr = calc.current_ratio;
+    add(CAT3, 'Current Ratio',
+        cr >= 2 ? 40 : cr >= 1.5 ? 30 : cr >= 1 ? 20 : cr >= 0.5 ? 10 : 0,
+        40, 'Current Assets / Current Liabilities', cr.toFixed(2) + 'x');
+    const gPct = calc.grant_pct;
+    add(CAT3, 'Grant % of Revenue',
+        gPct <= 0.02 ? 30 : gPct <= 0.05 ? 15 : gPct <= 0.10 ? 10 : 0,
+        30, 'Grant Income / Total Revenue', (gPct * 100).toFixed(1) + '%');
+    add(CAT3, 'Cash / Bank Balance Trend',
+        data.cash_trend === 'UP' ? 30 : data.cash_trend === 'STABLE' ? 15 : 0,
+        30, 'Last Year vs Previous Year Balance', data.cash_trend || 'STABLE');
 
-    // 4. Buyer Quality (45 pts)
-    const bSales = calc.bankSalesPct;
-    add('Buyer Quality','Bank Sales %',
-        bSales>=80?25:bSales>=50?18:bSales>=30?12:6,
-        25,'Sales via Bank / Total Sales',bSales.toFixed(1)+'%');
-    const top5Pct = data.top5_buyer_pct;
-    add('Buyer Quality','Top 5 Buyer Concentration',
-        top5Pct<=30?20:top5Pct<=50?14:8,
-        20,'Top 5 Buyers / Total Sales',top5Pct.toFixed(1)+'%');
+    // ── 4. Financial Transparency & Cash Discipline (50 pts) ──────────────────
+    const CAT4 = 'Financial Transparency & Cash Discipline';
+    const bPct = calc.bank_sales_pct;
+    add(CAT4, '% Sales via Bank',
+        bPct > 80 ? 25 : bPct > 50 ? 15 : 0,
+        25, 'Bank Sales / Total Revenue × 100', bPct.toFixed(1) + '%');
+    add(CAT4, 'Digital MIS / POS / QR',
+        data.digital_mis_flag === 'Yes' ? 25 : 0,
+        25, 'MIS/POS/QR Adoption', data.digital_mis_flag || 'No');
 
-    // 5. Loan Recovery (100 pts)
-    const gnpa = calc.gNPA;
-    add('Loan Recovery','Member GNPA %',
-        gnpa<=2?45:gnpa<=5?35:gnpa<=10?25:10,
-        45,'NPA Loans / Total Member Loans',gnpa.toFixed(1)+'%');
-    const dpd = data.max_dpd_members;
-    add('Loan Recovery','Max DPD (Members)',
-        dpd<=30?35:dpd<=60?25:15,
-        35,'Days Past Due',dpd+' days');
-    const rsMap = {'None':20,'Few Times':12,'Frequently':5};
-    add('Loan Recovery','Loan Restructuring History',
-        rsMap[data.restructured_loans_3yr]||5,
-        20,'Past 3 Years',data.restructured_loans_3yr||'N/A');
+    // ── 5. Loan Recovery & Member Credit Risk (100 pts) ───────────────────────
+    const CAT5 = 'Loan Recovery & Member Credit Risk';
+    const gnpa = calc.member_gnpa_pct;
+    add(CAT5, 'Member GNPA %',
+        gnpa <= 0.05 ? 45 : gnpa <= 0.10 ? 35 : gnpa <= 0.15 ? 25 : gnpa <= 0.20 ? 15 : 0,
+        45, 'NPA Member Loans / Total Member Loans', (gnpa * 100).toFixed(1) + '%');
+    const dpd = data.max_dpd_days;
+    add(CAT5, 'Max DPD (Members)',
+        dpd <= 5 ? 35 : dpd <= 10 ? 25 : dpd <= 15 ? 15 : 0,
+        35, 'Maximum Days Past Due (Member Loans)', dpd + ' days');
+    const rst = data.restructured_loans_past3yrs;
+    add(CAT5, 'Loan Restructuring History',
+        rst === 'None' || rst === 'Never' ? 20 : rst === 'Few Times' ? 15 : 0,
+        20, 'Restructured Loans (Past 3 Years)', rst || 'N/A');
 
-    // 6. Security (40 pts)
-    const priColl = calc.primaryCollateralCoverage;
-    add('Security','Primary Collateral Coverage',
-        clamp(Math.round(priColl*40),0,40),
-        40,'Land Value / Proposed Loan',priColl.toFixed(2)+'x');
+    // ── 6. Management & Governance Quality (100 pts) ──────────────────────────
+    const CAT6 = 'Management & Governance Quality';
+    const mExp = data.key_mgmt_avg_experience_years;
+    add(CAT6, 'Management Experience',
+        mExp >= 10 ? 25 : mExp >= 7 ? 15 : mExp >= 5 ? 10 : 0,
+        25, 'Avg Years in Management Role', mExp + ' yrs');
+    // internal_control_score: new=string ('Robust'/'Adequate'/'Weak'), old=numeric
+    const icStr = data.internal_control_str || data.internal_control_score || '';
+    const icScore = String(icStr).includes('Robust') || icStr === '85' ? 25
+        : String(icStr).includes('Adequate') || String(icStr).includes('Moderate') || icStr === '65' ? 10 : 0;
+    add(CAT6, 'Internal Controls',
+        icScore, 25, 'Internal Control Assessment', icStr || 'N/A');
+    // audit_findings_count: new=string dropdown ('None'/'Few'/'Qualified'), old=numeric
+    const afStr = data.audit_findings_str || data.audit_findings_count || '';
+    const afScore = afStr === 'None' || afStr === '0' || afStr === 'none' ? 25
+        : afStr === 'Few' || afStr === '1' || afStr === 'few' ? 15 : 0;
+    add(CAT6, 'Audit Findings',
+        afScore, 25, 'Number of Audit Observations', afStr || 'N/A');
+    add(CAT6, 'Lending Policy Compliance',
+        data.lending_policy_compliance_flag === 'Yes' ? 25 : 0,
+        25, 'Loan Policy Adherence', data.lending_policy_compliance_flag || 'No');
 
-    // 7. Governance (80 pts)
-    const mExp = data.mgmt_experience;
-    add('Governance','Management Experience',
-        mExp>=10?20:mExp>=5?12:6,
-        20,'Years in Role',mExp+' yrs');
-    const ic = data.internal_control_score;
-    add('Governance','Internal Controls',
-        ic>=80?20:ic>=60?14:ic>=40?8:4,
-        20,'Control Score (0–100)',ic);
-    const ao = data.audit_observations;
-    add('Governance','Audit Findings',
-        ao===0?20:ao<=3?14:ao<=6?8:4,
-        20,'Number of Observations',ao+' obs.');
-    add('Governance','Loan Policy Compliance',
-        data.loan_policy_compliance==='Yes'?20:0,
-        20,'Policy Adherence',data.loan_policy_compliance||'N/A');
+    // ── 7. Operational Quality (40 pts) ───────────────────────────────────────
+    const CAT7 = 'Operational Quality';
+    // Quality SOP: sheet string match on full dropdown value
+    const sopRaw = String(data.quality_sop_numeric || data.quality_sop_score_model_b || '');
+    const sopScore = sopRaw.includes('Standards and documents exist') ? 40
+        : sopRaw.includes('Standards exist, no documents') ? 30
+        : sopRaw.includes('No standards') ? 20 : 0;
+    add(CAT7, 'Quality SOP Compliance',
+        sopScore, 40, 'Milk Collection / Handling Standards & Documentation', sopRaw || 'N/A');
 
-    // 8. External Risk (55 pts)
-    add('External Risk','Insurance Coverage',
-        data.insurance_available==='Yes'?15:0,
-        15,'Insurance Available',data.insurance_available||'N/A');
-    const regScore = data.regulatory_compliance==='Yes'?20
-        :data.regulatory_compliance==='Partial'?10:0;
-    add('External Risk','Regulatory Compliance',
-        regScore,20,'Compliance Level',data.regulatory_compliance||'N/A');
-    const cr2 = safeNum(data.climatic_risk_score);
-    add('External Risk','Climatic Risk',
-        cr2<=3?20:cr2<=6?12:5,
-        20,'Risk Score (1=Low, 10=High)',cr2+'/10');
+    // ── 8. External & Regulatory Risk (40 pts) ────────────────────────────────
+    const CAT8 = 'External & Regulatory Risk';
+    add(CAT8, 'Insurance Coverage',
+        data.insurance_coverage_flag === 'Yes' ? 10 : 0,
+        10, 'Insurance Available', data.insurance_coverage_flag || 'No');
+    // Regulatory: DropdownOptions values are "Full"/"Partial"/"None"
+    const reg = data.regulatory_compliance_flag;
+    add(CAT8, 'Regulatory Compliance',
+        reg === 'Full' || reg === 'Yes' ? 15 : reg === 'Partial' ? 5 : 0,
+        15, 'Darta, Tax, NRB Reporting Compliance', reg || 'No');
+    // Climatic: handle string ('Low'/'Medium'/'High') and old numeric (2/5/8)
+    const climRaw = data.climatic_risk_str || data.climatic_risk_score || '';
+    const climScore = climRaw === 'Low'    || climRaw === '2' ? 15
+        : climRaw === 'Medium' || climRaw === '5' ? 10 : 0;
+    add(CAT8, 'Climatic / Input Risk',
+        climScore, 15, 'Climatic / Input Risk Level', climRaw || 'N/A');
 
-    // 9. Credit History (40 pts)
-    const isNewCust = (data.customer_type==='new');
-    const bfiMap = {'Pass':20,'Watch List':14,'Substandard':8,'Doubtful':4,'Loss':0};
-    let creditScore = bfiMap[data.credit_history_bfi]!==undefined?bfiMap[data.credit_history_bfi]:5;
-    if (isNewCust) creditScore = 20;
-    add('Credit History','BFI Credit Classification',
-        creditScore,20,
-        isNewCust?'New Customer (Full Points)':'BFI Loan Record',
-        isNewCust?'N/A (New Customer)':data.credit_history_bfi||'N/A');
-    let dpdScoreBfi = data.max_dpd_bfi<=0?20:data.max_dpd_bfi<=5?16:data.max_dpd_bfi<=15?10:4;
-    if (isNewCust) dpdScoreBfi = 20;
-    add('Credit History','Max DPD (BFI Loan)',
-        dpdScoreBfi,20,
-        isNewCust?'New Customer (Full Points)':'Days Past Due (BFI)',
-        isNewCust?'N/A (New Customer)':data.max_dpd_bfi+' days');
+    // ── 9. Credit History / Banking Behaviour (40 pts) ────────────────────────
+    const CAT9 = 'Credit History / Banking Behaviour';
+    const isNew = (data.customer_type === 'new');
+    const chMap = { 'Pass': 20, 'Watch List': 15, 'Watchlist': 15, 'Substandard': 10, 'Doubtful': 4, 'Loss': 0 };
+    const chScore = isNew ? 20 : (chMap[data.credit_history_banks] !== undefined ? chMap[data.credit_history_banks] : 5);
+    add(CAT9, 'Credit History (BFI)',
+        chScore, 20,
+        isNew ? 'New Customer — Full Points' : 'BFI Loan Classification',
+        isNew ? 'New Customer' : data.credit_history_banks || 'N/A');
+    const bfiDpd   = data.dpd_days_banks;
+    const dpdScore = isNew ? 20 : bfiDpd <= 5 ? 20 : bfiDpd <= 10 ? 15 : bfiDpd <= 15 ? 10 : 0;
+    add(CAT9, 'Max DPD (BFI Loan)',
+        dpdScore, 20,
+        isNew ? 'New Customer — Full Points' : 'Days Past Due on Bank Loan',
+        isNew ? 'New Customer' : bfiDpd + ' days');
 
-    // 10. Infrastructure (25 pts)
-    const misMap = {'Yes':15,'Partial':8,'No':0};
-    add('Infrastructure','Digital MIS / POS',
-        misMap[data.digital_mis_pos]!==undefined?misMap[data.digital_mis_pos]:0,
-        15,'MIS/POS Adoption',data.digital_mis_pos||'N/A');
-    const sop = data.quality_sop_score;
-    add('Infrastructure','Quality SOP Score',
-        sop>=80?10:sop>=60?6:sop>=40?3:0,
-        10,'SOP/Quality Score (0–100)',sop+'/100');
+    // ── 10. Buyer Concentration & Market Risk (80 pts) ────────────────────────
+    const CAT10 = 'Buyer Concentration & Market Risk';
+    const t5 = data.top5_buyer_conc_pct || data.top5_buyer_share_percent || 0;
+    add(CAT10, 'Top 5 Buyer Concentration %',
+        t5 <= 20 ? 25 : t5 <= 30 ? 20 : t5 <= 40 ? 15 : t5 <= 50 ? 10 : 5,
+        25, 'Top 5 Buyer Sales / Total Revenue × 100', Number(t5).toFixed(1) + '%');
+    const lb = data.largest_buyer_conc_pct || data.largest_buyer_share_percent || 0;
+    add(CAT10, 'Largest Buyer Concentration %',
+        lb <= 20 ? 25 : lb <= 30 ? 20 : lb <= 40 ? 15 : lb <= 50 ? 10 : 5,
+        25, 'Largest Buyer Sales / Total Revenue × 100', Number(lb).toFixed(1) + '%');
+    const sbsPct = data.stable_buyer_share_pct !== undefined
+        ? data.stable_buyer_share_pct
+        : (data.stable_buyer_share_frac !== undefined ? data.stable_buyer_share_frac * 100 : 0);
+    add(CAT10, 'Stable Buyer Share %',
+        sbsPct >= 60 ? 10 : sbsPct >= 40 ? 5 : 0,
+        10, '(Govt + Large Private Buyers) / Total Buyers × 100', Number(sbsPct).toFixed(1) + '%');
+    const ccFrac = data.contract_score_frac || 0;
+    add(CAT10, 'Contract Coverage %',
+        ccFrac >= 0.80 ? 10 : ccFrac >= 0.50 ? 5 : 0,
+        10, 'Buyers Under Contract / Total Buyers', (ccFrac * 100).toFixed(1) + '%');
+    const ps = data.payment_score_frac || 0;
+    add(CAT10, 'Buyer Payment Score',
+        ps >= 0.90 ? 10 : ps >= 0.80 ? 9 : ps >= 0.70 ? 7 : ps >= 0.50 ? 5 : 0,
+        10, '1 − (Avg Payment Days / 90)', (ps * 100).toFixed(1) + '%');
 
-    // 11. Behavioral (75 pts)
-    const meetMap = {'Weekly':10,'Bi-Weekly':8,'Monthly':6,'Rarely':2};
-    add('Behavioral','Committee Meetings',
-        meetMap[data.meeting_frequency]||2,
-        10,'Meeting Frequency',data.meeting_frequency||'N/A');
-    const commMap = {'Significant':10,'Moderate':6,'Minimal':2};
-    add('Behavioral','Community Support',
-        commMap[data.community_support_level]||2,
-        10,'Community Engagement Level',data.community_support_level||'N/A');
-    const emgMap = {'Proper Plan':10,'Ad-hoc':5,'No Plan':0};
-    add('Behavioral','Emergency Preparedness',
-        emgMap[data.emergency_response]||0,
-        10,'Emergency Response Plan',data.emergency_response||'N/A');
-    const yrs = data.years_operation;
-    add('Behavioral','Years in Operation',
-        yrs>=10?20:yrs>=5?14:yrs>=2?8:3,
-        20,'Operational Tenure',yrs+' yrs');
-    const auditFreqMap = {'Regularly':25,'Occasionally':15,'Never':0};
-    add('Behavioral','Financial Audit Frequency',
-        auditFreqMap[data.income_expense_checked]!==undefined?auditFreqMap[data.income_expense_checked]:0,
-        25,'Audit Regularity',data.income_expense_checked||'N/A');
+    // ── 11. Behavioural & Due Diligence Risk (40 pts, 8 × 5 pts) ─────────────
+    const CAT11 = 'Behavioural & Due Diligence Risk';
 
-    // Assemble — exclude 'Security' from displayed categories
-    // Collateral score still contributes to totalScore but not shown as a category card
-    const HIDDEN_CATEGORIES = new Set(['Security']);
-    const categories = Object.entries(catMap)
-        .filter(([name]) => !HIDDEN_CATEGORIES.has(name))
-        .map(([name, d]) => ({
+    // Committee: "Weekly"→5, "Monthly"→2.5, "Quarterly"→1.5, "Annually"→1
+    const meetFreq = data.meeting_frequency || '';
+    add(CAT11, 'Committee Meeting Frequency',
+        meetFreq === 'Weekly'    ? 5
+        : meetFreq === 'Monthly'   ? 2.5
+        : meetFreq === 'Quarterly' ? 1.5
+        : meetFreq === 'Annually'  ? 1 : 0,
+        5, 'Committee Meeting Regularity', meetFreq || 'N/A');
+
+    // Member Info Transparency
+    const transMap = { 'Always': 5, 'Mostly': 2.5, 'Sometimes': 1.5, 'Decided among few': 1 };
+    const mitVal = data.member_info_transparency || '';
+    add(CAT11, 'Member Info Transparency',
+        transMap[mitVal] !== undefined ? transMap[mitVal] : 0,
+        5, 'Transparency with Members on Plans', mitVal || 'N/A');
+
+    // Fund Utilization: case-insensitive to handle "Buying Milk"/"Buying milk"/"members"/"Members"
+    const fu = (data.fund_usage || '').toLowerCase();
+    add(CAT11, 'Fund Utilization Transparency',
+        fu.includes('buying') ? 5
+        : fu === 'processing' ? 2.5
+        : fu === 'members'    ? 1.5
+        : fu.includes('other') || fu.includes('1 area') ? 1 : 0,
+        5, 'Primary Fund Usage Category', data.fund_usage || 'N/A');
+
+    // KYC/AML
+    const kycMap = { 'Easily Found': 5, 'Mostly': 2.5, 'Sometimes': 1.5, 'Hard': 1 };
+    const kycVal = data.kyc_aml || '';
+    add(CAT11, 'Member KYC Compliance',
+        kycMap[kycVal] !== undefined ? kycMap[kycVal] : 0,
+        5, 'Member Records Accessibility', kycVal || 'N/A');
+
+    // Financial Oversight
+    const fovMap = { 'Regularly': 5, 'Occasionally': 2.5, 'Once': 1.5, 'Never': 0 };
+    const fovVal = data.income_expense_checked || '';
+    add(CAT11, 'Financial Oversight',
+        fovMap[fovVal] !== undefined ? fovMap[fovVal] : 0,
+        5, 'Income/Expense Verification Frequency', fovVal || 'N/A');
+
+    // Governance Communication: case-insensitive (sheet "Always beforehand", portal "Always Beforehand")
+    const gc = (data.right_to_information || '').toLowerCase();
+    add(CAT11, 'Governance Communication',
+        gc.startsWith('always')       ? 5
+        : gc.startsWith('mostly')      ? 2.5
+        : gc.startsWith('sometimes')   ? 1.5
+        : gc.startsWith('only after')  ? 1 : 0,
+        5, 'Member Notification Before New Rules', data.right_to_information || 'N/A');
+
+    // Stakeholder Engagement: "Frequently"/"Sometimes"/"Never"
+    const stakVal = data.community_support_level || '';
+    add(CAT11, 'Stakeholder Engagement',
+        stakVal === 'Frequently' ? 5
+        : stakVal === 'Sometimes'  ? 2.5
+        : stakVal === 'Never'      ? 1.5 : 0,
+        5, 'Community Support Level', stakVal || 'N/A');
+
+    // Emergency Preparedness: "Proper Plan"/"Normal"/"Little Preparation"/"Nothing"
+    const emgVal = data.emergency_response || '';
+    add(CAT11, 'Emergency Preparedness',
+        emgVal === 'Proper Plan'         ? 5
+        : emgVal === 'Normal'              ? 2.5
+        : emgVal === 'Little Preparation' ? 1.5
+        : emgVal === 'Nothing'            ? 0 : 0,
+        5, 'Emergency / Low-Milk Response Plan', emgVal || 'N/A');
+
+    // ── Assemble ──────────────────────────────────────────────────────────────
+    const categories = Object.entries(catMap).map(([name, d]) => ({
         name,
-        score: Math.round(d.score),
-        max: d.max,
-        logs: indicators.filter(i => i.cat === name)
+        score: Math.round(d.score * 10) / 10,
+        max:   d.max,
+        logs:  indicators.filter(i => i.cat === name)
     }));
 
     const rawTotal   = indicators.reduce((s, i) => s + i.score, 0);
-    const rawMax     = indicators.reduce((s, i) => s + i.max, 0);
+    const rawMax     = indicators.reduce((s, i) => s + i.max,   0);
     const totalScore = Math.min(Math.round(rawTotal), 1000);
 
     const strengths  = [];
     const weaknesses = [];
     const focus      = [];
-
     indicators.forEach(ind => {
         const p = ind.max > 0 ? (ind.score / ind.max) * 100 : 0;
-        if (p >= 85) strengths.push(`${ind.name}: ${ind.value} (${ind.score}/${ind.max} pts)`);
+        if (p >= 85)               strengths.push(`${ind.name}: ${ind.value} (${ind.score}/${ind.max} pts)`);
         if (p <= 35 && ind.max > 0) weaknesses.push(`${ind.name}: ${ind.value} (${ind.score}/${ind.max} pts)`);
-        if (p > 35 && p < 65) focus.push(`${ind.name}: ${ind.value} — room for improvement`);
+        if (p > 35 && p < 65)       focus.push(`${ind.name}: ${ind.value} — room for improvement`);
     });
 
     let riskCategory, recommendation;
     if (totalScore >= 850) {
-        riskCategory   = 'A Risk';
-        recommendation = 'Exceptional financial health, stable milk operations, and strong governance. Full approval on standard terms recommended.';
+        riskCategory   = 'A Risk — Acceptable';
+        recommendation = 'The cooperative demonstrates exceptional financial health, stable milk operations, and strong governance. Full approval on standard terms is recommended.';
     } else if (totalScore >= 700) {
-        riskCategory   = 'B Risk';
-        recommendation = 'Solid performance with manageable weaknesses. Approval with standard monitoring and normal collateral terms recommended.';
+        riskCategory   = 'B Risk — Moderate';
+        recommendation = 'The cooperative shows solid performance with manageable weaknesses. Approval with standard monitoring and normal collateral terms is recommended.';
     } else if (totalScore >= 500) {
-        riskCategory   = 'C Risk';
-        recommendation = 'Elevated risk in key areas. Conditional approval may proceed with enhanced monitoring, additional collateral, or a reduced loan amount.';
+        riskCategory   = 'C Risk — Elevated';
+        recommendation = 'Elevated risk detected in key areas. Conditional approval may proceed with enhanced monitoring, additional collateral, or a reduced loan amount.';
     } else {
-        riskCategory   = 'D Risk';
-        recommendation = 'Significant structural weaknesses identified. Decline or defer until key financial and operational metrics improve.';
+        riskCategory   = 'D Risk — High';
+        recommendation = 'Significant structural weaknesses identified. The application should be declined or deferred until key financial and operational metrics improve substantially.';
     }
 
     return {
         totalScore, rawTotal: Math.round(rawTotal), rawMax,
-        riskCategory, recommendation,
-        categories,
+        riskCategory, recommendation, categories,
+        metrics: {
+            dscr:           calc.dscr,
+            current_ratio:  calc.current_ratio_raw,
+            debt_equity:    calc.debt_equity_raw,
+            gnpa_pct:       calc.gnpa_pct_raw,          // already a percentage
+            milk_loss_pct:  calc.milk_loss_pct_raw,
+            bank_sales_pct: calc.bank_sales_pct_raw,
+            seasonality:    calc.seasonality_raw
+        },
+        data: {
+            total_revenue:     data.total_revenue,
+            total_assets:      data.total_assets,
+            total_liabilities: data.total_liabilities,
+            total_networth:    data.total_networth,
+            total_loan:        data.total_loan,
+            proposed_loan_amt: data.proposed_loan_amt
+        },
         logs: indicators.map(i => ({
             name: i.name, category: i.cat, value: i.value,
-            score: Math.round(i.score), max: i.max, formula: i.formula
+            score: Math.round(i.score * 10) / 10, max: i.max, formula: i.formula
         })),
         strengths:  strengths.slice(0, 8),
         weaknesses: weaknesses.slice(0, 8),
-        focus:      focus.slice(0, 6),
-        // Expose metrics for approver panel
-        metrics: {
-            dscr:             calc.dscr_raw,
-            current_ratio:    calc.current_ratio,
-            debt_equity:      calc.debt_equity,
-            gnpa_pct:         calc.gnpa_pct,
-            milk_loss_pct:    calc.milk_loss_pct,
-            collateral_cover: calc.collateral_cover
-        },
-        data: {
-            total_revenue:      data.total_revenue,
-            total_assets:       data.total_assets,
-            total_liabilities:  data.total_liabilities,
-            net_worth:          data.total_net_worth
-        }
+        focus:      focus.slice(0, 6)
     };
 }
 
 // ── Pipeline Orchestrator ─────────────────────────────────────────────────────
 
 /**
- * Re-run the full scoring engine from saved answers JSON.
- * Called by the admin panel when opening a submission.
- * @param {Object} answers - The parsed answers object from the sheet
- * @returns {Object} - Full result with categories, strengths, weaknesses, metrics
+ * Run the full scoring engine from saved answers JSON.
+ * @param {Object} answers - Flat key-value answers object (old or new field IDs)
+ * @returns {Object}       - Full result with categories, strengths, weaknesses, metrics
  */
 function runScoringEngine(answers) {
     const data    = transformData(answers);
-    const metrics = runCalculations(data);
-    return runModel(metrics, data);
+    const calc    = runCalculations(data);
+    return runModel(calc, data);
 }

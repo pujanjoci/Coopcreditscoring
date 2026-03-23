@@ -1,24 +1,24 @@
 /**
  * Credit Scoring Portal — script.js
  *
- * CHANGES from previous version:
- *   - Config is NEVER restored from localStorage on page load
- *   - localStorage config key is cleared on every fresh load
- *   - URL hash is cleared on load so #questions can't bypass config
- *   - hashchange guard prevents navigating to questions without config
- *   - saveConfig() uses sessionStorage only (survives tab navigation but not reload)
- *   - applyRestoredConfigUI() is kept as no-op for compatibility
+ * FIXES:
+ *   1. model_type and customer_type are now ALWAYS injected into the answers
+ *      object before submission — they were silently missing because formHandler.js
+ *      marks model_type as ALWAYS_HIDDEN and collectFormInputs() skips hidden inputs.
+ *   2. submitToGAS() now sends a separate top-level `modelLabel` field so the
+ *      Google Sheet can store it in a dedicated "Model" column without parsing JSON.
+ *   3. JSON strings sent to GAS are never CSV-split because GAS appendRow() handles
+ *      them correctly — but we now double-check that the payload is well-formed.
  *
  * Load order (enforced by index.html):
- *   1. js/utils.js
- *   2. js/engine/dataTransform.js
- *   3. js/engine/calculations.js
- *   4. js/engine/model.js
- *   5. js/engine/scoringEngine.js
- *   6. js/questions.js
- *   7. js/ui/loadingModal.js
- *   8. js/ui/formHandler.js
- *   9. script.js
+ *   1. js/engine/scoringEngine.js  (shared utils + auto-calc triggers + orchestrator)
+ *   2. js/engine/dataTransform.js  (Data Sheet layer)
+ *   3. js/engine/calculations.js   (Calculations Sheet layer)
+ *   4. js/engine/model.js          (Model/scoring layer)
+ *   5. js/questions.js             (questionnaire definition)
+ *   6. js/ui/loadingModal.js       (loading overlay)
+ *   7. js/ui/formHandler.js        (form render + validation)
+ *   8. script.js                   (app controller — this file)
  */
 
 // ── Global State ──────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ const state = {
 const VALID_ROUTES = ['config', 'questions'];
 const STORAGE_KEY  = 'coop_portal_config';
 
-const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz9PodwguDEr4EWEMKlN-Lu566k13970kXXQlMp9rwEsgpni7gQz-dALRlnB9q5Fht22g/exec';
+const GOOGLE_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUJid9Q7bePYbSwnmNsbuUohAIDGeCfCz31V6j7pOLr2C8PnjwaDFW2l47VstJfv56Kw/exec';
 
 const SCORE_TIERS = [
     { min: 0,   max: 499,  label: 'D Risk', riskClass: 'high-risk',  color: '#b91c1c', bg: '#fee2e2' },
@@ -51,10 +51,10 @@ function getTier(score) {
 document.addEventListener('DOMContentLoaded', () => {
     showLoading('Loading questionnaire…');
 
-    // ── KEY CHANGE: always wipe saved config so page starts fresh ──
+    // Always wipe saved config so page starts fresh
     localStorage.removeItem(STORAGE_KEY);
 
-    // ── KEY CHANGE: strip any hash so #questions can't auto-navigate ──
+    // Strip any hash so #questions can't auto-navigate
     if (window.location.hash) {
         history.replaceState(null, '', window.location.pathname);
     }
@@ -65,17 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         state.questionnaire = q;
 
-        // Do NOT restore config — always start clean
-        // applyRestoredConfigUI() is a no-op kept for compat
-
         if (window.lucide) lucide.createIcons();
 
-        // Always route to config on fresh load
         navigateTo('config', false);
 
         window.addEventListener('hashchange', () => {
             const h = window.location.hash.replace('#', '') || 'config';
-            // Guard: never jump to questions unless config is complete
             if (h === 'questions' && !(state.modelType && state.customerType)) {
                 history.replaceState(null, '', window.location.pathname);
                 navigateTo('config', false);
@@ -104,11 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Persist / Restore ─────────────────────────────────────────────────────────
 
-/**
- * Save config to sessionStorage only.
- * sessionStorage survives tab navigation but is wiped on page reload/close —
- * so config is never remembered across fresh loads.
- */
 function saveConfig() {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
         modelType:         state.modelType,
@@ -117,10 +107,6 @@ function saveConfig() {
     }));
 }
 
-/**
- * Kept for compatibility — config is never restored on load.
- * Returns false always so calling code skips restoration.
- */
 function restoreConfig() {
     return false;
 }
@@ -146,10 +132,9 @@ function navigateTo(sectionId, pushHash = true) {
     const target = document.getElementById(sectionId);
     if (target) target.classList.remove('hidden');
 
-    // Lazily render questionnaire on first navigate-to-questions
     if (sectionId === 'questions' && state.questionnaire && !state._questionnaireRendered) {
         renderQuestionnaire(state.questionnaire, state.modelType);
-        applyRestoredConfigUI(); // no-op but kept for compat
+        applyRestoredConfigUI();
         state._questionnaireRendered = true;
     }
 
@@ -166,6 +151,7 @@ function setCoopType(type) {
     document.querySelectorAll('input[name="coop_type"]').forEach(el => {
         el.closest('.radio-card').classList.toggle('selected', el.value === type);
     });
+    // Write the human-readable label into the hidden model_type input
     const modelEl = document.getElementById('model_type');
     if (modelEl) {
         modelEl.disabled = false;
@@ -203,7 +189,6 @@ function checkConfigComplete() {
 
 /**
  * No-op — config is never restored on page load.
- * Kept so formHandler.js can call it without errors.
  */
 function applyRestoredConfigUI() {}
 
@@ -219,15 +204,25 @@ function handleCalculateClick() {
     setTimeout(() => {
         try {
             const inputs = collectFormInputs();
+
+            // ── FIX 1: Always inject config values into answers ──────────────
+            // collectFormInputs() reads the DOM but model_type is in ALWAYS_HIDDEN_IDS
+            // (formHandler.js) so it is never rendered as an input — we inject it here.
+            inputs.model_type    = state.modelType === 'collection'
+                ? 'Milk Collection Only (Model A)'
+                : 'Collection & Processing (Model B)';
             inputs.customer_type = state.customerType || 'new';
+
+            // Also write to the hidden DOM element so engine reads it too
+            const modelEl = document.getElementById('model_type');
+            if (modelEl) modelEl.value = inputs.model_type;
+
             const result = runScoringEngine(inputs);
             state.results = result;
 
-            // Save locally first so admin can see it immediately
             const localId = saveSubmissionLocally(inputs, result);
 
-            // Submit to GAS — returns the server-assigned Submission ID
-            submitToGAS(inputs, result).then(function(gasId) {
+            submitToGAS(inputs, result, localId).then(function(gasId) {
                 hideLoading();
                 showSuccessScreen(result, gasId || localId);
             }).catch(function() {
@@ -281,7 +276,8 @@ function saveSubmissionLocally(inputs, result) {
         const KEY  = 'coop_submissions';
         const all  = JSON.parse(localStorage.getItem(KEY) || '[]');
         const coopNameEl = document.getElementById('coop_name');
-        const localId = Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+        const _h = () => Math.floor(Math.random()*0xFFFFFFFF).toString(16).toUpperCase().padStart(8,'0');
+        const localId = 'SUB-' + _h().slice(0,8) + '-' + _h().slice(0,3);
         const submission = {
             id:             localId,
             submittedAt:    new Date().toISOString(),
@@ -307,7 +303,7 @@ function saveSubmissionLocally(inputs, result) {
 }
 
 // ── Submit to GAS ─────────────────────────────────────────────────────────────
-async function submitToGAS(answers, result) {
+async function submitToGAS(answers, result, submissionId) {
     if (!GOOGLE_WEB_APP_URL) {
         console.info('[Submission] GOOGLE_WEB_APP_URL not set — skipping submission.');
         return null;
@@ -315,27 +311,75 @@ async function submitToGAS(answers, result) {
 
     showLoading('Submitting data…', 'Saving, Please wait...');
     try {
+        // ── FIX 2: Send modelLabel as a separate top-level field ─────────────
+        // This lets GAS write it to its own "Model" column without JSON parsing.
+        const modelLabel = state.modelType === 'collection'
+            ? 'Collection Only (Model A)'
+            : 'Collection & Processing (Model B)';
+
         const payload = {
-            action:    'submitAnswers',
-            answers,
-            score:     result.totalScore,
-            riskTier:  result.riskCategory,
-            timestamp: new Date().toISOString()
+            action:     'submitAnswers',
+            submissionId: submissionId,
+            answers,                    // includes model_type + customer_type (injected above)
+            score:      result.totalScore,
+            riskTier:   result.riskCategory,
+            modelLabel,                 // ← NEW: plain string for its own sheet column
+            timestamp:  new Date().toISOString(),
+            resultBreakdown: {
+                totalScore:     result.totalScore,
+                rawTotal:       result.rawTotal,
+                riskCategory:   result.riskCategory,
+                recommendation: result.recommendation,
+                categories: (result.categories || []).map(c => ({
+                    name:  c.name,
+                    score: c.score,
+                    max:   c.max,
+                    logs:  c.logs || []
+                })),
+                indicators: result.indicators  || [],
+                metrics:    result.metrics     || {},
+                strengths:  result.strengths   || [],
+                weaknesses: result.weaknesses  || [],
+                focus:      result.focus       || []
+            }
         };
-        const r = await fetch(GOOGLE_WEB_APP_URL, {
-            method:   'POST',
-            headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
-            body:     JSON.stringify(payload),
-            redirect: 'follow'
-        });
+
+        // ── FIX 3: Verify JSON is valid before sending ───────────────────────
+        // JSON.stringify can silently produce truncated output on circular refs.
+        // Re-parse to catch any serialisation errors before they reach GAS.
+        const bodyStr = JSON.stringify(payload);
+        JSON.parse(bodyStr); // throws if malformed
+
+        // GAS redirects via echo?user_content_key=… causing ERR_CONNECTION_CLOSED.
+        // redirect:'manual' catches this as type='opaqueredirect' — treat as success
+        // and return the client-generated submissionId sent in the payload.
+        const controller = new AbortController();
+        const _timer = setTimeout(() => controller.abort(), 15000);
+        let r;
+        try {
+            r = await fetch(GOOGLE_WEB_APP_URL, {
+                method:   'POST',
+                headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
+                body:     bodyStr,
+                redirect: 'manual',
+                signal:   controller.signal
+            });
+        } finally {
+            clearTimeout(_timer);
+        }
+        if (r.type === 'opaqueredirect' || r.status === 0) {
+            showToast('Data submitted successfully.', 'success');
+            return submissionId;
+        }
         const text = await r.text();
         if (text.trim().startsWith('<')) throw new Error('GAS returned HTML — check deploy settings.');
         const data = JSON.parse(text);
         if (data.success) {
             showToast('Data submitted successfully.', 'success');
-            return data.submissionId || null;
+            return data.submissionId || submissionId;
         } else {
             showToast('Submission warning: ' + (data.error || 'unknown'), 'warn');
+            return submissionId;
         }
     } catch (err) {
         console.warn('[Submission] Failed:', err.message);

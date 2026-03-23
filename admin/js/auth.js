@@ -26,7 +26,7 @@
  */
 
 // ── GAS Backend URL ──────────────────────────────────────────────────────────
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9PodwguDEr4EWEMKlN-Lu566k13970kXXQlMp9rwEsgpni7gQz-dALRlnB9q5Fht22g/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUJid9Q7bePYbSwnmNsbuUohAIDGeCfCz31V6j7pOLr2C8PnjwaDFW2l47VstJfv56Kw/exec';
 
 // ── Session Config ────────────────────────────────────────────────────────────
 const SESSION_KEY        = 'adminSession';
@@ -123,6 +123,7 @@ async function login(email, password) {
             const session = {
                 token:      generateSessionToken(),
                 email:      email.trim().toLowerCase(),
+                username:   data.username || '',
                 role:       data.role || 'admin',
                 loginAt:    Date.now(),
                 lastActive: Date.now()
@@ -286,4 +287,5 @@ function _dismissSessionWarning() {
     if (!sessionStorage.getItem('adminAuth'))  sessionStorage.setItem('adminAuth',  s.token);
     if (!sessionStorage.getItem('adminRole'))  sessionStorage.setItem('adminRole',  s.role);
     if (!sessionStorage.getItem('adminEmail')) sessionStorage.setItem('adminEmail', s.email);
+    if (!sessionStorage.getItem('adminUsername')) sessionStorage.setItem('adminUsername', s.username || '');
 })();

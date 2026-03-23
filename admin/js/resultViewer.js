@@ -32,6 +32,7 @@ function renderResultViewer(sub) {
         : '—');
 
     renderRVCategoryCards(result);
+    renderRVSubIndicators(result);
     renderRVAnalysis('rv_strengths', result.strengths  || []);
     renderRVAnalysis('rv_concerns',  result.weaknesses || []);
     renderRVAnalysis('rv_focus',     result.focus      || []);
@@ -77,6 +78,204 @@ function renderRVCategoryCards(result) {
                 <span style="font-size:10px;color:${bc};font-weight:700">${p}%</span>
             </div>`;
     }).join('');
+}
+
+// ── Sub-Indicators Section ────────────────────────────────────────────────────
+
+function renderRVSubIndicators(result) {
+    const container = document.getElementById('rv_subcat_section');
+    if (!container) return;
+
+    const cats = result.categories || [];
+    if (!cats.length) {
+        container.innerHTML = '';
+        return;
+    }
+
+    // Inject styles once
+    if (!document.getElementById('_rv_sub_style')) {
+        const s = document.createElement('style');
+        s.id = '_rv_sub_style';
+        s.textContent = `
+            .rv-sub-panel {
+                border: 1px solid var(--rule-light, #e8e8e8);
+                border-radius: 9px;
+                margin-bottom: 8px;
+                overflow: hidden;
+                background: var(--surface-0, #fff);
+            }
+            .rv-sub-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 11px 14px;
+                cursor: pointer;
+                user-select: none;
+                transition: background 0.15s;
+            }
+            .rv-sub-header:hover { background: var(--surface-1, #f7f7f7); }
+            .rv-sub-cat-name {
+                flex: 1;
+                font-size: 12.5px;
+                font-weight: 700;
+                color: var(--ink-2, #1a1a1a);
+            }
+            .rv-sub-score-pill {
+                font-size: 11px;
+                font-weight: 700;
+                padding: 2px 9px;
+                border-radius: 99px;
+                border: 1.5px solid currentColor;
+            }
+            .rv-sub-pct-label {
+                font-size: 10.5px;
+                font-weight: 600;
+                min-width: 34px;
+                text-align: right;
+            }
+            .rv-sub-chevron {
+                width: 14px; height: 14px;
+                flex-shrink: 0;
+                color: var(--ink-5, #6b6b6b);
+                transition: transform 0.2s;
+            }
+            .rv-sub-header.open .rv-sub-chevron { transform: rotate(180deg); }
+            .rv-sub-progress-wrap {
+                flex: 1;
+                max-width: 90px;
+            }
+            .rv-sub-progress-bg {
+                height: 5px;
+                border-radius: 3px;
+                background: rgba(0,0,0,0.07);
+                overflow: hidden;
+            }
+            .rv-sub-progress-fill { height: 100%; border-radius: 3px; }
+
+            .rv-sub-body {
+                display: none;
+                border-top: 1px solid var(--rule-light, #e8e8e8);
+            }
+            .rv-sub-body.open { display: block; }
+
+            .rv-sub-row {
+                display: grid;
+                grid-template-columns: 1fr auto 70px auto;
+                align-items: center;
+                gap: 10px;
+                padding: 9px 16px;
+                border-bottom: 1px solid var(--rule-light, #e8e8e8);
+            }
+            .rv-sub-row:last-child { border-bottom: none; }
+            .rv-sub-row:hover { background: var(--surface-1, #f7f7f7); }
+
+            .rv-sub-ind-name {
+                font-size: 11.5px;
+                font-weight: 600;
+                color: var(--ink-2, #1a1a1a);
+            }
+            .rv-sub-ind-formula {
+                font-size: 9.5px;
+                color: var(--ink-5, #6b6b6b);
+                margin-top: 1px;
+                font-style: italic;
+            }
+            .rv-sub-ind-val {
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--ink-3, #2e2e2e);
+                text-align: right;
+                white-space: nowrap;
+            }
+            .rv-sub-bar-col {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .rv-sub-bar-bg2 {
+                flex: 1;
+                height: 5px;
+                border-radius: 3px;
+                background: rgba(0,0,0,0.07);
+                overflow: hidden;
+                min-width: 40px;
+            }
+            .rv-sub-bar-fill2 { height: 100%; border-radius: 3px; }
+            .rv-sub-pts {
+                font-size: 11px;
+                font-weight: 800;
+                white-space: nowrap;
+                text-align: right;
+            }
+            .rv-sub-pts span { font-weight: 400; opacity: 0.55; }
+
+            @media (max-width: 600px) {
+                .rv-sub-row { grid-template-columns: 1fr auto; gap: 6px; }
+                .rv-sub-bar-col { display: none; }
+            }
+        `;
+        document.head.appendChild(s);
+    }
+
+    const chevronSvg = `<svg class="rv-sub-chevron" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M6 9l6 6 6-6"/>
+    </svg>`;
+
+    container.innerHTML = cats.map(function(cat, idx) {
+        const p    = cat.max > 0 ? Math.round((cat.score / cat.max) * 100) : 0;
+        const col  = p >= 70 ? '#16a34a' : p >= 40 ? '#d97706' : '#dc2626';
+        const subs = cat.logs || [];
+        const panelId = 'rvsp_' + idx;
+
+        const rows = subs.map(function(ind) {
+            const ip   = ind.max > 0 ? Math.round((ind.score / ind.max) * 100) : 0;
+            const ic   = ip >= 70 ? '#16a34a' : ip >= 40 ? '#d97706' : '#dc2626';
+            const fill = Math.min(100, ind.max > 0 ? (ind.score / ind.max) * 100 : 0);
+            return `
+            <div class="rv-sub-row">
+                <div>
+                    <div class="rv-sub-ind-name">${ind.name}</div>
+                    <div class="rv-sub-ind-formula">${ind.formula || ''}</div>
+                </div>
+                <div class="rv-sub-ind-val">${ind.value || '—'}</div>
+                <div class="rv-sub-bar-col">
+                    <div class="rv-sub-bar-bg2">
+                        <div class="rv-sub-bar-fill2" style="width:${fill}%;background:${ic}"></div>
+                    </div>
+                </div>
+                <div class="rv-sub-pts" style="color:${ic}">
+                    ${ind.score}<span>/${ind.max}</span>
+                </div>
+            </div>`;
+        }).join('');
+
+        return `
+        <div class="rv-sub-panel">
+            <div class="rv-sub-header" id="${panelId}_hdr" onclick="toggleRVSubPanel('${panelId}')">
+                <div class="rv-sub-cat-name">${cat.name}</div>
+                <div class="rv-sub-progress-wrap">
+                    <div class="rv-sub-progress-bg">
+                        <div class="rv-sub-progress-fill" style="width:${p}%;background:${col}"></div>
+                    </div>
+                </div>
+                <span class="rv-sub-score-pill" style="color:${col}">${cat.score}/${cat.max}</span>
+                <span class="rv-sub-pct-label" style="color:${col}">${p}%</span>
+                ${chevronSvg}
+            </div>
+            <div class="rv-sub-body" id="${panelId}_body">
+                ${rows}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleRVSubPanel(panelId) {
+    const hdr  = document.getElementById(panelId + '_hdr');
+    const body = document.getElementById(panelId + '_body');
+    if (!hdr || !body) return;
+    const isOpen = body.classList.toggle('open');
+    hdr.classList.toggle('open', isOpen);
 }
 
 // ── Analysis Lists ────────────────────────────────────────────────────────────

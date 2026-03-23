@@ -259,93 +259,9 @@ function collectFormInputs() {
 }
 
 // ── Auto-Calc Functions ───────────────────────────────────────────────────────
-
-function calculateTotalLoan() {
-    const existing  = safeNum(document.getElementById('existing_loan')?.value);
-    const proposed  = safeNum(document.getElementById('proposed_loan')?.value);
-    _setHidden('total_loan', existing + proposed);
-}
-
-function calculateRevenue() {
-    const milk     = safeNum(document.getElementById('milk_sales')?.value);
-    const other    = safeNum(document.getElementById('other_product_sales')?.value);
-    const otherInc = safeNum(document.getElementById('other_income')?.value);
-    const grant    = safeNum(document.getElementById('grant_income')?.value);
-    const sales    = milk + other + otherInc;
-    const revenue  = sales + grant;
-    _setHidden('total_sales',   sales);
-    _setHidden('total_revenue', revenue);
-}
-
-function calculateBuyerShares() {
-    const totalSalesEl = document.getElementById('total_sales');
-    const totalSales   = safeNum(totalSalesEl?.value) || (() => {
-        // Fallback: recalculate if total_sales hidden field not yet set
-        return safeNum(document.getElementById('milk_sales')?.value)
-             + safeNum(document.getElementById('other_product_sales')?.value)
-             + safeNum(document.getElementById('other_income')?.value);
-    })();
-
-    const top5    = safeNum(document.getElementById('top5_buyers_sales')?.value);
-    const largest = safeNum(document.getElementById('largest_buyer_sales')?.value);
-
-    _setHidden('top5_buyer_pct',    totalSales > 0 ? round2((top5    / totalSales) * 100) : 0);
-    _setHidden('largest_buyer_pct', totalSales > 0 ? round2((largest / totalSales) * 100) : 0);
-}
-
-function calculateExpenses() {
-    const ids = [
-        'raw_milk_cost', 'processing_cost', 'packaging_cost', 'transport_cost',
-        'other_processing_cost', 'salary_expense', 'admin_expense',
-        'electricity_expense', 'fuel_expense', 'repair_expense',
-        'rent_expense', 'other_opex'
-    ];
-    const total = ids.reduce((sum, id) => sum + safeNum(document.getElementById(id)?.value), 0);
-    _setHidden('total_opex', total);
-}
-
-function calculateAssets() {
-    const cashHand  = safeNum(document.getElementById('cash_hand')?.value);
-    const bankBal   = safeNum(document.getElementById('bank_balance')?.value);
-    const totalCash = cashHand + bankBal;
-    _setHidden('total_cash', totalCash);
-
-    const currentIds = ['accounts_receivable', 'inventory_value', 'prepaid_expenses', 'other_current_assets'];
-    const totalCurrent = totalCash + currentIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
-    _setHidden('total_current_assets', totalCurrent);
-
-    const fixedIds = ['land_value', 'building_value', 'machinery_value', 'vehicle_value', 'furniture_value', 'other_fixed_assets'];
-    const totalFixed = fixedIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
-    _setHidden('total_fixed_assets', totalFixed);
-    _setHidden('total_assets', totalCurrent + totalFixed);
-}
-
-function calculateLiabilities() {
-    const currentIds = ['accounts_payable', 'short_term_loan', 'accrued_expenses', 'current_ltd'];
-    const totalCurrent = currentIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
-    _setHidden('total_current_liabilities', totalCurrent);
-
-    const ltlIds = ['long_term_loan', 'other_ltl'];
-    const totalLTL = ltlIds.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
-    _setHidden('total_long_term_liabilities', totalLTL);
-    _setHidden('total_liabilities', totalCurrent + totalLTL);
-}
-
-function calculateNetWorth() {
-    const ids = ['paid_up_capital', 'retained_earnings', 'reserve_fund'];
-    const total = ids.reduce((s, id) => s + safeNum(document.getElementById(id)?.value), 0);
-    _setHidden('total_net_worth', total);
-}
-
-function calculateMilkMetrics() {
-    const collected = safeNum(document.getElementById('total_milk_collected')?.value);
-    const milkLoss  = safeNum(document.getElementById('milk_loss')?.value);
-    const procLoss  = safeNum(document.getElementById('processing_loss')?.value);
-    _setHidden('total_milk_sold', Math.max(0, collected - milkLoss - procLoss));
-
-    const farmers = safeNum(document.getElementById('total_farmers')?.value);
-    _setHidden('avg_milk_per_farmer', farmers > 0 ? round2(collected / farmers) : 0);
-}
+// scoringEngine.js (loaded before this file) defines all calculateXxx() functions
+// with the correct new field IDs. This file does NOT redefine them.
+// _runAllCalcs() calls them directly.
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -355,16 +271,17 @@ function _setHidden(id, value) {
     if (el) el.value = value;
 }
 
-/** Run all auto-calc functions once (called after render) */
+/** Run all auto-calc functions once (called after render).
+ *  These are defined in scoringEngine.js with correct new field IDs. */
 function _runAllCalcs() {
-    calculateTotalLoan();
-    calculateRevenue();
-    calculateBuyerShares();
-    calculateExpenses();
-    calculateAssets();
-    calculateLiabilities();
-    calculateNetWorth();
-    calculateMilkMetrics();
+    if (typeof calculateTotalLoan    === 'function') calculateTotalLoan();
+    if (typeof calculateRevenue      === 'function') calculateRevenue();
+    if (typeof calculateBuyerShares  === 'function') calculateBuyerShares();
+    if (typeof calculateExpenses     === 'function') calculateExpenses();
+    if (typeof calculateAssets       === 'function') calculateAssets();
+    if (typeof calculateLiabilities  === 'function') calculateLiabilities();
+    if (typeof calculateNetWorth     === 'function') calculateNetWorth();
+    if (typeof calculateMilkMetrics  === 'function') calculateMilkMetrics();
 }
 
 /** Stub — kept for script.js compatibility */

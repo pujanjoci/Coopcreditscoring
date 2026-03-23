@@ -49,18 +49,19 @@ function renderApproverMetrics(sub) {
     const data    = result.data    || {};
 
     const rows = [
-        ['Proposed Loan',       _fmtNPR(answers.proposed_loan)],
-        ['Total Loan',          _fmtNPR(answers.total_loan          || data.total_loan)],
-        ['Total Revenue',       _fmtNPR(data.total_revenue          || answers.total_revenue)],
-        ['Total Assets',        _fmtNPR(data.total_assets           || answers.total_assets)],
-        ['Total Liabilities',   _fmtNPR(data.total_liabilities      || answers.total_liabilities)],
-        ['Net Worth / Equity',  _fmtNPR(data.net_worth              || answers.net_worth)],
-        ['DSCR',                metrics.dscr           != null ? metrics.dscr.toFixed(2)           : '—'],
-        ['Current Ratio',       metrics.current_ratio  != null ? metrics.current_ratio.toFixed(2)  : '—'],
-        ['Debt / Equity',       metrics.debt_equity    != null ? metrics.debt_equity.toFixed(2)    : '—'],
-        ['GNPA %',              metrics.gnpa_pct       != null ? metrics.gnpa_pct.toFixed(1)  + '%': '—'],
-        ['Milk Loss %',         metrics.milk_loss_pct  != null ? metrics.milk_loss_pct.toFixed(1) + '%' : '—'],
-        ['Collateral Coverage', metrics.collateral_cover != null ? metrics.collateral_cover.toFixed(2) + 'x' : '—'],
+        ['Proposed Loan',       _fmtNPR(answers.proposed_loan_amt || answers.proposed_loan)],
+        ['Total Loan',          _fmtNPR(answers.total_loan        || data.total_loan)],
+        ['Total Revenue',       _fmtNPR(data.total_revenue        || answers.total_revenue)],
+        ['Total Assets',        _fmtNPR(data.total_assets         || answers.total_assets)],
+        ['Total Liabilities',   _fmtNPR(data.total_liabilities    || answers.total_liabilities)],
+        ['Net Worth / Equity',  _fmtNPR(data.total_networth       || data.net_worth || answers.total_networth)],
+        ['DSCR',                metrics.dscr          != null ? metrics.dscr.toFixed(2)          : '—'],
+        ['Current Ratio',       metrics.current_ratio != null ? metrics.current_ratio.toFixed(2) : '—'],
+        ['Debt / Equity',       metrics.debt_equity   != null ? metrics.debt_equity.toFixed(2)   : '—'],
+        ['GNPA %',              metrics.gnpa_pct      != null ? metrics.gnpa_pct.toFixed(1)      + '%' : '—'],
+        ['Milk Loss %',         metrics.milk_loss_pct != null ? metrics.milk_loss_pct.toFixed(1) + '%'    : '—'],
+        ['Bank Sales %',        metrics.bank_sales_pct!= null ? metrics.bank_sales_pct.toFixed(1) + '%'  : '—'],
+        ['Seasonality Coverage',metrics.seasonality   != null ? metrics.seasonality.toFixed(1) + ' mo'   : '—'],
     ].filter(function(r) { return r[1] && r[1] !== '—'; });
 
     const table = document.getElementById('ap_metrics_table');

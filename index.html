@@ -95,11 +95,20 @@
   </main>
 
 <!-- ===== MODULAR JAVASCRIPT ===== -->
-<script src="js/utils.js"></script>
+<!-- Load order is critical:
+     1. scoringEngine.js  — shared utils (safeNum, safeDivide, clamp, fmtNPR) + pipeline orchestrator + form auto-calc triggers
+     2. dataTransform.js  — Data Sheet layer   (uses safeNum, safeDivide)
+     3. calculations.js   — Calculations layer  (uses safeDivide)
+     4. model.js          — Model/scoring layer  (uses clamp, fmtNPR)
+     5. questions.js      — questionnaire definition
+     6. loadingModal.js   — UI modal
+     7. formHandler.js    — form render + validation
+     8. script.js         — app controller
+-->
+<script src="js/engine/scoringEngine.js"></script>
 <script src="js/engine/dataTransform.js"></script>
 <script src="js/engine/calculations.js"></script>
 <script src="js/engine/model.js"></script>
-<script src="js/engine/scoringEngine.js"></script>
 <script src="js/questions.js"></script>
 <script src="js/ui/loadingModal.js"></script>
 <script src="js/ui/formHandler.js"></script>

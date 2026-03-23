@@ -10,7 +10,7 @@
  */
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbz9PodwguDEr4EWEMKlN-Lu566k13970kXXQlMp9rwEsgpni7gQz-dALRlnB9q5Fht22g/exec';
+const ADMIN_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUJid9Q7bePYbSwnmNsbuUohAIDGeCfCz31V6j7pOLr2C8PnjwaDFW2l47VstJfv56Kw/exec';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let _currentAdminView = 'dashboard';
@@ -18,6 +18,13 @@ let _currentAdminView = 'dashboard';
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     if (window.lucide) lucide.createIcons();
+
+    // Unhide 'Add Admin' button if superadmin
+    const s = typeof getSession === 'function' ? getSession() : null;
+    if (s && s.role === 'superadmin') {
+        const addBtn = document.getElementById('btn_add_admin');
+        if (addBtn) addBtn.style.display = 'flex';
+    }
 
     // Fetch submissions before routing
     await fetchSubmissions();
@@ -214,4 +221,80 @@ function showAdminToast(message, type = '') {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function _cap(s) {
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+
+// ── Super Admin: Add Admin ────────────────────────────────────────────────────
+function openAddAdminModal() {
+    const modal = document.getElementById('add_admin_modal');
+    if (modal) modal.classList.add('active');
+    document.getElementById('addAdminForm').reset();
+    document.getElementById('new_admin_password').value = _generateSecurePassword();
+}
+
+function closeAddAdminModal() {
+    const modal = document.getElementById('add_admin_modal');
+    if (modal) modal.classList.remove('active');
+}
+
+function _generateSecurePassword() {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let pwd = "";
+    for (let i = 0; i < 16; i++) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pwd;
+}
+
+async function submitNewAdmin(e) {
+    e.preventDefault();
+    const btn       = document.getElementById('btn_submit_new_admin');
+    const btnLbl    = document.getElementById('btn_submit_new_admin_lbl');
+    const email     = document.getElementById('new_admin_email').value.trim();
+    const username  = document.getElementById('new_admin_username').value.trim();
+    const role      = document.getElementById('new_admin_role').value;
+    const password  = document.getElementById('new_admin_password').value;
+
+    if (!email || !username || !password) return;
+
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btnLbl.textContent = 'Creating...';
+
+    try {
+        const s = typeof getSession === 'function' ? getSession() : null;
+        if (!s || s.role !== 'superadmin') throw new Error("Unauthorized");
+
+        const hashedPw = typeof hashPassword === 'function' 
+            ? await hashPassword(password) 
+            : password;
+
+        const res = await fetch(ADMIN_GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'addAdmin',
+                requesterEmail: s.email,
+                newEmail: email,
+                newUsername: username,
+                newRole: role,
+                newPassword: hashedPw
+            }),
+            redirect: 'follow'
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            showAdminToast(`Successfully created ${role} account for ${email}`, 'success');
+            closeAddAdminModal();
+            prompt("User created successfully. Copy the temporary password below to share with them:", password);
+        } else {
+            showAdminToast(data.error || 'Failed to create user', 'error');
+        }
+    } catch (err) {
+        showAdminToast('Network error while adding admin', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btnLbl.textContent = 'Create Admin';
+    }
 }
